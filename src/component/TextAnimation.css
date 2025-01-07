@@ -1,0 +1,23 @@
+.text-animation-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    height: 100vh; /* 화면 전체 높이 */
+    background-color: #ffffff;
+}
+
+.text-wrapper {
+    position: absolute;
+    transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+    white-space: pre-line; /* 줄바꿈 유지 */
+    text-align: center; /* 텍스트 가운데 정렬 */
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.text-wrapper.slide-out {
+    transform: translateY(-100%); /* 텍스트가 위로 슬라이드 */
+    opacity: 0; /* 텍스트가 사라짐 */
+}
