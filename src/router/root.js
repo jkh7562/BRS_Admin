@@ -6,6 +6,7 @@ const Loading = <div>Loaging....</div>
 const LoginPage = lazy(() => import('../pages/LoginPage'))
 const SignupPage = lazy(() => import('../pages/SignupPage'))
 const FindIdPage = lazy(() => import('../pages/FindIdPage'))
+const FindPasswordPage = lazy(() => import('../pages/FindPasswordPage'))
 
 const root = createBrowserRouter([
     {
@@ -19,6 +20,10 @@ const root = createBrowserRouter([
     {
         path:"findid",
         element:<Suspense fallback={Loading}><FindIdPage/></Suspense>
+    },
+    {
+        path:"findpassword",
+        element:<Suspense fallback={Loading}><FindPasswordPage/></Suspense>
     }
 ]);
 export default root;

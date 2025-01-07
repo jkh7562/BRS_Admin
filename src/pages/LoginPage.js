@@ -40,7 +40,9 @@ const LoginPage = () => {
                         <Link to="/findid">
                             <button className="border rounded py-2 w-full">아이디 찾기</button>
                         </Link>
-                        <button className="border rounded py-2">비밀번호 찾기</button>
+                        <Link to="/findpassword">
+                            <button className="border rounded py-2 w-full">비밀번호 찾기</button>
+                        </Link>
                     </div>
                 </div>
             </div>
