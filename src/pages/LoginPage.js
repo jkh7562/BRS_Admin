@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom"; // React Router의 Link 컴포넌트 import
 import TextAnimation from "../component/TextAnimation"; // TextAnimation 컴포넌트 import
 
 const LoginPage = () => {
@@ -30,7 +31,9 @@ const LoginPage = () => {
 
                     {/* 버튼들 */}
                     <div className="grid grid-cols-2 gap-2 w-3/4">
-                        <button className="border rounded py-2">회원가입</button>
+                        <Link to="/signup">
+                            <button className="border rounded py-2 w-full">회원가입</button>
+                        </Link>
                         <button className="border rounded py-2">로그인</button>
                     </div>
                     <div className="grid grid-cols-2 gap-2 w-3/4">
