@@ -47,53 +47,35 @@ const SignupPage = () => {
                         </div>
 
                         {/* 아이디 입력 */}
-                        <div className="w-full flex items-center space-x-4">
-                            <div className="flex-grow">
-                                <label className="text-sm font-medium mb-1 block">아이디</label>
+                        <div className="w-full">
+                            <label className="text-sm font-medium mb-1 block">아이디</label>
+                            <div className="flex items-center space-x-2">
                                 <input
                                     type="text"
-                                    className="border rounded px-4 py-2 w-full"
+                                    className="border rounded px-4 py-2 flex-grow"
                                 />
+                                <button className="border rounded px-4 py-2 text-sm bg-blue-500 text-white hover:bg-blue-600">
+                                    중복체크
+                                </button>
                             </div>
-                            <button className="border rounded px-4 py-2 text-sm bg-blue-500 text-white hover:bg-blue-600">
-                                중복체크
-                            </button>
                         </div>
 
                         {/* 비밀번호 입력 */}
-                        <div className="w-full flex items-center space-x-4">
-                            <div className="flex-grow">
-                                <label className="text-sm font-medium mb-1 block">비밀번호</label>
-                                <input
-                                    type={passwordVisible ? "text" : "password"}
-                                    className="border rounded px-4 py-2 w-full"
-                                />
-                            </div>
-                            <button
-                                onClick={() => setPasswordVisible(!passwordVisible)}
-                                className="border rounded px-4 py-2 text-sm"
-                            >
-                                {passwordVisible ? "숨기기" : "보기"}
-                            </button>
+                        <div className="w-full">
+                            <label className="text-sm font-medium mb-1 block">비밀번호</label>
+                            <input
+                                type={passwordVisible ? "text" : "password"}
+                                className="border rounded px-4 py-2 w-full"
+                            />
                         </div>
 
                         {/* 비밀번호 확인 입력 */}
-                        <div className="w-full flex items-center space-x-4">
-                            <div className="flex-grow">
-                                <label className="text-sm font-medium mb-1 block">비밀번호 확인</label>
-                                <input
-                                    type={confirmPasswordVisible ? "text" : "password"}
-                                    className="border rounded px-4 py-2 w-full"
-                                />
-                            </div>
-                            <button
-                                onClick={() =>
-                                    setConfirmPasswordVisible(!confirmPasswordVisible)
-                                }
-                                className="border rounded px-4 py-2 text-sm"
-                            >
-                                {confirmPasswordVisible ? "숨기기" : "보기"}
-                            </button>
+                        <div className="w-full">
+                            <label className="text-sm font-medium mb-1 block">비밀번호 확인</label>
+                            <input
+                                type={confirmPasswordVisible ? "text" : "password"}
+                                className="border rounded px-4 py-2 w-full"
+                            />
                         </div>
 
                         {/* 가입하기 버튼 */}
