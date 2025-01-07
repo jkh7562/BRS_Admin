@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom"; // React Router의 Link 컴포넌트 import
 import SpringbootLogo from "../assets/Springboot.png";
 import MySQLLogo from "../assets/MySQL.png";
 import ReactLogo from "../assets/React.png";
@@ -51,7 +52,9 @@ const NavigationBar = () => {
             {/* 네비게이션 바 */}
             <div className="flex items-center px-4 py-2 bg-white shadow-md fixed top-0 left-0 w-full z-50">
                 <div className="flex items-center justify-start flex-none w-1/4">
-                    <button className="px-4 py-2 border rounded">로고</button>
+                    <Link to="/main">
+                        <button className="px-4 py-2 border rounded">로고</button>
+                    </Link>
                 </div>
 
                 <div className="flex justify-center flex-grow space-x-4">

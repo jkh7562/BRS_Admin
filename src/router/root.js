@@ -8,6 +8,8 @@ const SignupPage = lazy(() => import('../pages/SignupPage'))
 const FindIdPage = lazy(() => import('../pages/FindIdPage'))
 const FindPasswordPage = lazy(() => import('../pages/FindPasswordPage'))
 const MainPage = lazy(() => import('../pages/MainPage'))
+const CollectorPage = lazy(() => import('../pages/CollectorPage'))
+const UserPage = lazy(() => import('../pages/UserPage'))
 
 const root = createBrowserRouter([
     {
@@ -29,6 +31,14 @@ const root = createBrowserRouter([
     {
         path:"main",
         element:<Suspense fallback={Loading}><MainPage/></Suspense>
+    },
+    {
+        path:"collector",
+        element:<Suspense fallback={Loading}><CollectorPage/></Suspense>
+    },
+    {
+        path:"user",
+        element:<Suspense fallback={Loading}><UserPage/></Suspense>
     }
 ]);
 export default root;
