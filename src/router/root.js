@@ -5,6 +5,7 @@ const {createBrowserRouter} = require("react-router-dom");
 const Loading = <div>Loaging....</div>
 const LoginPage = lazy(() => import('../pages/LoginPage'))
 const SignupPage = lazy(() => import('../pages/SignupPage'))
+const FindIdPage = lazy(() => import('../pages/FindIdPage'))
 
 const root = createBrowserRouter([
     {
@@ -14,6 +15,10 @@ const root = createBrowserRouter([
     {
         path:"signup",
         element:<Suspense fallback={Loading}><SignupPage/></Suspense>
+    },
+    {
+        path:"findid",
+        element:<Suspense fallback={Loading}><FindIdPage/></Suspense>
     }
 ]);
 export default root;
