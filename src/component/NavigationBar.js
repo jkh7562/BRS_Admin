@@ -58,9 +58,15 @@ const NavigationBar = () => {
                 </div>
 
                 <div className="flex justify-center flex-grow space-x-4">
-                    <button className="px-4 py-2 border rounded">수거함 제어</button>
-                    <button className="px-4 py-2 border rounded">수거함 로그</button>
-                    <button className="px-4 py-2 border rounded">가입 코드 관리</button>
+                    <Link to="/control">
+                        <button className="px-4 py-2 border rounded">수거함 제어</button>
+                    </Link>
+                    <Link to="/log">
+                        <button className="px-4 py-2 border rounded">수거함 로그</button>
+                    </Link>
+                    <Link to="/membershipcode">
+                        <button className="px-4 py-2 border rounded">가입 코드 관리</button>
+                    </Link>
                 </div>
 
                 <div className="flex items-center justify-end flex-none w-1/4 space-x-6">
