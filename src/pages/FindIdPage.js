@@ -1,9 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom"; // useNavigate 가져오기
 import TextAnimation from "../component/TextAnimation"; // TextAnimation 컴포넌트 import
+import useFindId from "../hooks/useFindId"; // ✅ 아이디 찾기 훅 import
 
 const FindIdPage = () => {
     const navigate = useNavigate(); // 뒤로가기 버튼용 네비게이트 함수
+    const { formData, handleChange, handleFindId, userId, errorMessage } = useFindId();
 
     return (
         <div className="flex justify-center items-center h-screen w-screen bg-gray-100">
@@ -34,6 +36,9 @@ const FindIdPage = () => {
                             <input
                                 type="text"
                                 id="name"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
                                 className="border rounded px-4 py-2 w-full"
                             />
                         </div>
@@ -43,50 +48,32 @@ const FindIdPage = () => {
                             <label htmlFor="phone" className="block text-sm font-medium mb-1">
                                 전화번호
                             </label>
-                            <div className="flex space-x-2">
-                                <input
-                                    type="text"
-                                    id="phone"
-                                    className="flex-1 border rounded px-4 py-2"
-                                />
-                                <button
-                                    type="button"
-                                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                >
-                                    인증번호 발송
-                                </button>
-                            </div>
+                            <input
+                                type="text"
+                                id="phone"
+                                name="phoneNumber"
+                                value={formData.phoneNumber}
+                                onChange={handleChange}
+                                className="border rounded px-4 py-2 w-full"
+                            />
                         </div>
 
-                        {/* 인증번호 입력 */}
-                        <div className="w-full">
-                            <label htmlFor="code" className="block text-sm font-medium mb-1">
-                                인증번호
-                            </label>
-                            <div className="flex space-x-2">
-                                <input
-                                    type="text"
-                                    id="code"
-                                    className="flex-1 border rounded px-4 py-2"
-                                />
-                                <button
-                                    type="button"
-                                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-                                >
-                                    확인
-                                </button>
-                            </div>
-                        </div>
+                        {/* 에러 메시지 */}
+                        {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
 
-                        {/* 인증번호 재전송 버튼 */}
-                        <div className="w-full">
-                            <button
-                                type="button"
-                                className="w-full px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-                            >
-                                인증번호 재전송
-                            </button>
-                        </div>
+                        {/* 찾은 아이디 표시 */}
+                        {userId && (
+                            <p className="text-green-500 text-sm font-semibold">아이디: {userId}</p>
+                        )}
+
+                        {/* 아이디 찾기 버튼 */}
+                        <button
+                            type="button"
+                            onClick={handleFindId}
+                            className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                            아이디 찾기
+                        </button>
                     </div>
                 </div>
             </div>

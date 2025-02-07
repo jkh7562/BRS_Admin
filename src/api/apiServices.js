@@ -1,35 +1,60 @@
-import axios from "./axiosInstance";
+import axiosInstance from "./axiosInstance"; // ✅ axiosInstance import 추가
 
-//API 예시(회원가입)
-const postCreateNewUser = (id, password, username, phoneNum) => { //서버로 보낼 데이터
-    const formData = new FormData(); //폼데이터에 데이터들 넣어서 전송
-    formData.append('id', id);
-    formData.append('password', password);
-    formData.append('username', username);
-    formData.append('phoneNum', phoneNum);
+// 회원가입 API
+export const postCreateNewUser = (id, pw, name, phoneNumber) => {
+    return axiosInstance.post(`/join`, {
+        id,
+        pw,
+        name,
+        phoneNumber,
+    });
+};
 
-    return axios.post(`/signup`, formData) //해당 API로 폼데이터 전송
-}
+// 로그인 API (FormData 방식)
+export const loginUser = async (username, password) => {
+    const formData = new FormData();
+    formData.append("username", username);
+    formData.append("password", password);
 
-// 로그인 API 요청(예시)
-const login = async (email, password) => {
     try {
-        const response = await axiosInstance.post("/login", { email, password });
-        console.log("로그인 성공:", response.data);
-        return response.data;
+        const response = await axiosInstance.post("/login", formData, {
+            headers: { "Content-Type": "multipart/form-data" }, // ✅ FormData 전송을 위한 헤더
+        });
+        return response.data; // 서버 응답 (Success 또는 Fail)
     } catch (error) {
         console.error("로그인 실패:", error);
         throw error;
     }
 };
 
-// 사용자 데이터를 가져오는 API 요청(예시)
-const fetchUserData = async () => {
+// 아이디 찾기 API
+export const findUserId = async (name, phoneNumber) => {
     try {
-        const response = await axiosInstance.get("/user");
-        return response.data;
+        const response = await axiosInstance.post("/findId", {
+            name,
+            phoneNumber,
+        });
+
+        return response.data; // 서버 응답 (아이디 또는 "존재하지 않는 사용자입니다.")
     } catch (error) {
-        console.error("사용자 데이터 가져오기 실패:", error);
+        console.error("아이디 찾기 실패:", error);
+        throw error;
+    }
+};
+
+// 비밀번호 변경 API
+export const resetPassword = async (id, name, phoneNumber, newPassword) => {
+    try {
+        const response = await axiosInstance.post("/findPw", {
+            id,
+            name,
+            phoneNumber,
+            pw: newPassword, // 서버에서 pw 필드로 받음
+        });
+
+        return response.data; // 서버 응답 ("Success" 또는 "Fail")
+    } catch (error) {
+        console.error("비밀번호 변경 실패:", error);
         throw error;
     }
 };

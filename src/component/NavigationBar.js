@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom"; // React Router의 Link 컴포넌트 import
+import { Link, useNavigate } from "react-router-dom"; // React Router의 Link 컴포넌트 import
 import SpringbootLogo from "../assets/Springboot.png";
 import MySQLLogo from "../assets/MySQL.png";
 import ReactLogo from "../assets/React.png";
@@ -9,6 +9,7 @@ const NavigationBar = () => {
     const [isProfileSidebarOpen, setProfileSidebarOpen] = useState(false);
     const [isPasswordChangeOpen, setPasswordChangeOpen] = useState(false); // 비밀번호 변경 화면 상태
     const [activeDropdown, setActiveDropdown] = useState(null);
+    const navigate = useNavigate(); // ✅ 네비게이션 훅 사용
 
     const toggleNotificationSidebar = () => {
         setProfileSidebarOpen(false);
@@ -37,6 +38,7 @@ const NavigationBar = () => {
 
     const handleLogout = () => {
         console.log("로그아웃 처리");
+        navigate("/");
     };
 
     const handlePasswordChange = () => {
@@ -155,7 +157,7 @@ const NavigationBar = () => {
 
             {/* 알림 사이드바 */}
             <div
-                className={`fixed top-0 right-0 h-full bg-white shadow-lg w-80 transition-transform duration-300 ${
+                className={`fixed top-0 right-0 h-full bg-white shadow-lg w-80 transition-transform duration-300 z-10 ${
                     isNotificationSidebarOpen ? "translate-x-0" : "translate-x-full"
                 }`}
             >
@@ -184,7 +186,7 @@ const NavigationBar = () => {
 
             {/* 프로필 사이드바 */}
             <div
-                className={`fixed top-0 right-0 h-full bg-white shadow-lg w-80 transition-transform duration-300 ${
+                className={`fixed top-0 right-0 h-full bg-white shadow-lg w-80 transition-transform duration-300 z-10 ${
                     isProfileSidebarOpen ? "translate-x-0" : "translate-x-full"
                 }`}
             >
@@ -217,7 +219,7 @@ const NavigationBar = () => {
                             비밀번호 변경
                         </button>
                         <button
-                            onClick={handleLogout}
+                            onClick={handleLogout} // ✅ 클릭 시 /로 이동
                             className="mt-4 px-4 py-2 w-full bg-red-500 text-white rounded hover:bg-red-600"
                         >
                             로그아웃
@@ -228,7 +230,7 @@ const NavigationBar = () => {
 
             {/* 비밀번호 변경 화면 */}
             {isPasswordChangeOpen && (
-                <div className="fixed top-0 right-0 h-full bg-white shadow-lg w-80 transition-transform duration-300">
+                <div className="fixed top-0 right-0 h-full bg-white shadow-lg w-80 transition-transform duration-300 z-10 ">
                     <div className="p-6">
                         <h2 className="text-xl font-bold mb-6">비밀번호 변경</h2>
                         <div className="space-y-4">

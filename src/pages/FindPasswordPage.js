@@ -1,9 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom"; // useNavigate 가져오기
 import TextAnimation from "../component/TextAnimation"; // TextAnimation 컴포넌트 import
+import useResetPassword from "../hooks/useResetPassword"; // ✅ 비밀번호 찾기 훅 import
 
 const FindPasswordPage = () => {
     const navigate = useNavigate(); // 뒤로가기 버튼용 네비게이트 함수
+    const { formData, handleChange, handleResetPassword, message } = useResetPassword();
 
     return (
         <div className="flex justify-center items-center h-screen w-screen bg-gray-100">
@@ -16,7 +18,7 @@ const FindPasswordPage = () => {
                 <div className="flex flex-col justify-center items-center p-8 relative">
                     {/* 뒤로가기 버튼 */}
                     <button
-                        onClick={() => navigate("/")} // 뒤로가기 버튼 클릭 시 로그인 페이지로 이동
+                        onClick={() => navigate("/")}
                         className="absolute top-4 left-4 text-sm text-blue-500 hover:underline"
                     >
                         뒤로가기
@@ -34,6 +36,9 @@ const FindPasswordPage = () => {
                             <input
                                 type="text"
                                 id="name"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
                                 className="border rounded px-4 py-2 w-full"
                             />
                         </div>
@@ -46,6 +51,9 @@ const FindPasswordPage = () => {
                             <input
                                 type="text"
                                 id="id"
+                                name="id"
+                                value={formData.id}
+                                onChange={handleChange}
                                 className="border rounded px-4 py-2 w-full"
                             />
                         </div>
@@ -55,50 +63,42 @@ const FindPasswordPage = () => {
                             <label htmlFor="phone" className="block text-sm font-medium mb-1">
                                 전화번호
                             </label>
-                            <div className="flex space-x-2">
-                                <input
-                                    type="text"
-                                    id="phone"
-                                    className="flex-1 border rounded px-4 py-2"
-                                />
-                                <button
-                                    type="button"
-                                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                >
-                                    인증번호 발송
-                                </button>
-                            </div>
+                            <input
+                                type="text"
+                                id="phone"
+                                name="phoneNumber"
+                                value={formData.phoneNumber}
+                                onChange={handleChange}
+                                className="border rounded px-4 py-2 w-full"
+                            />
                         </div>
 
-                        {/* 인증번호 입력 */}
+                        {/* 새 비밀번호 입력 */}
                         <div className="w-full">
-                            <label htmlFor="code" className="block text-sm font-medium mb-1">
-                                인증번호
+                            <label htmlFor="newPassword" className="block text-sm font-medium mb-1">
+                                새 비밀번호
                             </label>
-                            <div className="flex space-x-2">
-                                <input
-                                    type="text"
-                                    id="code"
-                                    className="flex-1 border rounded px-4 py-2"
-                                />
-                                <button
-                                    type="button"
-                                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-                                >
-                                    확인
-                                </button>
-                            </div>
+                            <input
+                                type="password"
+                                id="newPassword"
+                                name="newPassword"
+                                value={formData.newPassword}
+                                onChange={handleChange}
+                                className="border rounded px-4 py-2 w-full"
+                            />
                         </div>
 
-                        {/* 인증번호 재전송 버튼 */}
-                        <div className="w-full">
-                            <button
-                                type="button"
-                                className="w-full px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-                            >
-                                인증번호 재전송
-                            </button>
-                        </div>
+                        {/* 에러 및 성공 메시지 */}
+                        {message && <p className="text-sm text-red-500">{message}</p>}
+
+                        {/* 비밀번호 변경 버튼 */}
+                        <button
+                            type="button"
+                            onClick={handleResetPassword}
+                            className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                            비밀번호 변경
+                        </button>
                     </div>
                 </div>
             </div>

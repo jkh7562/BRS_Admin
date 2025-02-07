@@ -1,8 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom"; // React Router의 Link 컴포넌트 import
 import TextAnimation from "../component/TextAnimation"; // TextAnimation 컴포넌트 import
+import useLogin from "../hooks/useLogin"; // ✅ 로그인 훅 import
 
 const LoginPage = () => {
+    const { formData, handleChange, handleLogin, errorMessage } = useLogin(); // ✅ 훅 사용
+
     return (
         <div className="flex justify-center items-center h-screen w-screen bg-gray-100">
             {/* 전체 화면을 좌우로 나누는 컨테이너 */}
@@ -17,25 +20,45 @@ const LoginPage = () => {
                         Image
                     </div>
 
-                    {/* 입력 필드 */}
-                    <input
-                        type="text"
-                        placeholder="ID"
-                        className="border rounded px-4 py-2 w-3/4"
-                    />
-                    <input
-                        type="password"
-                        placeholder="Password"
-                        className="border rounded px-4 py-2 w-3/4"
-                    />
+                    {/* 로그인 입력 폼 */}
+                    <form onSubmit={handleLogin} className="w-3/4 space-y-4">
+                        {/* 아이디 입력 */}
+                        <input
+                            type="text"
+                            name="username"
+                            value={formData.username}
+                            onChange={handleChange}
+                            placeholder="ID"
+                            className="border rounded px-4 py-2 w-full"
+                            required
+                        />
 
-                    {/* 버튼들 */}
-                    <div className="grid grid-cols-2 gap-2 w-3/4">
-                        <Link to="/signup">
-                            <button className="border rounded py-2 w-full">회원가입</button>
-                        </Link>
-                        <button className="border rounded py-2">로그인</button>
-                    </div>
+                        {/* 비밀번호 입력 */}
+                        <input
+                            type="password"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            placeholder="Password"
+                            className="border rounded px-4 py-2 w-full"
+                            required
+                        />
+
+                        {/* 에러 메시지 */}
+                        {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
+
+                        {/* 버튼들 */}
+                        <div className="grid grid-cols-2 gap-2">
+                            <Link to="/signup">
+                                <button className="border rounded py-2 w-full">회원가입</button>
+                            </Link>
+                            <button type="submit" className="border rounded py-2 bg-blue-500 text-white hover:bg-blue-600">
+                                로그인
+                            </button>
+                        </div>
+                    </form>
+
+                    {/* 아이디 / 비밀번호 찾기 */}
                     <div className="grid grid-cols-2 gap-2 w-3/4">
                         <Link to="/findid">
                             <button className="border rounded py-2 w-full">아이디 찾기</button>
