@@ -1,9 +1,10 @@
 import React from "react";
-import NavigationBar from "../component/NavigationBar"; // NavigationBar 컴포넌트 임포트
+import NavigationBar from "../component/NavigationBar";
+import { Map, MapMarker } from "react-kakao-maps-sdk"; // 카카오 지도 추가
 
 const MainPage = () => {
     return (
-        <div className="h-screen w-screen flex flex-col bg-gray-100">
+        <div className="min-h-screen w-screen flex flex-col bg-gray-100 pb-20"> {/* 💡 h-screen → min-h-screen, pb-20 추가 */}
             {/* 네비게이션 바 */}
             <NavigationBar />
 
@@ -27,8 +28,26 @@ const MainPage = () => {
                     </div>
                 </div>
 
+                {/* 🗺️ 카카오 지도 */}
+                <div className="px-0 mt-8 flex justify-center">
+                    <div className="w-7/8 bg-white shadow-md p-4 mb-8"> {/* 💡 mb-8로 그래프와 간격 추가 */}
+                        <p className="font-bold text-lg mb-4 text-left ml-4">지도</p>
+                        <Map
+                            center={{ lat: 36.800200, lng: 127.074958 }} // 💡 선문대학교 아산캠퍼스 좌표 적용
+                            style={{ width: "80vw", height: "500px" }} // 💡 화면 전체 너비 적용
+                            level={3} // 줌 레벨
+                        >
+                            {/* 마커 표시 */}
+                            {/*<MapMarker
+                                position={{ lat: 36.800200, lng: 127.074958 }}
+                                title="선문대학교 아산캠퍼스"
+                            />*/}
+                        </Map>
+                    </div>
+                </div>
+
                 {/* 그래프 영역 */}
-                <div className="flex justify-center px-4">
+                <div className="flex justify-center px-4 mt-8">
                     <div className="grid grid-cols-2 gap-4 w-3/4">
                         {/* 수거량 그래프 */}
                         <div className="bg-white shadow-md p-4">
@@ -59,7 +78,7 @@ const MainPage = () => {
                 </div>
 
                 {/* 회원 정보 */}
-                <div className="px-4">
+                <div className="px-4 mt-8">
                     <p className="font-bold text-lg mb-4 text-left ml-4">회원정보</p>
                     <div className="grid grid-cols-2 gap-4">
                         {/* 수거자 정보 */}
