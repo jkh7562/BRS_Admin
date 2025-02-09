@@ -1,13 +1,15 @@
 import React from "react";
 import NavigationBar from "../component/NavigationBar";
-import { Map } from "react-kakao-maps-sdk";
+import { Map, MapMarker } from "react-kakao-maps-sdk";
 import useGraph from "../hooks/useGraph";
-import useUsers from "../hooks/useUsers"; // ✅ 사용자 정보 훅 추가
+import useUsers from "../hooks/useUsers";
+import useBoxes from "../hooks/useBoxes"; // ✅ 박스 훅 추가
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const MainPage = () => {
     const { boxLogs, collectionData, disposalData, processChartData, collectionCount, disposalCount } = useGraph();
-    const { collectors, users, searchCollector, setSearchCollector, searchUser, setSearchUser } = useUsers(); // ✅ 사용자 훅 적용
+    const { collectors, users, searchCollector, setSearchCollector, searchUser, setSearchUser } = useUsers();
+    const { boxes, loading: boxLoading, error: boxError } = useBoxes(); // ✅ 박스 데이터 가져오기
 
     return (
         <div className="min-h-screen w-screen flex flex-col bg-gray-100 pb-20">
@@ -38,7 +40,24 @@ const MainPage = () => {
                 <div className="px-0 mt-8 flex justify-center">
                     <div className="w-7/8 bg-white shadow-md p-4 mb-8">
                         <p className="font-bold text-lg mb-4 text-left ml-4">지도</p>
-                        <Map center={{ lat: 36.800200, lng: 127.074958 }} style={{ width: "80vw", height: "500px" }} level={3} />
+                        {boxLoading ? (
+                            <p>⏳ 박스 데이터를 불러오는 중...</p>
+                        ) : boxError ? (
+                            <p>🚨 오류 발생: {boxError.message}</p>
+                        ) : (
+                            <Map
+                                center={{ lat: 36.800200, lng: 127.074958 }}
+                                style={{ width: "80vw", height: "500px" }}
+                                level={3}
+                            >
+                                {/* ✅ 박스 위치에 마커 추가 */}
+                                {boxes.map((box) => (
+                                    <MapMarker key={box.id} position={{ lat: box.lat, lng: box.lng }}>
+                                        <div style={{ padding: "5px", color: "#000" }}>{box.name}</div>
+                                    </MapMarker>
+                                ))}
+                            </Map>
+                        )}
                     </div>
                 </div>
 
@@ -89,7 +108,7 @@ const MainPage = () => {
                     </div>
                 </div>
 
-                {/* ✅ 회원 정보 섹션 추가 */}
+                {/* ✅ 회원 정보 섹션 (복원) */}
                 <div className="px-4 mt-8">
                     <p className="font-bold text-lg mb-4 text-left ml-4">회원정보</p>
                     <div className="grid grid-cols-2 gap-4">

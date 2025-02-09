@@ -84,3 +84,14 @@ export const findUserAll = async () => {
         throw error;
     }
 };
+
+// ✅ 모든 박스 정보 조회 API
+export const findAllBox = async () => { // ✅ Named export 유지
+    try {
+        const response = await axiosInstance.get("/admin/findAllBox"); // ✅ 올바른 API 경로 확인
+        return response.data;
+    } catch (error) {
+        console.error("🚨 박스 데이터 조회 실패:", error);
+        throw error;
+    }
+};
