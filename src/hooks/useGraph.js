@@ -1,30 +1,46 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getBoxLog } from "../api/apiServices";
 
 const useGraph = () => {
     const [boxLogs, setBoxLogs] = useState([]);
-    const [collectionCount, setCollectionCount] = useState(0);
-    const [disposalCount, setDisposalCount] = useState(0);
     const [collectionData, setCollectionData] = useState([]);
     const [disposalData, setDisposalData] = useState([]);
-    const [filterType, setFilterType] = useState("day"); // 기본 필터: 일별
+    const [collectionCount, setCollectionCount] = useState(0);
+    const [disposalCount, setDisposalCount] = useState(0);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const data = await getBoxLog();
-                console.log("📌 API 응답 데이터:", data); // 응답 데이터 확인
-                if (!Array.isArray(data)) {
-                    console.error("🚨 예상치 못한 데이터 형식:", data);
-                    return;
-                }
-
                 setBoxLogs(data);
+                processChartData(data, "day");
 
-                // ✅ 초기 데이터 변환 (일별 기준)
-                processChartData("day", data);
-                setCollectionCount(data.filter((log) => log.type === 0).length);
-                setDisposalCount(data.filter((log) => log.type === 1).length);
+                const today = new Date();
+                const todayString = today.toISOString().split("T")[0];
+
+                console.log("📌 오늘 날짜:", todayString);
+                console.log("📌 API 데이터:", data);
+
+                const todayLogs = data.filter((log) => {
+                    const logDate = new Date(log.boxLogId.date).toISOString().split("T")[0];
+                    return logDate === todayString;
+                });
+
+                console.log("📌 오늘 필터링된 로그:", todayLogs);
+
+                const todayCollection = todayLogs
+                    .filter((log) => log.type === 0)
+                    .reduce((sum, log) => sum + log.weight, 0);
+
+                const todayDisposal = todayLogs
+                    .filter((log) => log.type === 1)
+                    .reduce((sum, log) => sum + log.weight, 0);
+
+                console.log("📌 오늘 수거량:", todayCollection);
+                console.log("📌 오늘 배출량:", todayDisposal);
+
+                setCollectionCount(todayCollection);
+                setDisposalCount(todayDisposal);
             } catch (error) {
                 console.error("🚨 데이터 불러오기 실패:", error);
             }
@@ -33,25 +49,25 @@ const useGraph = () => {
         fetchData();
     }, []);
 
-    // ✅ 날짜별로 그룹화하는 함수
-    const processChartData = (type, inputData = boxLogs) => {
-        if (!Array.isArray(inputData)) {
-            console.error("🚨 processChartData: 입력 데이터가 배열이 아닙니다.", inputData);
+    // ✅ processChartData에 **데이터 인수 추가**
+    const processChartData = (data, type) => {
+        if (!Array.isArray(data)) {
+            console.error("❌ processChartData에 배열이 아닌 값이 전달됨:", data);
             return;
         }
 
         let groupedData = {};
 
-        inputData.forEach((log) => {
+        data.forEach((log) => {
             const date = new Date(log.boxLogId.date);
             let key;
 
             if (type === "day") {
-                key = date.toISOString().split("T")[0]; // YYYY-MM-DD
+                key = date.toISOString().split("T")[0];
             } else if (type === "month") {
-                key = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`; // YYYY-MM
+                key = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
             } else {
-                key = `${date.getFullYear()}`; // YYYY
+                key = `${date.getFullYear()}`;
             }
 
             if (!groupedData[key]) {
@@ -65,15 +81,14 @@ const useGraph = () => {
             }
         });
 
-        const chartData = Object.values(groupedData);
-        console.log(`📊 ${type} 기준 그래프 데이터:`, chartData);
+        // ✅ 날짜순 정렬
+        const chartData = Object.values(groupedData).sort((a, b) => new Date(a.date) - new Date(b.date));
 
         setCollectionData(chartData);
         setDisposalData(chartData);
-        setFilterType(type);
     };
 
-    return { collectionCount, disposalCount, collectionData, disposalData, processChartData };
+    return { boxLogs, collectionData, disposalData, processChartData, collectionCount, disposalCount };
 };
 
 export default useGraph;
