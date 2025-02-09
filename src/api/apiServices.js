@@ -73,3 +73,14 @@ export const getBoxLog = async () => {
         return null;
     }
 };
+
+// 수거자 및 분리자 전체 조회 API
+export const findUserAll = async () => {
+    try {
+        const response = await axiosInstance.get("/admin/findUserAll");
+        return response.data; // JSON 데이터 반환
+    } catch (error) {
+        console.error("🚨 사용자 조회 실패:", error);
+        throw error;
+    }
+};

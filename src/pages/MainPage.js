@@ -2,10 +2,12 @@ import React from "react";
 import NavigationBar from "../component/NavigationBar";
 import { Map } from "react-kakao-maps-sdk";
 import useGraph from "../hooks/useGraph";
+import useUsers from "../hooks/useUsers"; // ✅ 사용자 정보 훅 추가
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const MainPage = () => {
     const { boxLogs, collectionData, disposalData, processChartData, collectionCount, disposalCount } = useGraph();
+    const { collectors, users, searchCollector, setSearchCollector, searchUser, setSearchUser } = useUsers(); // ✅ 사용자 훅 적용
 
     return (
         <div className="min-h-screen w-screen flex flex-col bg-gray-100 pb-20">
@@ -27,7 +29,7 @@ const MainPage = () => {
                         </div>
                         <div className="bg-white shadow-md p-2 text-center w-1/6">
                             <p className="text-xs font-bold">앱 서비스 이용자 수</p>
-                            <p className="text-base font-bold">0</p>
+                            <p className="text-base font-bold">{users.length + collectors.length}</p>
                         </div>
                     </div>
                 </div>
@@ -47,7 +49,7 @@ const MainPage = () => {
                         <div className="bg-white shadow-md p-4 relative">
                             <div className="flex justify-between items-center mb-2">
                                 <p className="font-bold text-lg">수거량</p>
-                                <div className="flex space-x-2 absolute right-4 top-2"> {/* ✅ 버튼 위치 조정 */}
+                                <div className="flex space-x-2 absolute right-4 top-2">
                                     <button onClick={() => processChartData(boxLogs, "day")} className="px-3 py-1 border rounded">일</button>
                                     <button onClick={() => processChartData(boxLogs, "month")} className="px-3 py-1 border rounded">월</button>
                                     <button onClick={() => processChartData(boxLogs, "year")} className="px-3 py-1 border rounded">년</button>
@@ -68,7 +70,7 @@ const MainPage = () => {
                         <div className="bg-white shadow-md p-4 relative">
                             <div className="flex justify-between items-center mb-2">
                                 <p className="font-bold text-lg">배출량</p>
-                                <div className="flex space-x-2 absolute right-4 top-2"> {/* ✅ 버튼 위치 조정 */}
+                                <div className="flex space-x-2 absolute right-4 top-2">
                                     <button onClick={() => processChartData(boxLogs, "day")} className="px-3 py-1 border rounded">일</button>
                                     <button onClick={() => processChartData(boxLogs, "month")} className="px-3 py-1 border rounded">월</button>
                                     <button onClick={() => processChartData(boxLogs, "year")} className="px-3 py-1 border rounded">년</button>
@@ -87,28 +89,30 @@ const MainPage = () => {
                     </div>
                 </div>
 
-                {/* ✅ 회원 정보 섹션 추가 (수거자 & 사용자) */}
+                {/* ✅ 회원 정보 섹션 추가 */}
                 <div className="px-4 mt-8">
                     <p className="font-bold text-lg mb-4 text-left ml-4">회원정보</p>
                     <div className="grid grid-cols-2 gap-4">
-                        {/* 수거자 정보 */}
+                        {/* ✅ 수거자 정보 */}
                         <div className="bg-white shadow-md p-4">
                             <p className="font-bold mb-2 truncate">수거자</p>
-                            <div className="flex space-x-2 mb-2">
-                                <input type="text" placeholder="수거자 검색" className="flex-1 px-4 py-2 border rounded" />
-                                <button className="px-4 py-2 bg-blue-500 text-white rounded">검색</button>
+                            <input type="text" placeholder="수거자 검색" className="w-full px-4 py-2 border rounded mb-2" onChange={(e) => setSearchCollector(e.target.value)} />
+                            <div className="h-80 overflow-y-auto border rounded p-2 bg-gray-50">
+                                {collectors.filter(user => user.name.includes(searchCollector)).map(user => (
+                                    <p key={user.id} className="p-2 border-b">{user.name}</p>
+                                ))}
                             </div>
-                            <div className="h-80 overflow-y-auto border rounded p-2 bg-gray-50"></div>
                         </div>
 
-                        {/* 사용자 정보 */}
+                        {/* ✅ 사용자 정보 */}
                         <div className="bg-white shadow-md p-4">
                             <p className="font-bold mb-2 truncate">사용자</p>
-                            <div className="flex space-x-2 mb-2">
-                                <input type="text" placeholder="사용자 검색" className="flex-1 px-4 py-2 border rounded" />
-                                <button className="px-4 py-2 bg-blue-500 text-white rounded">검색</button>
+                            <input type="text" placeholder="사용자 검색" className="w-full px-4 py-2 border rounded mb-2" onChange={(e) => setSearchUser(e.target.value)} />
+                            <div className="h-80 overflow-y-auto border rounded p-2 bg-gray-50">
+                                {users.filter(user => user.name.includes(searchUser)).map(user => (
+                                    <p key={user.id} className="p-2 border-b">{user.name}</p>
+                                ))}
                             </div>
-                            <div className="h-80 overflow-y-auto border rounded p-2 bg-gray-50"></div>
                         </div>
                     </div>
                 </div>
