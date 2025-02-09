@@ -58,3 +58,18 @@ export const resetPassword = async (id, name, phoneNumber, newPassword) => {
         throw error;
     }
 };
+
+// 수거 및 분리량 조회 API
+export const getBoxLog = async () => {
+    try {
+        const response = await axiosInstance.get("/admin/getBoxLog", {
+            withCredentials: true, // 인증 정보 포함 (쿠키, 세션)
+        });
+
+        console.log("응답 데이터:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("수거 및 분리량 조회 실패:", error.response?.data || error.message);
+        return null;
+    }
+};
