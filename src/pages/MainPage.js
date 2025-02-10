@@ -13,12 +13,12 @@ const MainPage = () => {
     const dispatch = useDispatch();
 
     const { collectors, users, status } = useSelector(state => state.users);
-
-    const { boxLogs, collectionData, disposalData, processChartData, collectionCount, disposalCount } = useGraph();
+    const { processChartData, collectionCount, disposalCount } = useGraph();
     const { boxes, loading: boxLoading, error: boxError } = useBoxes();
 
     const [searchCollector, setSearchCollector] = useState("");
     const [searchUser, setSearchUser] = useState("");
+    const [selectedFilter, setSelectedFilter] = useState("day");
 
     useEffect(() => {
         if (status === "idle") {
@@ -79,12 +79,35 @@ const MainPage = () => {
                         )}
                     </div>
                 </div>
+
+                {/* ✅ 일 / 월 / 년 버튼 추가 */}
+                <div className="flex justify-center space-x-4 mb-4">
+                    <button
+                        className={`px-4 py-2 border rounded ${selectedFilter === "day" ? "bg-blue-500 text-white" : ""}`}
+                        onClick={() => setSelectedFilter("day")}
+                    >
+                        일
+                    </button>
+                    <button
+                        className={`px-4 py-2 border rounded ${selectedFilter === "month" ? "bg-blue-500 text-white" : ""}`}
+                        onClick={() => setSelectedFilter("month")}
+                    >
+                        월
+                    </button>
+                    <button
+                        className={`px-4 py-2 border rounded ${selectedFilter === "year" ? "bg-blue-500 text-white" : ""}`}
+                        onClick={() => setSelectedFilter("year")}
+                    >
+                        년
+                    </button>
+                </div>
+
                 <div className="px-4 mt-8">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-white shadow-md p-4">
                             <p className="font-bold text-lg">수거량</p>
                             <ResponsiveContainer width="100%" height={250}>
-                                <LineChart data={collectionData}>
+                                <LineChart data={processChartData(selectedFilter)}>
                                     <XAxis dataKey="date" />
                                     <YAxis />
                                     <Tooltip />
@@ -96,7 +119,7 @@ const MainPage = () => {
                         <div className="bg-white shadow-md p-4">
                             <p className="font-bold text-lg">배출량</p>
                             <ResponsiveContainer width="100%" height={250}>
-                                <LineChart data={disposalData}>
+                                <LineChart data={processChartData(selectedFilter)}>
                                     <XAxis dataKey="date" />
                                     <YAxis />
                                     <Tooltip />
@@ -107,6 +130,7 @@ const MainPage = () => {
                         </div>
                     </div>
                 </div>
+
                 <div className="px-4 mt-8">
                     <p className="font-bold text-lg mb-4 text-left ml-4">회원정보</p>
                     <div className="grid grid-cols-2 gap-4">
