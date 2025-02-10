@@ -1,25 +1,30 @@
 import React from "react";
-import NavigationBar from "../component/NavigationBar"; // NavigationBar 컴포넌트 임포트
+import NavigationBar from "../component/NavigationBar";
+import useLogs from "../hooks/useLogs";
 
 const LogPage = () => {
+    const {
+        searchTerm,
+        setSearchTerm,
+        selectedBox,
+        setSelectedBox,
+        filteredBoxes,
+        disposalLogs,
+        collectionLogs,
+    } = useLogs();
+
     return (
         <div className="h-screen w-screen flex flex-col bg-gray-100">
-            {/* 네비게이션 바 */}
             <NavigationBar />
 
-            {/* 페이지 내용 */}
             <div className="mt-16 p-4">
                 {/* 상단 영역 */}
                 <div className="flex justify-between mb-4">
                     <div className="flex items-center">
                         <p className="font-bold mr-2">수거함 이름:</p>
-                        <input
-                            type="text"
-                            className="border px-2 py-1 rounded w-64"
-                            placeholder="수거함 이름 입력"
-                            value="선문대 동문 앞 수거함"
-                            readOnly
-                        />
+                        <span className="px-2 py-1 bg-gray-200 rounded">
+                            {selectedBox ? selectedBox.name : "선택된 수거함 없음"}
+                        </span>
                     </div>
                 </div>
 
@@ -31,27 +36,25 @@ const LogPage = () => {
                         <table className="w-full table-auto border-collapse border border-gray-200">
                             <thead>
                             <tr className="bg-gray-100">
-                                <th className="border border-gray-300 px-4 py-2">이름</th>
+                                <th className="border border-gray-300 px-4 py-2">사용자 ID</th>
                                 <th className="border border-gray-300 px-4 py-2">배출량</th>
                                 <th className="border border-gray-300 px-4 py-2">배출 일자</th>
                             </tr>
                             </thead>
                             <tbody>
-                            <tr>
-                                <td className="border border-gray-300 px-4 py-2">홍길동</td>
-                                <td className="border border-gray-300 px-4 py-2">3</td>
-                                <td className="border border-gray-300 px-4 py-2">2024/12/30</td>
-                            </tr>
-                            <tr>
-                                <td className="border border-gray-300 px-4 py-2">홍길동</td>
-                                <td className="border border-gray-300 px-4 py-2">4</td>
-                                <td className="border border-gray-300 px-4 py-2">2024/12/29</td>
-                            </tr>
-                            <tr>
-                                <td className="border border-gray-300 px-4 py-2">홍길동</td>
-                                <td className="border border-gray-300 px-4 py-2">7</td>
-                                <td className="border border-gray-300 px-4 py-2">2024/12/28</td>
-                            </tr>
+                            {disposalLogs.length > 0 ? (
+                                disposalLogs.map((log) => (
+                                    <tr key={log.boxLogId.id}>
+                                        <td className="border border-gray-300 px-4 py-2">{log.userId}</td>
+                                        <td className="border border-gray-300 px-4 py-2">{log.weight}</td>
+                                        <td className="border border-gray-300 px-4 py-2">{log.boxLogId.date.split("T")[0]}</td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="3" className="border border-gray-300 px-4 py-2 text-center">기록 없음</td>
+                                </tr>
+                            )}
                             </tbody>
                         </table>
                     </div>
@@ -62,27 +65,25 @@ const LogPage = () => {
                         <table className="w-full table-auto border-collapse border border-gray-200">
                             <thead>
                             <tr className="bg-gray-100">
-                                <th className="border border-gray-300 px-4 py-2">이름</th>
+                                <th className="border border-gray-300 px-4 py-2">수거자 ID</th>
                                 <th className="border border-gray-300 px-4 py-2">수거량</th>
                                 <th className="border border-gray-300 px-4 py-2">수거 일자</th>
                             </tr>
                             </thead>
                             <tbody>
-                            <tr>
-                                <td className="border border-gray-300 px-4 py-2">홍길동</td>
-                                <td className="border border-gray-300 px-4 py-2">38</td>
-                                <td className="border border-gray-300 px-4 py-2">2024/12/30</td>
-                            </tr>
-                            <tr>
-                                <td className="border border-gray-300 px-4 py-2">홍길동</td>
-                                <td className="border border-gray-300 px-4 py-2">23</td>
-                                <td className="border border-gray-300 px-4 py-2">2024/12/29</td>
-                            </tr>
-                            <tr>
-                                <td className="border border-gray-300 px-4 py-2">홍길동</td>
-                                <td className="border border-gray-300 px-4 py-2">78</td>
-                                <td className="border border-gray-300 px-4 py-2">2024/12/28</td>
-                            </tr>
+                            {collectionLogs.length > 0 ? (
+                                collectionLogs.map((log) => (
+                                    <tr key={log.boxLogId.id}>
+                                        <td className="border border-gray-300 px-4 py-2">{log.collectorId}</td>
+                                        <td className="border border-gray-300 px-4 py-2">{log.weight}</td>
+                                        <td className="border border-gray-300 px-4 py-2">{log.boxLogId.date.split("T")[0]}</td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="3" className="border border-gray-300 px-4 py-2 text-center">기록 없음</td>
+                                </tr>
+                            )}
                             </tbody>
                         </table>
                     </div>
@@ -95,17 +96,24 @@ const LogPage = () => {
                                 type="text"
                                 className="border px-2 py-1 rounded flex-1"
                                 placeholder="수거함 검색"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
                             />
-                            <button className="px-4 py-1 bg-blue-500 text-white rounded">
-                                검색
-                            </button>
                         </div>
-                        <div className="h-72 overflow-y-auto">
-                            <ul className="border rounded divide-y">
-                                <li className="p-2">선문대 동문 앞 수거함</li>
-                                <li className="p-2">선문대 서문 앞 수거함</li>
-                                <li className="p-2">선문대 상봉마을 앞 수거함</li>
-                            </ul>
+                        <div className="h-72 overflow-y-auto border rounded">
+                            {filteredBoxes.length > 0 ? (
+                                filteredBoxes.map(box => (
+                                    <div
+                                        key={box.id}
+                                        className={`p-2 border-b cursor-pointer ${selectedBox?.id === box.id ? "bg-blue-100" : ""}`}
+                                        onClick={() => setSelectedBox(box)}
+                                    >
+                                        {box.name}
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="p-2 text-gray-500">검색된 수거함이 없습니다.</p>
+                            )}
                         </div>
                     </div>
                 </div>
