@@ -97,3 +97,24 @@ export const findAllBox = async () => { // ✅ Named export 유지
         throw error;
     }
 };
+
+// 특정 코드 조회 API
+export const findCode = async () => {
+    try {
+        const response = await axiosInstance.get("/admin/findCode");
+
+        // 응답에서 value 값만 추출
+        const value = response.data.value;
+
+        if (value) {
+            console.log("받은 value 값:", value); // value 값 출력
+            return value;
+        } else {
+            console.log("value 값이 없습니다.");
+            return null; // value 값이 없는 경우
+        }
+    } catch (error) {
+        console.error("코드 조회 실패:", error);
+        throw error; // 에러 처리
+    }
+};
