@@ -1,8 +1,10 @@
-import { configureStore } from '@reduxjs/toolkit'
-import loginSlice from './slices/loginSlice'
+import { configureStore } from "@reduxjs/toolkit";
+import userReducer from "./slices/userSlice"; // ✅ userSlice 추가
 
-export default configureStore({
+const store = configureStore({
     reducer: {
-        "loginSlice": loginSlice
-    }
-})
+        users: userReducer,
+    },
+});
+
+export default store;

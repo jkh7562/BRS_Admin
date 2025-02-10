@@ -36,11 +36,11 @@ const root = createBrowserRouter([
         element:<Suspense fallback={Loading}><MainPage/></Suspense>
     },
     {
-        path:"collector",
+        path:"collector/:id",
         element:<Suspense fallback={Loading}><CollectorPage/></Suspense>
     },
     {
-        path:"user",
+        path:"user/:id",
         element:<Suspense fallback={Loading}><UserPage/></Suspense>
     },
     {
