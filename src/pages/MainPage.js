@@ -26,6 +26,11 @@ const MainPage = () => {
         }
     }, [status, dispatch]);
 
+    // ✅ 수거함 클릭 시 로그 페이지로 이동 (쿼리스트링으로 boxId 전달)
+    const handleBoxClick = (boxId) => {
+        navigate(`/log?boxId=${boxId}`);
+    };
+
     return (
         <div className="min-h-screen w-screen flex flex-col bg-gray-100 pb-20">
             <NavigationBar />
@@ -60,8 +65,14 @@ const MainPage = () => {
                                 level={3}
                             >
                                 {boxes.map((box) => (
-                                    <MapMarker key={box.id} position={{ lat: box.lat, lng: box.lng }}>
-                                        <div style={{ padding: "5px", color: "#000" }}>{box.name}</div>
+                                    <MapMarker
+                                        key={box.id}
+                                        position={{ lat: box.lat, lng: box.lng }}
+                                        onClick={() => handleBoxClick(box.id)} // ✅ 수거함 클릭 시 이동
+                                    >
+                                        <div style={{ padding: "5px", color: "#000", cursor: "pointer" }}>
+                                            {box.name}
+                                        </div>
                                     </MapMarker>
                                 ))}
                             </Map>

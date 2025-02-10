@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import NavigationBar from "../component/NavigationBar";
 import useLogs from "../hooks/useLogs";
 
@@ -12,6 +13,32 @@ const LogPage = () => {
         disposalLogs,
         collectionLogs,
     } = useLogs();
+
+    const location = useLocation();
+    const [initialized, setInitialized] = useState(false); // ✅ URL에서 가져온 박스가 설정되었는지 추적
+
+    useEffect(() => {
+        if (!initialized) {
+            // ✅ URL에서 boxId 가져오기
+            const params = new URLSearchParams(location.search);
+            const boxId = params.get("boxId");
+
+            console.log("🔍 현재 URL에서 가져온 boxId:", boxId);
+            console.log("📦 현재 필터링된 수거함 목록:", filteredBoxes);
+
+            // ✅ boxId가 존재하고, filteredBoxes가 로드된 이후에만 실행
+            if (boxId && filteredBoxes.length > 0) {
+                const selected = filteredBoxes.find(box => String(box.id) === String(boxId));
+                if (selected) {
+                    console.log("✅ boxId와 일치하는 박스 선택됨:", selected);
+                    setSelectedBox(selected);
+                    setInitialized(true); // ✅ URL에서 설정한 초기 선택 완료
+                } else {
+                    console.log("❌ boxId와 일치하는 박스를 찾지 못함");
+                }
+            }
+        }
+    }, [location.search, filteredBoxes, setSelectedBox, initialized]); // ✅ initialized 추가
 
     return (
         <div className="h-screen w-screen flex flex-col bg-gray-100">
@@ -106,7 +133,7 @@ const LogPage = () => {
                                     <div
                                         key={box.id}
                                         className={`p-2 border-b cursor-pointer ${selectedBox?.id === box.id ? "bg-blue-100" : ""}`}
-                                        onClick={() => setSelectedBox(box)}
+                                        onClick={() => setSelectedBox(box)} // ✅ 선택 가능하도록 유지
                                     >
                                         {box.name}
                                     </div>
