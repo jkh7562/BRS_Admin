@@ -131,3 +131,9 @@ export const logout = async () => {
         throw error;
     }
 };
+
+// ✅ 내 정보 조회 API
+export const getMyInfo = async () => {
+    const response = await axiosInstance.get("/admin/MyInfo");
+    return response.data;
+};

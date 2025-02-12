@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom"; // React Router의 Link 컴포넌트 import
+import { useDispatch, useSelector } from "react-redux";
+import { fetchMyInfo } from "../slices/myInfoSlice"; // Redux에서 내정보 가져오기
 import SpringbootLogo from "../assets/Springboot.png";
 import MySQLLogo from "../assets/MySQL.png";
 import ReactLogo from "../assets/React.png";
-import { logout } from "../api/apiServices"
+import { logout } from "../api/apiServices";
 
 const NavigationBar = () => {
     const [isNotificationSidebarOpen, setNotificationSidebarOpen] = useState(false);
@@ -11,6 +13,14 @@ const NavigationBar = () => {
     const [isPasswordChangeOpen, setPasswordChangeOpen] = useState(false); // 비밀번호 변경 화면 상태
     const [activeDropdown, setActiveDropdown] = useState(null);
     const navigate = useNavigate(); // ✅ 네비게이션 훅 사용
+    const dispatch = useDispatch();
+
+    // ✅ Redux에서 내 정보 가져오기
+    const { data: userInfo } = useSelector((state) => state.myInfo);
+
+    useEffect(() => {
+        dispatch(fetchMyInfo()); // 컴포넌트가 마운트될 때 내정보 요청
+    }, [dispatch]);
 
     const toggleNotificationSidebar = () => {
         setProfileSidebarOpen(false);
@@ -40,25 +50,12 @@ const NavigationBar = () => {
     const handleLogout = async () => {
         try {
             console.log("로그아웃 처리 중...");
-
-            // 로그아웃 API 호출
             await logout();
-
             console.log("✅ 로그아웃 성공");
-
-            // 로그인 페이지로 이동
             navigate("/");
         } catch (error) {
             console.error("❌ 로그아웃 실패:", error);
         }
-    };
-
-    const handlePasswordChange = () => {
-        console.log("비밀번호 변경 처리");
-    };
-
-    const handleProfileChange = () => {
-        console.log("프로필 변경 처리");
     };
 
     return (
@@ -84,115 +81,12 @@ const NavigationBar = () => {
                 </div>
 
                 <div className="flex items-center justify-end flex-none w-1/4 space-x-6">
-                    <div className="relative">
-                        <div
-                            className="flex items-center cursor-pointer"
-                            onClick={() => toggleDropdown("springboot")}
-                        >
-                            <img src={SpringbootLogo} className="h-10 w-auto" alt="Spring Boot" />
-                            <div className="h-2 w-2 rounded-full bg-green-500 ml-3"></div>
-                        </div>
-                        {activeDropdown === "springboot" && (
-                            <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg rounded">
-                                <ul>
-                                    <li className="flex items-center justify-between px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                                        <span>App</span>
-                                        <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                                    </li>
-                                    <li className="flex items-center justify-between px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                                        <span>Web</span>
-                                        <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                                    </li>
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="relative">
-                        <div
-                            className="flex items-center cursor-pointer"
-                            onClick={() => toggleDropdown("mysql")}
-                        >
-                            <img src={MySQLLogo} className="h-8 w-auto" alt="MySQL" />
-                            <div className="h-2 w-2 rounded-full bg-green-500 ml-3"></div>
-                        </div>
-                        {activeDropdown === "mysql" && (
-                            <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg rounded">
-                                <ul>
-                                    <li className="flex items-center justify-between px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                                        <span>Database</span>
-                                        <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                                    </li>
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="relative">
-                        <div
-                            className="flex items-center cursor-pointer"
-                            onClick={() => toggleDropdown("react")}
-                        >
-                            <img src={ReactLogo} className="h-10 w-auto" alt="React" />
-                            <div className="h-2 w-2 rounded-full bg-green-500 ml-2"></div>
-                        </div>
-                        {activeDropdown === "react" && (
-                            <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg rounded">
-                                <ul>
-                                    <li className="flex items-center justify-between px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                                        <span>사용자</span>
-                                        <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                                    </li>
-                                    <li className="flex items-center justify-between px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                                        <span>수거자</span>
-                                        <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                                    </li>
-                                    <li className="flex items-center justify-between px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                                        <span>관리자</span>
-                                        <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                                    </li>
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="flex space-x-2">
-                        <button onClick={toggleNotificationSidebar} className="px-4 py-2 border rounded">
-                            알림
-                        </button>
-                        <button onClick={toggleProfileSidebar} className="px-4 py-2 border rounded">
-                            프로필
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* 알림 사이드바 */}
-            <div
-                className={`fixed top-0 right-0 h-full bg-white shadow-lg w-80 transition-transform duration-300 z-10 ${
-                    isNotificationSidebarOpen ? "translate-x-0" : "translate-x-full"
-                }`}
-            >
-                <div className="p-6">
-                    <h2 className="text-xl font-bold mb-6">알림</h2>
-                    <button
-                        onClick={toggleNotificationSidebar}
-                        className="text-sm text-gray-500 hover:underline mb-4"
-                    >
-                        닫기
+                    <button onClick={toggleNotificationSidebar} className="px-4 py-2 border rounded">
+                        알림
                     </button>
-                    <div className="space-y-6">
-                        <div className="p-4 bg-gray-100 rounded shadow-md">
-                            <p className="font-bold">수거함 추가</p>
-                            <p className="text-sm text-gray-600">1월 02일</p>
-                            <p className="text-sm text-gray-800">선문대 동문 앞 수거함이 추가되었습니다.</p>
-                        </div>
-                        <div className="p-4 bg-gray-100 rounded shadow-md">
-                            <p className="font-bold">수거함 제거</p>
-                            <p className="text-sm text-gray-600">1월 01일</p>
-                            <p className="text-sm text-gray-800">선문대 서문 앞 수거함이 제거되었습니다.</p>
-                        </div>
-                    </div>
+                    <button onClick={toggleProfileSidebar} className="px-4 py-2 border rounded">
+                        프로필
+                    </button>
                 </div>
             </div>
 
@@ -214,16 +108,10 @@ const NavigationBar = () => {
                         <div className="flex items-center space-x-4">
                             <div className="w-16 h-16 bg-gray-200 rounded-full"></div>
                             <div>
-                                <p className="font-bold">홍길동</p>
-                                <p className="text-sm text-gray-600">qwer1234</p>
+                                <p className="font-bold">{userInfo?.name || "이름 없음"}</p>
+                                <p className="text-sm text-gray-600">{userInfo?.id || "아이디 없음"}</p>
                             </div>
                         </div>
-                        <button
-                            onClick={handleProfileChange}
-                            className="mt-4 px-4 py-2 w-full bg-gray-500 text-white rounded hover:bg-gray-600"
-                        >
-                            프로필 수정
-                        </button>
                         <button
                             onClick={openPasswordChange}
                             className="mt-4 px-4 py-2 w-full bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -231,7 +119,7 @@ const NavigationBar = () => {
                             비밀번호 변경
                         </button>
                         <button
-                            onClick={handleLogout} // ✅ 클릭 시 /로 이동
+                            onClick={handleLogout} // ✅ 클릭 시 로그아웃
                             className="mt-4 px-4 py-2 w-full bg-red-500 text-white rounded hover:bg-red-600"
                         >
                             로그아웃
@@ -242,7 +130,7 @@ const NavigationBar = () => {
 
             {/* 비밀번호 변경 화면 */}
             {isPasswordChangeOpen && (
-                <div className="fixed top-0 right-0 h-full bg-white shadow-lg w-80 transition-transform duration-300 z-10 ">
+                <div className="fixed top-0 right-0 h-full bg-white shadow-lg w-80 transition-transform duration-300 z-10">
                     <div className="p-6">
                         <h2 className="text-xl font-bold mb-6">비밀번호 변경</h2>
                         <div className="space-y-4">
@@ -262,7 +150,6 @@ const NavigationBar = () => {
                                 className="w-full px-4 py-2 border rounded"
                             />
                             <button
-                                onClick={handlePasswordChange}
                                 className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                             >
                                 확인
