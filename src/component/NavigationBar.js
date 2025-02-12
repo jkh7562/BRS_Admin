@@ -6,6 +6,9 @@ import ReactLogo from "../assets/React.png";
 import { logout } from "../api/apiServices"
 import { useDispatch, useSelector } from "react-redux"; // ✅ Redux 추가
 import { fetchMyInfo } from "../slices/myInfoSlice"; // ✅ 내 정보 가져오는 Thunk 추가
+import { fetchBoxLog } from "../slices/boxLogSlice";
+import { fetchBoxes } from "../slices/boxSlice";
+import { fetchUsers } from "../slices/userSlice";
 
 
 const NavigationBar = () => {
@@ -20,6 +23,9 @@ const NavigationBar = () => {
     useEffect(() => {
         if (status === "idle") {
             dispatch(fetchMyInfo());
+            dispatch(fetchBoxLog());
+            dispatch(fetchBoxes());
+            dispatch(fetchUsers());
         }
     }, [status, dispatch]);
 
@@ -237,7 +243,7 @@ const NavigationBar = () => {
                         ) : (
                             <p>⚠️ 사용자 정보를 찾을 수 없습니다.</p>
                         )}
-                        
+
                         <button
                             onClick={openPasswordChange}
                             className="mt-4 px-4 py-2 w-full bg-blue-500 text-white rounded hover:bg-blue-600"
