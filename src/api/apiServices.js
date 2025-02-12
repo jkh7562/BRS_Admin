@@ -137,3 +137,25 @@ export const getMyInfo = async () => {
     const response = await axiosInstance.get("/admin/MyInfo");
     return response.data;
 };
+
+// 비밀번호 확인 API
+export const checkPassword = async (currentPassword) => {
+    try {
+        const response = await axiosInstance.post("/admin/checkPw", { pw: currentPassword });
+        return response.data; // "Success" 또는 "Fail"
+    } catch (error) {
+        console.error("❌ 비밀번호 확인 실패:", error);
+        throw error;
+    }
+};
+
+// 비밀번호 변경 API
+export const updatePassword = async (newPassword) => {
+    try {
+        const response = await axiosInstance.patch("/admin/updatePw", { pw: newPassword });
+        return response.data; // "Success" 또는 "Fail"
+    } catch (error) {
+        console.error("❌ 비밀번호 변경 실패:", error);
+        throw error;
+    }
+};

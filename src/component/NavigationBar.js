@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom"; // React Router의 Link �
 import SpringbootLogo from "../assets/Springboot.png";
 import MySQLLogo from "../assets/MySQL.png";
 import ReactLogo from "../assets/React.png";
-import { logout } from "../api/apiServices"
+import { logout, checkPassword, updatePassword } from "../api/apiServices"
 import { useDispatch, useSelector } from "react-redux"; // ✅ Redux 추가
 import { fetchMyInfo } from "../slices/myInfoSlice"; // ✅ 내 정보 가져오는 Thunk 추가
 import { fetchBoxLog } from "../slices/boxLogSlice";
@@ -19,6 +19,11 @@ const NavigationBar = () => {
     const navigate = useNavigate(); // ✅ 네비게이션 훅 사용
     const dispatch = useDispatch();
     const { data: myInfo, status } = useSelector((state) => state.myInfo);
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [statusMessage, setStatusMessage] = useState(null);
+    const [isCheckingPassword, setIsCheckingPassword] = useState(false);
 
     useEffect(() => {
         if (status === "idle") {
@@ -70,12 +75,36 @@ const NavigationBar = () => {
         }
     };
 
-    const handlePasswordChange = () => {
-        console.log("비밀번호 변경 처리");
-    };
+    const handlePasswordChange = async () => {
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            alert("모든 필드를 입력해주세요.");
+            return;
+        }
 
-    const handleProfileChange = () => {
-        console.log("프로필 변경 처리");
+        if (newPassword !== confirmPassword) {
+            alert("새 비밀번호가 일치하지 않습니다.");
+            return;
+        }
+
+        try {
+            // 1️⃣ 비밀번호 확인 요청
+            const checkResponse = await checkPassword(currentPassword);
+            if (checkResponse !== "Success") {
+                alert("현재 비밀번호가 올바르지 않습니다.");
+                return;
+            }
+
+            // 2️⃣ 비밀번호 변경 요청
+            const updateResponse = await updatePassword(newPassword);
+            if (updateResponse === "Success") {
+                alert("비밀번호가 성공적으로 변경되었습니다.");
+                closePasswordChange();
+            } else {
+                alert("비밀번호 변경에 실패했습니다.");
+            }
+        } catch (error) {
+            alert("비밀번호 변경 중 오류가 발생했습니다.");
+        }
     };
 
     return (
@@ -271,22 +300,30 @@ const NavigationBar = () => {
                                 type="password"
                                 placeholder="현재 비밀번호"
                                 className="w-full px-4 py-2 border rounded"
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
                             />
                             <input
                                 type="password"
                                 placeholder="새 비밀번호"
                                 className="w-full px-4 py-2 border rounded"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
                             />
                             <input
                                 type="password"
                                 placeholder="새 비밀번호 확인"
                                 className="w-full px-4 py-2 border rounded"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
                             />
+                            {statusMessage && <p className="text-red-500">{statusMessage}</p>}
                             <button
                                 onClick={handlePasswordChange}
                                 className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                disabled={isCheckingPassword}
                             >
-                                확인
+                                {isCheckingPassword ? "처리 중..." : "확인"}
                             </button>
                             <button
                                 onClick={closePasswordChange}
