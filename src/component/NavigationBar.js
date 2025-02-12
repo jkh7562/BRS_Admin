@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom"; // React Router의 Link 컴포넌트 import
 import SpringbootLogo from "../assets/Springboot.png";
 import MySQLLogo from "../assets/MySQL.png";
 import ReactLogo from "../assets/React.png";
 import { logout } from "../api/apiServices"
+import { useDispatch, useSelector } from "react-redux"; // ✅ Redux 추가
+import { fetchMyInfo } from "../slices/myInfoSlice"; // ✅ 내 정보 가져오는 Thunk 추가
+
 
 const NavigationBar = () => {
     const [isNotificationSidebarOpen, setNotificationSidebarOpen] = useState(false);
@@ -11,6 +14,14 @@ const NavigationBar = () => {
     const [isPasswordChangeOpen, setPasswordChangeOpen] = useState(false); // 비밀번호 변경 화면 상태
     const [activeDropdown, setActiveDropdown] = useState(null);
     const navigate = useNavigate(); // ✅ 네비게이션 훅 사용
+    const dispatch = useDispatch();
+    const { data: myInfo, status } = useSelector((state) => state.myInfo);
+
+    useEffect(() => {
+        if (status === "idle") {
+            dispatch(fetchMyInfo());
+        }
+    }, [status, dispatch]);
 
     const toggleNotificationSidebar = () => {
         setProfileSidebarOpen(false);
@@ -211,19 +222,22 @@ const NavigationBar = () => {
                         닫기
                     </button>
                     <div className="space-y-4">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-16 h-16 bg-gray-200 rounded-full"></div>
-                            <div>
-                                <p className="font-bold">홍길동</p>
-                                <p className="text-sm text-gray-600">qwer1234</p>
+                        {status === "loading" ? (
+                            <p>⏳ 정보 불러오는 중...</p>
+                        ) : status === "failed" ? (
+                            <p>❌ 정보를 불러오지 못했습니다.</p>
+                        ) : myInfo ? (
+                            <div className="flex items-center space-x-4">
+                                <div className="w-16 h-16 bg-gray-200 rounded-full"></div>
+                                <div>
+                                    <p className="font-bold">{myInfo.name}</p> {/* ✅ Redux에서 가져온 name */}
+                                    <p className="text-sm text-gray-600">{myInfo.id}</p> {/* ✅ Redux에서 가져온 id */}
+                                </div>
                             </div>
-                        </div>
-                        <button
-                            onClick={handleProfileChange}
-                            className="mt-4 px-4 py-2 w-full bg-gray-500 text-white rounded hover:bg-gray-600"
-                        >
-                            프로필 수정
-                        </button>
+                        ) : (
+                            <p>⚠️ 사용자 정보를 찾을 수 없습니다.</p>
+                        )}
+                        
                         <button
                             onClick={openPasswordChange}
                             className="mt-4 px-4 py-2 w-full bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -242,7 +256,8 @@ const NavigationBar = () => {
 
             {/* 비밀번호 변경 화면 */}
             {isPasswordChangeOpen && (
-                <div className="fixed top-0 right-0 h-full bg-white shadow-lg w-80 transition-transform duration-300 z-10 ">
+                <div
+                    className="fixed top-0 right-0 h-full bg-white shadow-lg w-80 transition-transform duration-300 z-10 ">
                     <div className="p-6">
                         <h2 className="text-xl font-bold mb-6">비밀번호 변경</h2>
                         <div className="space-y-4">
