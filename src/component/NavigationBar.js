@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom"; // React Router의 Link �
 import SpringbootLogo from "../assets/Springboot.png";
 import MySQLLogo from "../assets/MySQL.png";
 import ReactLogo from "../assets/React.png";
+import { logout } from "../api/apiServices"
 
 const NavigationBar = () => {
     const [isNotificationSidebarOpen, setNotificationSidebarOpen] = useState(false);
@@ -36,9 +37,20 @@ const NavigationBar = () => {
         setPasswordChangeOpen(false); // 비밀번호 변경 화면 닫기
     };
 
-    const handleLogout = () => {
-        console.log("로그아웃 처리");
-        navigate("/");
+    const handleLogout = async () => {
+        try {
+            console.log("로그아웃 처리 중...");
+
+            // 로그아웃 API 호출
+            await logout();
+
+            console.log("✅ 로그아웃 성공");
+
+            // 로그인 페이지로 이동
+            navigate("/");
+        } catch (error) {
+            console.error("❌ 로그아웃 실패:", error);
+        }
     };
 
     const handlePasswordChange = () => {

@@ -118,3 +118,16 @@ export const findCode = async () => {
         throw error; // 에러 처리
     }
 };
+
+// 로그아웃 API 요청
+export const logout = async () => {
+    try {
+        const response = await axiosInstance.post("/logout");
+        console.log("✅ 로그아웃 성공:", response.data);
+
+        return response.data;
+    } catch (error) {
+        console.error("❌ 로그아웃 실패:", error);
+        throw error;
+    }
+};
