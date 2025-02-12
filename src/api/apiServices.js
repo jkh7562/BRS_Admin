@@ -98,27 +98,6 @@ export const findAllBox = async () => { // ✅ Named export 유지
     }
 };
 
-// 특정 코드 조회 API
-export const findCode = async () => {
-    try {
-        const response = await axiosInstance.get("/admin/findCode");
-
-        // 응답에서 value 값만 추출
-        const value = response.data.value;
-
-        if (value) {
-            console.log("받은 value 값:", value); // value 값 출력
-            return value;
-        } else {
-            console.log("value 값이 없습니다.");
-            return null; // value 값이 없는 경우
-        }
-    } catch (error) {
-        console.error("코드 조회 실패:", error);
-        throw error; // 에러 처리
-    }
-};
-
 // 로그아웃 API 요청
 export const logout = async () => {
     try {
@@ -156,6 +135,33 @@ export const updatePassword = async (newPassword) => {
         return response.data; // "Success" 또는 "Fail"
     } catch (error) {
         console.error("❌ 비밀번호 변경 실패:", error);
+        throw error;
+    }
+};
+
+// ✅ 가입 코드 조회 API
+export const findCode = async () => {
+    try {
+        const response = await axiosInstance.get("/admin/findCode");
+        console.log("✅ 가입 코드 조회 성공:", response.data);
+        return response.data; // 가입 코드 반환
+    } catch (error) {
+        console.error("❌ 가입 코드 조회 실패:", error);
+        throw error;
+    }
+};
+
+// ✅ 가입 코드 수정 API
+export const updateCode = async (newCode) => {
+    try {
+        const response = await axiosInstance.patch("/admin/updateCode", {
+            code: newCode, // 요청 본문에 코드 값 전달
+        });
+
+        console.log("✅ 코드 업데이트 성공:", response.data);
+        return response.data; // "Success" 반환
+    } catch (error) {
+        console.error("❌ 코드 업데이트 실패:", error);
         throw error;
     }
 };
