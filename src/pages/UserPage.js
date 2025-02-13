@@ -4,7 +4,7 @@ import useUserData from "../hooks/useUserData";
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const UserPage = () => {
-    const { userData, userLogs, graphData, setFilterType } = useUserData();
+    const { userData, userLogs, graphData, filterType, setFilterType } = useUserData();
 
     if (!userData) return <div className="h-screen w-screen flex justify-center items-center">⏳ 로딩 중...</div>;
 
@@ -45,17 +45,25 @@ const UserPage = () => {
                     </div>
                 </div>
 
-                {/* ✅ 필터 버튼 (일/월/년) */}
-                <div className="flex justify-center space-x-2 mb-4">
-                    <button className="px-4 py-2 border rounded" onClick={() => setFilterType("day")}>일</button>
-                    <button className="px-4 py-2 border rounded" onClick={() => setFilterType("month")}>월</button>
-                    <button className="px-4 py-2 border rounded" onClick={() => setFilterType("year")}>년</button>
-                </div>
-
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white shadow-md p-4" style={{ height: "500px" }}>
+                    <div className="bg-white shadow-md p-4 relative" style={{ height: "500px" }}>
                         <div className="flex justify-between items-center mb-4">
                             <p className="font-bold">배출 그래프</p>
+                            {/* ✅ CollectorPage와 동일한 필터 버튼 위치 및 스타일 적용 */}
+                            <div className="flex space-x-2">
+                                <button className={`px-4 py-2 border rounded ${filterType === "day" ? "bg-gray-300" : ""}`}
+                                        onClick={() => setFilterType("day")}>
+                                    일
+                                </button>
+                                <button className={`px-4 py-2 border rounded ${filterType === "month" ? "bg-gray-300" : ""}`}
+                                        onClick={() => setFilterType("month")}>
+                                    월
+                                </button>
+                                <button className={`px-4 py-2 border rounded ${filterType === "year" ? "bg-gray-300" : ""}`}
+                                        onClick={() => setFilterType("year")}>
+                                    년
+                                </button>
+                            </div>
                         </div>
                         <ResponsiveContainer width="100%" height={350}>
                             <LineChart data={graphData}>
@@ -80,24 +88,19 @@ const UserPage = () => {
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {userLogs.length > 0 ? (
-                                    userLogs.map((log) => (
-                                        <tr key={log.boxLogId.id}>
-                                            <td className="border border-gray-300 px-4 py-2">{log.boxLogId.location}</td>
-                                            <td className="border border-gray-300 px-4 py-2">{log.weight}</td>
-                                            <td className="border border-gray-300 px-4 py-2">{log.boxLogId.date.split("T")[0]}</td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="3" className="border border-gray-300 px-4 py-2 text-center">기록 없음</td>
+                                {userLogs.map(log => (
+                                    <tr key={log.boxLogId.id}>
+                                        <td className="border border-gray-300 px-4 py-2">{log.boxName}</td>
+                                        <td className="border border-gray-300 px-4 py-2">{log.weight}</td>
+                                        <td className="border border-gray-300 px-4 py-2">{log.boxLogId.date.split("T")[0]}</td>
                                     </tr>
-                                )}
+                                ))}
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     );

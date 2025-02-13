@@ -91,7 +91,8 @@ const CollectorPage = () => {
                                 <tbody>
                                 {collectorLogs.map(log => (
                                     <tr key={log.boxLogId.id}>
-                                        <td className="border border-gray-300 px-4 py-2">{log.boxLogId.location}</td>
+                                        {/* ✅ boxName을 표시하도록 수정 */}
+                                        <td className="border border-gray-300 px-4 py-2">{log.boxName}</td>
                                         <td className="border border-gray-300 px-4 py-2">{log.weight}</td>
                                         <td className="border border-gray-300 px-4 py-2">{log.boxLogId.date.split("T")[0]}</td>
                                     </tr>
