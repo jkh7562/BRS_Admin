@@ -6,6 +6,8 @@ import NavigationBar from "../component/NavigationBar";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
 import useGraph from "../hooks/useGraph";
 import useBoxes from "../hooks/useBoxes";
+import greenIcon from "../assets/아이콘 RED.svg";
+import greenSelectIcon from "../assets/아이콘 RED 선택효과.svg";
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const MainPage = () => {
@@ -15,6 +17,7 @@ const MainPage = () => {
     const { collectors, users, status } = useSelector(state => state.users);
     const { processChartData, collectionCount, disposalCount } = useGraph();
     const { boxes, loading: boxLoading, error: boxError } = useBoxes();
+    const [hoveredBox, setHoveredBox] = useState(null);
 
     const [searchCollector, setSearchCollector] = useState("");
     const [searchUser, setSearchUser] = useState("");
@@ -63,21 +66,20 @@ const MainPage = () => {
                         ) : boxError ? (
                             <p>🚨 오류 발생: {boxError.message}</p>
                         ) : (
-                            <Map
-                                center={{lat: 36.800200, lng: 127.074958}}
-                                style={{width: "80vw", height: "500px"}}
-                                level={3}
-                            >
+                            <Map center={{ lat: 36.800200, lng: 127.074958 }} style={{ width: "80vw", height: "500px" }} level={3}>
                                 {boxes.map((box) => (
                                     <MapMarker
                                         key={box.id}
-                                        position={{lat: box.lat, lng: box.lng}}
-                                        onClick={() => handleBoxClick(box.id)} // ✅ 수거함 클릭 시 이동
-                                    >
-                                        <div style={{padding: "5px", color: "#000", cursor: "pointer"}}>
-                                            {box.name}
-                                        </div>
-                                    </MapMarker>
+                                        position={{ lat: box.lat, lng: box.lng }}
+                                        onClick={() => console.log(`Box ${box.id} 클릭됨`)}
+                                        onMouseOver={() => setHoveredBox(box.id)}  // ✅ 마우스를 올리면 상태 변경
+                                        onMouseOut={() => setHoveredBox(null)}  // ✅ 마우스가 벗어나면 원래대로
+                                        image={{
+                                            src: hoveredBox === box.id ? greenSelectIcon : greenIcon,  // ✅ 마우스 올리면 선택 아이콘
+                                            size: hoveredBox === box.id ? { width: 60, height: 60 } : { width: 45, height: 45 }, // ✅ 크기 조건부 적용
+                                            options: { offset: { x: 30, y: 60 } }
+                                        }}
+                                    />
                                 ))}
                             </Map>
                         )}
