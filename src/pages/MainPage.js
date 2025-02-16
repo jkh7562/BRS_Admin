@@ -71,12 +71,12 @@ const MainPage = () => {
                                     <MapMarker
                                         key={box.id}
                                         position={{ lat: box.lat, lng: box.lng }}
-                                        onClick={() => console.log(`Box ${box.id} 클릭됨`)}
-                                        onMouseOver={() => setHoveredBox(box.id)}  // ✅ 마우스를 올리면 상태 변경
-                                        onMouseOut={() => setHoveredBox(null)}  // ✅ 마우스가 벗어나면 원래대로
+                                        onClick={() => navigate(`/log?boxId=${box.id}`)}
+                                        onMouseOver={() => setHoveredBox(box.id)}
+                                        onMouseOut={() => setHoveredBox(null)}
                                         image={{
-                                            src: hoveredBox === box.id ? greenSelectIcon : greenIcon,  // ✅ 마우스 올리면 선택 아이콘
-                                            size: hoveredBox === box.id ? { width: 75, height: 75 } : { width: 60, height: 60 }, // ✅ 크기 조건부 적용
+                                            src: hoveredBox === box.id ? greenSelectIcon : greenIcon,
+                                            size: hoveredBox === box.id ? { width: 75, height: 75 } : { width: 60, height: 60 },
                                             options: { offset: { x: 30, y: 60 } }
                                         }}
                                     />
