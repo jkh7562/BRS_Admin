@@ -76,7 +76,7 @@ const MainPage = () => {
                                         onMouseOut={() => setHoveredBox(null)}  // ✅ 마우스가 벗어나면 원래대로
                                         image={{
                                             src: hoveredBox === box.id ? greenSelectIcon : greenIcon,  // ✅ 마우스 올리면 선택 아이콘
-                                            size: hoveredBox === box.id ? { width: 60, height: 60 } : { width: 45, height: 45 }, // ✅ 크기 조건부 적용
+                                            size: hoveredBox === box.id ? { width: 75, height: 75 } : { width: 60, height: 60 }, // ✅ 크기 조건부 적용
                                             options: { offset: { x: 30, y: 60 } }
                                         }}
                                     />
