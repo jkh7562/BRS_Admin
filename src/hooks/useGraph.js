@@ -15,21 +15,25 @@ const useGraph = () => {
     let collectionCount = 0;
     let disposalCount = 0;
 
+    // ✅ 데이터 불러오기
     useEffect(() => {
         if (status === "idle") {
             dispatch(fetchBoxLog());
         }
     }, [status, dispatch]);
 
-    if (boxLogs.length > 0) {
+    // ✅ 데이터가 존재하는 경우 처리
+    if (Array.isArray(boxLogs) && boxLogs.length > 0) {
         const today = new Date();
         const todayString = today.toISOString().split("T")[0];
 
         console.log("📌 오늘 날짜:", todayString);
         console.log("📌 Redux 데이터:", boxLogs);
 
+        // ✅ 오늘 날짜 기준 필터링
         const todayLogs = boxLogs.filter((log) => {
-            const logDate = new Date(log.boxLogId.date).toISOString().split("T")[0];
+            if (!log || !log.date) return false; // undefined 방지
+            const logDate = new Date(log.date).toISOString().split("T")[0];
             return logDate === todayString;
         });
 
@@ -37,27 +41,29 @@ const useGraph = () => {
 
         collectionCount = todayLogs
             .filter((log) => log.type === 0)
-            .reduce((sum, log) => sum + log.weight, 0);
+            .reduce((sum, log) => sum + (log.value || 0), 0);
 
         disposalCount = todayLogs
             .filter((log) => log.type === 1)
-            .reduce((sum, log) => sum + log.weight, 0);
+            .reduce((sum, log) => sum + (log.value || 0), 0);
 
         console.log("📌 오늘 수거량:", collectionCount);
         console.log("📌 오늘 배출량:", disposalCount);
     }
 
-    // ✅ 차트 데이터 가공 함수 (필터 적용)
+    // ✅ 차트 데이터 가공 함수 (일별, 월별, 연도별)
     const processChartData = (type) => {
         if (!Array.isArray(boxLogs)) {
             console.error("❌ Redux에서 받아온 데이터가 배열이 아님:", boxLogs);
-            return;
+            return [];
         }
 
         let groupedData = {};
 
         boxLogs.forEach((log) => {
-            const date = new Date(log.boxLogId.date);
+            if (!log || !log.date) return; // null 또는 undefined 방지
+
+            const date = new Date(log.date);
             let key;
 
             if (type === "day") {
@@ -73,9 +79,9 @@ const useGraph = () => {
             }
 
             if (log.type === 0) {
-                groupedData[key].collection += log.weight;
+                groupedData[key].collection += log.value || 0;
             } else {
-                groupedData[key].disposal += log.weight;
+                groupedData[key].disposal += log.value || 0;
             }
         });
 
@@ -83,7 +89,16 @@ const useGraph = () => {
         return Object.values(groupedData).sort((a, b) => new Date(a.date) - new Date(b.date));
     };
 
-    return { boxLogs, collectionData: processChartData("day"), disposalData: processChartData("day"), processChartData, collectionCount, disposalCount, status, error };
+    return {
+        boxLogs,
+        collectionData: processChartData("day"),
+        disposalData: processChartData("day"),
+        processChartData,
+        collectionCount,
+        disposalCount,
+        status,
+        error
+    };
 };
 
 export default useGraph;
