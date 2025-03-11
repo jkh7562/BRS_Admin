@@ -27,40 +27,10 @@ const MainPage = () => {
     const [collectionFilter, setCollectionFilter] = useState("day");
     const [disposalFilter, setDisposalFilter] = useState("day");
 
-    const [alarms, setAlarms] = useState([]); // ✅ SSE 알람 상태 관리
-
     useEffect(() => {
         if (status === "idle") {
             dispatch(fetchUsers());
         }
-
-        // ✅ SSE 구독
-        const eventSource = new EventSource(`http://localhost:8081/SSEsubscribe`, {
-            withCredentials: true,
-        });
-        console.log("구독 후", eventSource);
-
-        eventSource.onopen = () => {
-            console.log("SSE 연결 성공");
-        };
-
-        // ✅ SSE 메시지 수신 처리
-        eventSource.onmessage = (event) => {
-            console.log("SSE 메시지 수신:", event.event); // 로그 찍어서 데이터 확인
-            const alarmData = JSON.parse(event.data);
-            setAlarms((prev) => [...prev, alarmData]); // 새로운 알람 추가
-        };
-
-        // ✅ SSE 오류 처리
-        eventSource.onerror = (error) => {
-            console.error("SSE Error:", error);
-            eventSource.close();
-        };
-
-        // ✅ 컴포넌트 언마운트 시 SSE 해제
-        return () => {
-            eventSource.close();
-        };
     }, [status, dispatch]);
 
     // ✅ 수거함 클릭 시 로그 페이지로 이동 (쿼리스트링으로 boxId 전달)
