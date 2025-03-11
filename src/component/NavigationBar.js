@@ -124,8 +124,8 @@ const NavigationBar = () => {
                     <Link to="/log">
                         <button className="px-4 py-2 border rounded">수거함 로그</button>
                     </Link>
-                    <Link to="/membershipcode">
-                        <button className="px-4 py-2 border rounded">가입 코드 관리</button>
+                    <Link to="/userApprovalPage">
+                        <button className="px-4 py-2 border rounded">가입 관리</button>
                     </Link>
                 </div>
 

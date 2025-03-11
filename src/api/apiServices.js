@@ -165,3 +165,28 @@ export const updateCode = async (newCode) => {
         throw error;
     }
 };
+
+// ✅ 수거자 가입 요청 목록 조회 API
+export const fetchEmployeeRequests = async () => {
+    try {
+        const response = await axiosInstance.get("/admin/showEmployeeRequest", {
+            withCredentials: true, // 인증 포함
+        });
+        return response.data; // API 응답 데이터 반환
+    } catch (error) {
+        console.error("🚨 직원 가입 요청 조회 실패:", error);
+        throw error;
+    }
+};
+
+// ✅ 가입 신청 수락 API
+export const approveUserRequest = async (userId) => {
+    try {
+        const response = await axiosInstance.patch(`/admin/permitJoin/${userId}`);
+        console.log("✅ 가입 신청 수락 성공:", response.data);
+        return response.data; // "Success" 반환 예상
+    } catch (error) {
+        console.error("❌ 가입 신청 수락 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
