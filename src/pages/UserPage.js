@@ -112,7 +112,6 @@ const UserPage = () => {
                         ) : orderDetails.length > 0 ? (
                             orderDetails.map(order => (
                                 <div key={order.id} className="border p-4 mb-2 bg-gray-50 shadow-sm rounded-md">
-                                    <p className="text-sm"><strong>id:</strong> {order.id}</p>
                                     <p className="text-sm"><strong>주문번호:</strong> {order.orderId}</p>
                                     <p className="text-sm"><strong>아이템 번호:</strong> {order.itemId}</p>
                                     <p className="text-sm"><strong>수량:</strong> {order.count}</p>
