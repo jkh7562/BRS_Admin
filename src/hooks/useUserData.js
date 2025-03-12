@@ -34,10 +34,10 @@ const useUserData = () => {
             console.log("🔎 현재 사용자 ID:", userData.id);
 
             const filteredLogs = boxLogs
-                .filter(log => log.boxLogId?.userId === userData.id)
+                .filter(log => log.userId === userData.id) // ✅ `boxLogId?.userId` 대신 `userId` 직접 사용
                 .map(log => ({
                     ...log,
-                    boxName: boxList.find(box => box.id === log.boxLogId.boxId)?.name || "알 수 없음", // ✅ 박스 이름 매핑
+                    boxName: boxList.find(box => box.id === log.boxId)?.name || "알 수 없음", // ✅ 박스 ID 직접 참조
                 }));
 
             console.log("📌 필터링된 배출 로그:", filteredLogs);
@@ -52,7 +52,7 @@ const useUserData = () => {
         let groupedData = {};
 
         data.forEach(log => {
-            const date = new Date(log.boxLogId.date);
+            const date = new Date(log.date); // ✅ `boxLogId.date` 대신 `log.date` 직접 사용
             let key;
 
             if (type === "day") {
@@ -68,7 +68,7 @@ const useUserData = () => {
             }
 
             if (log.type === 1) {
-                groupedData[key].disposal += log.weight;
+                groupedData[key].disposal += log.value; // ✅ `value` 또는 `weight` 사용
             }
         });
 

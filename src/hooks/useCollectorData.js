@@ -38,13 +38,13 @@ const useCollectorData = () => {
             console.log("🔎 현재 수거자 ID:", collectorData.id);
 
             // ✅ userId로 필터링
-            const filteredLogs = boxLogs.filter(log => log.boxLogId?.userId === collectorData.id);
+            const filteredLogs = boxLogs.filter(log => log.userId === collectorData.id);
             console.log("📌 필터링된 수거 로그:", filteredLogs);
 
             // ✅ 수거함 ID를 이름으로 변환하여 저장
             const logsWithBoxNames = filteredLogs.map(log => ({
                 ...log,
-                boxName: boxes.find(box => box.id === log.boxLogId.boxId)?.name || "알 수 없음",
+                boxName: boxes.find(box => box.id === log.boxId)?.name || "알 수 없음",
             }));
             setCollectorLogs(logsWithBoxNames);
 
@@ -58,25 +58,34 @@ const useCollectorData = () => {
         let groupedData = {};
 
         logs.forEach((log) => {
-            const date = new Date(log.boxLogId.date);
-            let key;
+            try {
+                if (!log.date) {
+                    console.warn("🚨 날짜가 없는 로그 발견:", log);
+                    log.date = "1970-01-01"; // ✅ 기본값 설정하여 오류 방지
+                }
 
-            if (type === "day") {
-                key = date.toISOString().split("T")[0];
-            } else if (type === "month") {
-                key = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
-            } else {
-                key = `${date.getFullYear()}`;
-            }
+                const date = new Date(log.date);
+                let key;
 
-            if (!groupedData[key]) {
-                groupedData[key] = { date: key, collection: 0, disposal: 0 };
-            }
+                if (type === "day") {
+                    key = date.toISOString().split("T")[0];
+                } else if (type === "month") {
+                    key = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
+                } else {
+                    key = `${date.getFullYear()}`;
+                }
 
-            if (log.type === 0) {
-                groupedData[key].collection += log.weight;
-            } else {
-                groupedData[key].disposal += log.weight;
+                if (!groupedData[key]) {
+                    groupedData[key] = { date: key, collection: 0, disposal: 0 };
+                }
+
+                if (log.type === 0) {
+                    groupedData[key].collection += log.value;
+                } else {
+                    groupedData[key].disposal += log.value;
+                }
+            } catch (error) {
+                console.warn("🚨 오류 발생: 무시됨", error, log);
             }
         });
 

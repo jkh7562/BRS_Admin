@@ -31,7 +31,7 @@ const CollectorPage = () => {
                     </div>
                     <div className="bg-white shadow-md p-4 text-center">
                         <p className="font-bold">총 수거량</p>
-                        <p>{collectorLogs.reduce((acc, log) => acc + log.weight, 0)}</p>
+                        <p>{collectorLogs.reduce((acc, log) => acc + log.value, 0)}</p>
                     </div>
                     <div className="bg-white shadow-md p-4 text-center">
                         <p className="font-bold">누적 마일리지</p>
@@ -90,11 +90,13 @@ const CollectorPage = () => {
                                 </thead>
                                 <tbody>
                                 {collectorLogs.map(log => (
-                                    <tr key={log.boxLogId.id}>
+                                    <tr key={log.boxLogId?.id || log.id}>
                                         {/* ✅ boxName을 표시하도록 수정 */}
-                                        <td className="border border-gray-300 px-4 py-2">{log.boxName}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{log.weight}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{log.boxLogId.date.split("T")[0]}</td>
+                                        <td className="border border-gray-300 px-4 py-2">{log.boxName || "알 수 없음"}</td>
+                                        <td className="border border-gray-300 px-4 py-2">{log.value || 0}</td>
+                                        <td className="border border-gray-300 px-4 py-2">
+                                            {log.date ? log.date.split("T")[0] : "N/A"}
+                                        </td>
                                     </tr>
                                 ))}
                                 </tbody>
