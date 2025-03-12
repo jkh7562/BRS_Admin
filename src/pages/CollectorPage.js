@@ -15,10 +15,6 @@ const CollectorPage = () => {
             <NavigationBar />
 
             <div className="mt-16 p-4">
-                <div className="flex justify-end space-x-4 mb-4">
-                    <button className="px-4 py-2 bg-blue-500 text-white rounded">수정</button>
-                    <button className="px-4 py-2 bg-red-500 text-white rounded">삭제</button>
-                </div>
 
                 <div className="grid grid-cols-3 gap-4 mb-8">
                     <div className="bg-white shadow-md p-4 text-center">
