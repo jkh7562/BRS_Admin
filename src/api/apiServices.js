@@ -190,3 +190,48 @@ export const approveUserRequest = async (userId) => {
         throw error;
     }
 };
+
+// ✅ 모든 사용자 주문 내역 조회 API
+export const fetchOrderList = async () => {
+    try {
+        const response = await axiosInstance.get("/admin/findOrderList"); // GET 요청
+        return response.data; // 주문 리스트 반환
+    } catch (error) {
+        console.error("🚨 주문 내역 조회 실패:", error);
+        throw error;
+    }
+};
+
+// ✅ 주문번호로 주문 아이템 검색 API
+export const fetchOrderItemsByOrderId = async (orderId) => {
+    try {
+        const response = await axiosInstance.get(`/admin/findByOrderId/${orderId}`); // GET 요청
+        return response.data; // 주문 아이템 리스트 반환
+    } catch (error) {
+        console.error("🚨 주문 아이템 조회 실패:", error);
+        throw error;
+    }
+};
+
+// ✅ 사용자 ID로 주문 내역 조회 API
+export const fetchOrdersByUserId = async (userId) => {
+    try {
+        const response = await axiosInstance.get(`/admin/findOrderListByUserId/${userId}`); // GET 요청
+        return response.data; // 주문 리스트 반환
+    } catch (error) {
+        console.error("🚨 사용자 주문 내역 조회 실패:", error);
+        throw error;
+    }
+};
+
+// 모든 추천 위치를 조회하는 API
+export const getAllLocations = async () => {
+    try {
+        const response = await axiosInstance.get('/locations');
+        console.log("Locations fetched successfully:", response.data);
+        return response.data;  // 서버에서 받은 위치 데이터 반환
+    } catch (error) {
+        console.error("Error fetching locations:", error);
+        throw error;  // 오류 발생 시 예외를 던짐
+    }
+};

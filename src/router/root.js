@@ -13,6 +13,7 @@ const UserPage = lazy(() => import('../pages/UserPage'))
 const ControlPage = lazy(() => import('../pages/ControlPage'))
 const LogPage = lazy(() => import('../pages/LogPage'))
 const UserApprovalPage = lazy(() => import('../pages/UserApprovalPage'))
+const OrderHistoryPage = lazy(() => import('../pages/OrderHistoryPage'))
 
 const root = createBrowserRouter([
     {
@@ -54,6 +55,10 @@ const root = createBrowserRouter([
     {
         path:"userApprovalPage",
         element:<Suspense fallback={Loading}><UserApprovalPage/></Suspense>
+    },
+    {
+        path:"orderHistoryPage",
+        element:<Suspense fallback={Loading}><OrderHistoryPage/></Suspense>
     }
 ]);
 export default root;

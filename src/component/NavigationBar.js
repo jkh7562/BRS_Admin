@@ -156,6 +156,9 @@ const NavigationBar = () => {
                     <Link to="/userApprovalPage">
                         <button className="px-4 py-2 border rounded">가입 관리</button>
                     </Link>
+                    <Link to="/orderHistoryPage">
+                        <button className="px-4 py-2 border rounded">주문 내역</button>
+                    </Link>
                 </div>
 
                 <div className="flex items-center justify-end flex-none w-1/4 space-x-6">
