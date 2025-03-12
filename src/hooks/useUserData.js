@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchBoxLog } from "../slices/boxLogSlice";
 import { fetchBoxes } from "../slices/boxSlice"; // ✅ 박스 정보 불러오기 추가
+import { fetchOrdersByUserId, fetchOrderItemsByOrderId } from "../api/apiServices"; // ✅ 주문 내역 관련 API 추가
 
 const useUserData = () => {
     const { id } = useParams();
@@ -16,6 +17,9 @@ const useUserData = () => {
     const [userLogs, setUserLogs] = useState([]);
     const [graphData, setGraphData] = useState([]);
     const [filterType, setFilterType] = useState("day");
+    const [userOrders, setUserOrders] = useState([]); // ✅ 주문 내역
+    const [orderDetails, setOrderDetails] = useState([]); // ✅ 주문 상세 정보
+    const [loadingOrders, setLoadingOrders] = useState(true); // ✅ 주문 데이터 로딩 상태
 
     const userData = users.find(user => user.id === id);
 
@@ -77,7 +81,46 @@ const useUserData = () => {
         setGraphData(chartData);
     };
 
-    return { userData, userLogs, graphData, filterType, setFilterType };
+    // ✅ 사용자 주문 내역 가져오기
+    useEffect(() => {
+        const loadOrders = async () => {
+            if (userData?.id) {
+                try {
+                    setLoadingOrders(true);
+                    const orders = await fetchOrdersByUserId(userData.id);
+                    setUserOrders(orders);
+
+                    // ✅ 각 주문의 상세 정보 가져오기
+                    const details = await Promise.all(
+                        orders.map(async (order) => {
+                            const items = await fetchOrderItemsByOrderId(order.id);
+                            return items;
+                        })
+                    );
+
+                    // ✅ 주문 상세 정보 저장 (배열 평탄화)
+                    setOrderDetails(details.flat());
+                } catch (error) {
+                    console.error("🚨 사용자 주문 내역 조회 실패:", error);
+                } finally {
+                    setLoadingOrders(false);
+                }
+            }
+        };
+
+        loadOrders();
+    }, [userData]);
+
+    return {
+        userData,
+        userLogs,
+        graphData,
+        filterType,
+        setFilterType,
+        userOrders,
+        orderDetails,
+        loadingOrders
+    };
 };
 
 export default useUserData;

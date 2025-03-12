@@ -69,7 +69,6 @@ const OrderHistoryPage = () => {
                                 {orderDetails.length > 0 ? (
                                     orderDetails.map((detail) => (
                                         <div key={detail.id} className="border rounded p-4 mb-4">
-                                            <p className="mb-2"><strong>id:</strong> {detail.id}</p>
                                             <p className="mb-2"><strong>주문번호:</strong> {detail.orderId}</p>
                                             <p className="mb-2"><strong>아이템 번호:</strong> {detail.itemId}</p>
                                             <p className="mb-2"><strong>수량:</strong> {detail.count}</p>

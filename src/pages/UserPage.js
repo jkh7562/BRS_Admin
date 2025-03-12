@@ -1,44 +1,18 @@
 import React, { useEffect, useState } from "react";
 import NavigationBar from "../component/NavigationBar";
 import useUserData from "../hooks/useUserData";
-import { fetchOrdersByUserId, fetchOrderItemsByOrderId } from "../api/apiServices";
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const UserPage = () => {
-    const { userData, userLogs, graphData, filterType, setFilterType } = useUserData();
-    const [userOrders, setUserOrders] = useState([]); // ✅ 주문 내역
-    const [orderDetails, setOrderDetails] = useState([]); // ✅ 주문 상세 정보
-    const [loadingOrders, setLoadingOrders] = useState(true);
-
-    // ✅ 사용자 주문 내역 가져오기
-    useEffect(() => {
-        const loadOrders = async () => {
-            if (userData?.id) {
-                try {
-                    setLoadingOrders(true);
-                    const orders = await fetchOrdersByUserId(userData.id);
-                    setUserOrders(orders);
-
-                    // ✅ 각 주문의 상세 정보 가져오기
-                    const details = await Promise.all(
-                        orders.map(async (order) => {
-                            const items = await fetchOrderItemsByOrderId(order.id);
-                            return items;
-                        })
-                    );
-
-                    // ✅ 주문 상세 정보 저장 (배열 평탄화)
-                    setOrderDetails(details.flat());
-                } catch (error) {
-                    console.error("🚨 사용자 주문 내역 조회 실패:", error);
-                } finally {
-                    setLoadingOrders(false);
-                }
-            }
-        };
-
-        loadOrders();
-    }, [userData]);
+    const {
+        userData,
+        userLogs,
+        graphData,
+        filterType,
+        setFilterType,
+        orderDetails,
+        loadingOrders
+    } = useUserData();
 
     if (!userData) return <div className="h-screen w-screen flex justify-center items-center">⏳ 로딩 중...</div>;
 
