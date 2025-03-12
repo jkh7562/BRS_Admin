@@ -1,48 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import NavigationBar from "../component/NavigationBar";
-import { fetchOrderList, fetchOrderItemsByOrderId } from "../api/apiServices";
+import useOrderHistory from "../hooks/useOrderHistory";
 
 const OrderHistoryPage = () => {
-    const [searchTerm, setSearchTerm] = useState(""); // ✅ 검색 상태
-    const [orders, setOrders] = useState([]); // ✅ 주문 목록
-    const [selectedOrder, setSelectedOrder] = useState(null); // ✅ 선택된 주문
-    const [orderDetails, setOrderDetails] = useState([]); // ✅ 주문 상세 정보
-    const [loading, setLoading] = useState(true); // ✅ 로딩 상태
-    const [error, setError] = useState(null); // ✅ 오류 상태
-
-    // ✅ 모든 주문 내역 가져오기
-    useEffect(() => {
-        const loadOrders = async () => {
-            try {
-                setLoading(true);
-                const data = await fetchOrderList();
-                setOrders(data);
-            } catch (err) {
-                setError("🚨 주문 데이터를 불러오는 중 오류 발생");
-            }
-            setLoading(false);
-        };
-
-        loadOrders();
-    }, []);
-
-    // ✅ 특정 주문 선택 시 상세 정보 불러오기
-    const handleOrderClick = async (order) => {
-        setSelectedOrder(order);
-        setOrderDetails([]); // 기존 데이터 초기화
-
-        try {
-            const details = await fetchOrderItemsByOrderId(order.id);
-            setOrderDetails(details);
-        } catch (err) {
-            setError("🚨 주문 상세 정보를 불러오는 중 오류 발생");
-        }
-    };
-
-    // ✅ 검색어에 따라 주문 목록 필터링
-    const filteredOrders = orders.filter((order) =>
-        order.userId.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const {
+        searchTerm,
+        setSearchTerm,
+        orders,
+        selectedOrder,
+        orderDetails,
+        loading,
+        error,
+        handleOrderClick,
+    } = useOrderHistory();
 
     return (
         <div className="min-h-screen w-screen flex flex-col bg-gray-100">
@@ -71,8 +41,8 @@ const OrderHistoryPage = () => {
                         {/* ✅ 주문 목록 */}
                         {!loading && !error && (
                             <div className="bg-gray-50 shadow-md rounded p-2">
-                                {filteredOrders.length > 0 ? (
-                                    filteredOrders.map((order) => (
+                                {orders.length > 0 ? (
+                                    orders.map((order) => (
                                         <div
                                             key={order.id}
                                             className={`flex justify-between items-center border-b p-2 cursor-pointer ${
