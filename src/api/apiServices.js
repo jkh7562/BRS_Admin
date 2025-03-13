@@ -224,6 +224,7 @@ export const fetchOrdersByUserId = async (userId) => {
     }
 };
 
+/*
 // 모든 추천 위치를 조회하는 API
 export const getAllLocations = async () => {
     try {
@@ -234,4 +235,4 @@ export const getAllLocations = async () => {
         console.error("Error fetching locations:", error);
         throw error;  // 오류 발생 시 예외를 던짐
     }
-};
+};*/

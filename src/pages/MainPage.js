@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchUsers } from "../slices/userSlice";
 import NavigationBar from "../component/NavigationBar";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
-import { getAllLocations } from "../api/apiServices"; // ✅ 추천 수거함 API 추가
+//import { getAllLocations } from "../api/apiServices"; // ✅ 추천 수거함 API 추가
 import useGraph from "../hooks/useGraph";
 import useBoxes from "../hooks/useBoxes";
 import greenIcon from "../assets/아이콘 GREEN.svg";
@@ -37,7 +37,7 @@ const MainPage = () => {
         }
     }, [status, dispatch]);
 
-    useEffect(() => {
+    /*useEffect(() => {
         const fetchRecommendedLocations = async () => {
             try {
                 const locations = await getAllLocations();
@@ -48,7 +48,7 @@ const MainPage = () => {
         };
 
         fetchRecommendedLocations();
-    }, []);
+    }, []);*/
 
     // ✅ 수거함 클릭 시 로그 페이지로 이동 (쿼리스트링으로 boxId 전달)
     const handleBoxClick = (boxId) => {
@@ -99,13 +99,13 @@ const MainPage = () => {
                                     />
                                 ))}
 
-                                {recommendedLocations.map(location => (
+                                {/*{recommendedLocations.map(location => (
                                     <MapMarker
                                         key={location.id}
                                         position={{ lat: location.latitude, lng: location.longitude }}
                                         onClick={() => console.log("Recommended location clicked!", location)}
                                     />
-                                ))}
+                                ))}*/}
                             </Map>
                         )}
                     </div>
