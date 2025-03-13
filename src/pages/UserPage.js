@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import NavigationBar from "../component/NavigationBar";
 import useUserData from "../hooks/useUserData";
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
@@ -10,18 +10,44 @@ const UserPage = () => {
         graphData,
         filterType,
         setFilterType,
+        userOrders,
         orderDetails,
-        loadingOrders
+        loadingOrders,
     } = useUserData();
 
     if (!userData) return <div className="h-screen w-screen flex justify-center items-center">⏳ 로딩 중...</div>;
+
+    const groupedOrders = orderDetails.reduce((acc, order) => {
+        const orderId = order.orderId;
+        if (!acc[orderId]) {
+            acc[orderId] = { items: [], date: null, state: null };
+        }
+        acc[orderId].items.push(order);
+        return acc;
+    }, {});
+
+    Object.keys(groupedOrders).forEach(orderId => {
+        const order = userOrders.find(o => o.id === parseInt(orderId));
+        if (order) {
+            groupedOrders[orderId].date = order.date;
+            groupedOrders[orderId].state = order.state;
+        }
+    });
+
+    const getOrderState = (state) => {
+        switch (state) {
+            case 0: return "주문 요청";
+            case 1: return "주문 확정";
+            case 2: return "주문 완료";
+            default: return "알 수 없음";
+        }
+    };
 
     return (
         <div className="h-screen w-screen flex flex-col bg-gray-100">
             <NavigationBar />
 
             <div className="mt-16 p-4">
-                {/* ✅ 사용자 정보 섹션 */}
                 <div className="grid grid-cols-3 gap-4 mb-8">
                     <div className="bg-white shadow-md p-4 text-center border">
                         <p className="font-bold">이름 :</p>
@@ -49,9 +75,7 @@ const UserPage = () => {
                     </div>
                 </div>
 
-                {/* ✅ 배출 그래프 + 배출 로그 + 주문 내역 */}
                 <div className="grid grid-cols-7 gap-4">
-                    {/* ✅ 배출 그래프 */}
                     <div className="bg-white shadow-md p-4 border col-span-3">
                         <div className="flex justify-between items-center mb-4">
                             <p className="font-bold">배출 정보</p>
@@ -81,7 +105,6 @@ const UserPage = () => {
                         </ResponsiveContainer>
                     </div>
 
-                    {/* ✅ 배출 로그 (표 복원) */}
                     <div className="bg-white shadow-md p-4 border col-span-2">
                         <p className="font-bold mb-2">배출 로그</p>
                         <table className="w-full table-auto border-collapse border border-gray-200 text-sm">
@@ -104,22 +127,33 @@ const UserPage = () => {
                         </table>
                     </div>
 
-                    {/* 주문 내역 */}
                     <div className="bg-white shadow-md p-4 border col-span-2">
                         <p className="font-bold mb-2">주문 내역</p>
                         {loadingOrders ? (
                             <p className="text-sm">⏳ 주문 내역 불러오는 중...</p>
-                        ) : orderDetails.length > 0 ? (
-                            orderDetails.map(order => (
-                                <div key={order.id} className="border p-4 mb-2 bg-gray-50 shadow-sm rounded-md">
-                                    <p className="text-sm"><strong>주문번호:</strong> {order.orderId}</p>
-                                    <p className="text-sm"><strong>아이템 번호:</strong> {order.itemId}</p>
-                                    <p className="text-sm"><strong>수량:</strong> {order.count}</p>
-                                    <p className="text-sm font-bold"><strong>가격:</strong> {order.price}원</p>
-                                </div>
-                            ))
+                        ) : Object.keys(groupedOrders).length > 0 ? (
+                            Object.keys(groupedOrders).map(orderId => {
+                                const order = groupedOrders[orderId];
+                                const totalCount = order.items.reduce((acc, item) => acc + item.count, 0);
+                                const totalPrice = order.items.reduce((acc, item) => acc + item.price * item.count, 0);
+
+                                return (
+                                    <div key={orderId} className="border p-4 mb-2 bg-gray-50 shadow-sm rounded-md">
+                                        <p className="text-sm"><strong>주문번호:</strong> {orderId}</p>
+                                        <p className="text-sm"><strong>주문일자:</strong> {order.date ? new Date(order.date).toLocaleString() : "정보 없음"}</p>
+                                        <p className="text-sm"><strong>주문상태:</strong> {getOrderState(order.state)}</p>
+                                        {order.items.map(item => (
+                                            <div key={item.id} className="text-sm">
+                                                <span>{item.itemId} (수량: {item.count}, 가격: {item.price}원)</span>
+                                            </div>
+                                        ))}
+                                        <p className="text-sm font-bold"><strong>총 수량:</strong> {totalCount}</p>
+                                        <p className="text-sm font-bold"><strong>총 가격:</strong> {totalPrice}원</p>
+                                    </div>
+                                );
+                            })
                         ) : (
-                            <p className="text-sm">📌 주문 내역이 없습니다.</p>
+                            <p className="text-sm"> 주문 내역이 없습니다.</p>
                         )}
                     </div>
                 </div>
