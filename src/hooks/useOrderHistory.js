@@ -1,57 +1,92 @@
 import { useState, useEffect } from "react";
 import { fetchOrderList, fetchOrderItemsByOrderId } from "../api/apiServices";
 
-const useOrderHistory = () => {
-    const [searchTerm, setSearchTerm] = useState(""); // ✅ 검색 상태
-    const [orders, setOrders] = useState([]); // ✅ 주문 목록
-    const [selectedOrder, setSelectedOrder] = useState(null); // ✅ 선택된 주문
-    const [orderDetails, setOrderDetails] = useState([]); // ✅ 주문 상세 정보
-    const [loading, setLoading] = useState(true); // ✅ 로딩 상태
-    const [error, setError] = useState(null); // ✅ 오류 상태
+const useOrderHistory = (searchTerm) => {
+    const [orders, setOrders] = useState([]);
+    const [selectedUserOrders, setSelectedUserOrders] = useState([]);
+    const [selectedOrderDetails, setSelectedOrderDetails] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // ✅ 모든 주문 내역 가져오기
     useEffect(() => {
         const loadOrders = async () => {
             try {
                 setLoading(true);
                 const data = await fetchOrderList();
-                setOrders(data);
+                const sortedData = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+                setOrders(sortedData);
             } catch (err) {
-                setError("🚨 주문 데이터를 불러오는 중 오류 발생");
+                setError("주문 데이터를 불러오는 중 오류 발생");
             }
             setLoading(false);
         };
-
         loadOrders();
     }, []);
 
-    // ✅ 특정 주문 선택 시 상세 정보 불러오기
-    const handleOrderClick = async (order) => {
-        setSelectedOrder(order);
-        setOrderDetails([]); // 기존 데이터 초기화
+    const handleUserClick = (userId) => {
+        const userOrders = orders.filter(order => order.userId === userId);
+        setSelectedUserOrders(userOrders);
+        setSelectedOrderDetails(null);
+    };
 
+    const handleOrderClick = (orderId) => {
+        fetchOrderDetails(orderId);
+    };
+
+    const fetchOrderDetails = async (orderId) => {
         try {
-            const details = await fetchOrderItemsByOrderId(order.id);
-            setOrderDetails(details);
+            const details = await fetchOrderItemsByOrderId(orderId);
+            const groupedDetails = details.reduce((acc, detail) => {
+                const key = `${detail.orderId}-${detail.itemId}`;
+                if (!acc[key]) {
+                    acc[key] = { ...detail, count: 0 };
+                }
+                acc[key].count += detail.count;
+                return acc;
+            }, {});
+            setSelectedOrderDetails(Object.values(groupedDetails));
         } catch (err) {
-            setError("🚨 주문 상세 정보를 불러오는 중 오류 발생");
+            setError("주문 상세 정보를 불러오는 중 오류 발생");
         }
     };
 
-    // ✅ 검색어에 따라 주문 목록 필터링
-    const filteredOrders = orders.filter((order) =>
-        order.userId.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const getTimeDifference = (date) => {
+        const now = new Date();
+        const orderDate = new Date(date);
+        const diff = now - orderDate;
+
+        const minutes = Math.floor(diff / (1000 * 60));
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+        if (minutes < 60) return `${minutes}분 전`;
+        if (hours < 24) return `${hours}시간 전`;
+        return `${days}일 전`;
+    };
+
+    const getOrderState = (state) => {
+        switch (state) {
+            case 0: return "주문 요청";
+            case 1: return "주문 확정";
+            case 2: return "주문 완료";
+            default: return "알 수 없음";
+        }
+    };
+
+    const filteredUsers = [...new Set(orders.map(order => order.userId))]
+        .filter(userId => userId.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return {
-        searchTerm,
-        setSearchTerm,
-        orders: filteredOrders,
-        selectedOrder,
-        orderDetails,
+        orders,
+        selectedUserOrders,
+        selectedOrderDetails,
         loading,
         error,
+        handleUserClick,
         handleOrderClick,
+        getTimeDifference,
+        getOrderState,
+        filteredUsers,
     };
 };
 
