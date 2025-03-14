@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import NavigationBar from "../component/NavigationBar";
-import useOrderHistory from "../hooks/useOrderHistory"; // 커스텀 훅 import
+import useOrderHistory from "../hooks/useOrderHistory";
 
 const OrderHistoryPage = () => {
     const [searchTerm, setSearchTerm] = useState("");
@@ -16,6 +16,27 @@ const OrderHistoryPage = () => {
         getOrderState,
         filteredUsers,
     } = useOrderHistory(searchTerm);
+
+    const [orderTotals, setOrderTotals] = useState({});
+
+    useEffect(() => {
+        if (selectedOrderDetails) {
+            const totals = selectedOrderDetails.reduce((acc, detail) => {
+                if (!acc[detail.orderId]) {
+                    acc[detail.orderId] = {
+                        totalCount: 0,
+                        totalPrice: 0,
+                    };
+                }
+                acc[detail.orderId].totalCount += detail.count;
+                acc[detail.orderId].totalPrice += detail.price * detail.count;
+                return acc;
+            }, {});
+            setOrderTotals(totals);
+        } else {
+            setOrderTotals({});
+        }
+    }, [selectedOrderDetails]);
 
     return (
         <div className="min-h-screen w-screen flex flex-col bg-gray-100">
@@ -60,31 +81,35 @@ const OrderHistoryPage = () => {
                         )}
                     </div>
                     <div className="w-3/5 bg-white shadow-md rounded p-6">
-                        <h2 className="text-lg font-bold mb-4"> 상세 정보</h2>
+                        <h2 className="text-lg font-bold mb-4">상세 정보</h2>
                         {selectedUserOrders.length > 0 ? (
-                            selectedUserOrders.map(order => (
-                                <div key={order.id} className="bg-gray-50 shadow-md rounded p-4 mb-4">
-                                    <div className="flex justify-between items-center">
-                                        <h3 className="mb-2 font-bold cursor-pointer" onClick={() => handleOrderClick(order.id)}>
-                                            주문번호: {order.id} - {getOrderState(order.state)}
-                                        </h3>
-                                        <div>
-                                            <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2">수락</button>
-                                            <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">거절</button>
+                            selectedUserOrders.map(order => {
+                                const orderItems = selectedOrderDetails?.filter(detail => detail.orderId === order.id);
+                                const total = orderTotals[order.id];
+
+                                return (
+                                    <div key={order.id} className="bg-gray-50 shadow-md rounded p-4 mb-4">
+                                        <div className="flex justify-between items-center">
+                                            <h3 className="mb-2 font-bold cursor-pointer" onClick={() => handleOrderClick(order.id)}>
+                                                주문번호: {order.id} - {getOrderState(order.state)}
+                                            </h3>
+                                            <div>
+                                                <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2">수락</button>
+                                                <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">거절</button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <p>주문 일자: {new Date(order.date).toLocaleString()}</p>
-                                    {selectedOrderDetails && selectedOrderDetails[0]?.orderId === order.id && (
-                                        selectedOrderDetails.map((detail, index) => (
+                                        <p>주문 일자: {new Date(order.date).toLocaleString()}</p>
+                                        {orderItems?.map((detail, index) => (
                                             <p key={index} className="mb-2">
-                                                <strong>아이템 번호:</strong> {detail.itemId} - <strong>수량:</strong> {detail.count} - <strong>가격:</strong> {detail.price}원
+                                                <strong>아이템 번호:</strong> {detail.itemId} - <strong>가격:</strong> {detail.price}원 - <strong>수량:</strong> {detail.count}
                                             </p>
-                                        ))
-                                    )}
-                                </div>
-                            ))
+                                        ))}
+                                        {total && <p><strong>총 주문 가격:</strong> {total.totalPrice}원</p>}
+                                    </div>
+                                );
+                            })
                         ) : (
-                            <p> 사용자를 선택하세요.</p>
+                            <p>사용자를 선택하세요.</p>
                         )}
                     </div>
                 </div>

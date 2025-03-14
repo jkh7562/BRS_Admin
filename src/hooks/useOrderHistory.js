@@ -39,9 +39,10 @@ const useOrderHistory = (searchTerm) => {
             const groupedDetails = details.reduce((acc, detail) => {
                 const key = `${detail.orderId}-${detail.itemId}`;
                 if (!acc[key]) {
-                    acc[key] = { ...detail, count: 0 };
+                    acc[key] = { ...detail, count: 0, totalPrice: 0 }; // totalPrice 초기화
                 }
                 acc[key].count += detail.count;
+                acc[key].totalPrice += detail.price * detail.count; // 총 가격 계산
                 return acc;
             }, {});
             setSelectedOrderDetails(Object.values(groupedDetails));
