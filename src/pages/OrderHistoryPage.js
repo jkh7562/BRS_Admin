@@ -103,7 +103,7 @@ const OrderHistoryPage = () => {
                         )}
                     </div>
                     <div className="w-3/5 bg-white shadow-md rounded p-6">
-                        <h2 className="text-lg font-bold mb-4">상세 정보</h2>
+                        <h2 className="text-lg font-bold mb-4">상세 정보 - {selectedUserOrders[0]?.userId}</h2>
                         {selectedUserOrders.length > 0 ? (
                             selectedUserOrders.map(order => {
                                 const orderItems = selectedOrderDetails?.filter(detail => detail.orderId === order.id);
@@ -123,7 +123,7 @@ const OrderHistoryPage = () => {
                                                 <strong>아이템 번호:</strong> {detail.itemId} - <strong>가격:</strong> {detail.price}원 - <strong>수량:</strong> {detail.count}
                                             </p>
                                         ))}
-                                        {total && <p><strong>총 주문 가격:</strong> {total.totalPrice}원</p>}
+                                        {order.totalPrice && <p><strong>총 주문 가격:</strong> {order.totalPrice}원</p>}
                                     </div>
                                 );
                             })
