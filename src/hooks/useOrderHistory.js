@@ -68,7 +68,7 @@ const useOrderHistory = (searchTerm) => {
     const getOrderState = (state) => {
         switch (state) {
             case 0: return "주문 요청";
-            case 1: return "주문 확정";
+            case 1: return "주문 처리 중";
             case 2: return "주문 완료";
             default: return "알 수 없음";
         }

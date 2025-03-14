@@ -38,6 +38,28 @@ const OrderHistoryPage = () => {
         }
     }, [selectedOrderDetails]);
 
+    const renderOrderActions = (order) => {
+        switch (order.state) {
+            case 0: // 주문 요청
+                return (
+                    <div>
+                        <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2">수락</button>
+                        <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">거절</button>
+                    </div>
+                );
+            case 1: // 주문 처리 중
+                return (
+                    <div>
+                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">완료</button>
+                        <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">취소</button>
+                    </div>
+                );
+            case 2: // 주문 완료
+            default:
+                return null; // 버튼 없음
+        }
+    };
+
     return (
         <div className="min-h-screen w-screen flex flex-col bg-gray-100">
             <NavigationBar />
@@ -93,10 +115,7 @@ const OrderHistoryPage = () => {
                                             <h3 className="mb-2 font-bold cursor-pointer" onClick={() => handleOrderClick(order.id)}>
                                                 주문번호: {order.id} - {getOrderState(order.state)}
                                             </h3>
-                                            <div>
-                                                <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2">수락</button>
-                                                <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">거절</button>
-                                            </div>
+                                            {renderOrderActions(order)}
                                         </div>
                                         <p>주문 일자: {new Date(order.date).toLocaleString()}</p>
                                         {orderItems?.map((detail, index) => (
