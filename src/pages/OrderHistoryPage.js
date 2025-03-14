@@ -103,7 +103,7 @@ const OrderHistoryPage = () => {
                         )}
                     </div>
                     <div className="w-3/5 bg-white shadow-md rounded p-6">
-                        <h2 className="text-lg font-bold mb-4">상세 정보 - {selectedUserOrders[0]?.userId}</h2>
+                        <h2 className="text-lg font-bold mb-4">상세 정보{/* - {selectedUserOrders[0]?.userId}*/}</h2>
                         {selectedUserOrders.length > 0 ? (
                             selectedUserOrders.map(order => {
                                 const orderItems = selectedOrderDetails?.filter(detail => detail.orderId === order.id);
