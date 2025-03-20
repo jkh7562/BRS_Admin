@@ -147,12 +147,20 @@ const NavigationBar = () => {
                 </div>
 
                 <div className="flex justify-center flex-grow space-x-4">
-                    <Link to="/control">
+                    <Link to="/boxAddRemovePage">
+                        <button className="px-4 py-2 border rounded">수거함 추가/제거</button>
+                    </Link>
+                    {/*<Link to="/control">
                         <button className="px-4 py-2 border rounded">수거함 제어</button>
-                    </Link>
-                    <Link to="/log">
+                    </Link>*/}
+                    {/*<Link to="/log">
                         <button className="px-4 py-2 border rounded">수거함 로그</button>
+                    </Link>*/}
+                    <Link to="/log">
+                        <button className="px-4 py-2 border rounded">수거함 제어/로그</button>
                     </Link>
+                    <button className="px-4 py-2 border rounded">수거자 배치</button>
+                    <button className="px-4 py-2 border rounded">모니터링</button>
                     <Link to="/userApprovalPage">
                         <button className="px-4 py-2 border rounded">가입 관리</button>
                     </Link>
