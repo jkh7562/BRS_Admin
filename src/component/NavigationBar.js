@@ -159,7 +159,9 @@ const NavigationBar = () => {
                     <Link to="/log">
                         <button className="px-4 py-2 border rounded">수거함 제어/로그</button>
                     </Link>
-                    <button className="px-4 py-2 border rounded">수거자 배치</button>
+                    <Link to="/collectorAssignmentPage">
+                        <button className="px-4 py-2 border rounded">수거자 배치</button>
+                    </Link>
                     <button className="px-4 py-2 border rounded">모니터링</button>
                     <Link to="/userApprovalPage">
                         <button className="px-4 py-2 border rounded">가입 관리</button>
