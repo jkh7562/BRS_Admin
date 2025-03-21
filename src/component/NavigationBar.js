@@ -156,7 +156,7 @@ const NavigationBar = () => {
                     {/*<Link to="/log">
                         <button className="px-4 py-2 border rounded">수거함 로그</button>
                     </Link>*/}
-                    <Link to="/log">
+                    <Link to="/boxControlLogPage">
                         <button className="px-4 py-2 border rounded">수거함 제어/로그</button>
                     </Link>
                     <Link to="/collectorAssignmentPage">
