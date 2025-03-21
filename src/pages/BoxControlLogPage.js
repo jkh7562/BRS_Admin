@@ -2,14 +2,13 @@ import React, { useRef, useState, useEffect } from "react";
 import NavigationBar from "../component/NavigationBar";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
 
-// 더미 수거함 데이터
+// 더미 데이터 (변경 없음)
 const boxes = [
     { id: "box1", name: "선문대 동문 앞 수거함", lat: 36.8082, lng: 127.0090 },
     { id: "box2", name: "선문대 서문 앞 수거함", lat: 36.8090, lng: 127.0100 },
     { id: "box3", name: "선문대 삼봉마을 수거함", lat: 36.8075, lng: 127.0115 },
 ];
 
-// 더미 로그 데이터
 const logs = {
     box1: [
         { id: 1, user: "홍길동", date: "2025/03/17", batteries: "건전지 6개, 방전 배터리 5개, 잔여 용량 배터리 7개" },
@@ -27,32 +26,22 @@ const BoxControlLogPage = () => {
     const [search, setSearch] = useState("");
     const [selectedBox, setSelectedBox] = useState(boxes[0]);
     const [selectedLog, setSelectedLog] = useState(null);
-    const [showControlPanel, setShowControlPanel] = useState(false);
-    const [showCollectorControlPanel, setShowCollectorControlPanel] = useState(false);
+    const [showControlModal, setShowControlModal] = useState(false); // 사용자 모달
+    const [showCollectorModal, setShowCollectorModal] = useState(false); // 수거자 모달
     const userButtonRef = useRef(null);
     const collectorButtonRef = useRef(null);
-    const [panelStyle, setPanelStyle] = useState({ top: 0, left: 0 });
-    const [collectorPanelStyle, setCollectorPanelStyle] = useState({ top: 0, left: 0 });
 
-    useEffect(() => {
-        if (showControlPanel && userButtonRef.current) {
-            const rect = userButtonRef.current.getBoundingClientRect();
-            setPanelStyle({
-                top: rect.top - 106,
-                left: rect.left + rect.width / 2,
-            });
-        }
-    }, [showControlPanel]);
+    // 모달을 위한 별도의 위치 계산 useEffect 제거 (모달은 중앙 고정 위치 사용)
 
-    useEffect(() => {
-        if (showCollectorControlPanel && collectorButtonRef.current) {
-            const rect = collectorButtonRef.current.getBoundingClientRect();
-            setCollectorPanelStyle({
-                top: rect.top - 106,
-                left: rect.left + rect.width / 2,
-            });
+    const toggleModal = (type) => {
+        if (type === 'user') {
+            setShowControlModal(prev => !prev);
+            setShowCollectorModal(false);
+        } else {
+            setShowCollectorModal(prev => !prev);
+            setShowControlModal(false);
         }
-    }, [showCollectorControlPanel]);
+    };
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-100 items-center px-4 overflow-auto">
@@ -92,7 +81,6 @@ const BoxControlLogPage = () => {
 
                     <div className="mt-3 flex flex-col items-center">
                         <h3 className="text-md font-semibold mb-2">개폐 상태</h3>
-
                         <div className="flex items-center">
                             <div className="flex flex-col space-y-2">
                                 <div className="flex items-center space-x-2">
@@ -108,9 +96,7 @@ const BoxControlLogPage = () => {
                                     <span className="border p-2 rounded bg-gray-200 text-center">폐쇄</span>
                                 </div>
                             </div>
-
                             <div className="w-8"></div>
-
                             <div className="flex flex-col space-y-2">
                                 <div className="flex items-center space-x-2">
                                     <span className="border p-2 rounded bg-gray-100 text-center">수거자 입구</span>
@@ -124,78 +110,25 @@ const BoxControlLogPage = () => {
                         <div className="flex justify-around w-full">
                             <button
                                 ref={userButtonRef}
-                                className="p-2 bg-blue-500 text-white rounded"
-                                onClick={() => {
-                                    setShowControlPanel((prev) => !prev);
-                                    setShowCollectorControlPanel(false);
-                                }}
+                                className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                onClick={() => toggleModal('user')}
                             >
                                 사용자
                             </button>
-                            <button className="p-2 bg-gray-500 text-white rounded">차단</button>
+                            <button className="p-2 bg-gray-500 text-white rounded hover:bg-gray-600">차단</button>
                             <button
                                 ref={collectorButtonRef}
-                                className="p-2 bg-green-500 text-white rounded"
-                                onClick={() => {
-                                    setShowCollectorControlPanel((prev) => !prev);
-                                    setShowControlPanel(false);
-                                }}
+                                className="p-2 bg-green-500 text-white rounded hover:bg-green-600"
+                                onClick={() => toggleModal('collector')}
                             >
                                 수거자
                             </button>
                         </div>
-
-                        {showControlPanel && (
-                            <div
-                                className="fixed z-50 bg-white border shadow-md p-3 rounded flex gap-4 transform -translate-x-1/2"
-                                style={{ top: `${panelStyle.top}px`, left: `${panelStyle.left}px` }}
-                            >
-                                <div className="border p-2 rounded text-center bg-white shadow">
-                                    <p className="font-semibold">건전지</p>
-                                    <div className="flex justify-between mt-1">
-                                        <button className="border p-1 rounded bg-gray-200 cursor-pointer">개방</button>
-                                        <button className="border p-1 rounded bg-gray-200 cursor-pointer">폐쇄</button>
-                                    </div>
-                                </div>
-
-                                <div className="border p-2 rounded text-center bg-white shadow">
-                                    <p className="font-semibold">방전 배터리</p>
-                                    <div className="flex justify-between mt-1">
-                                        <button className="border p-1 rounded bg-gray-200 cursor-pointer">개방</button>
-                                        <button className="border p-1 rounded bg-gray-200 cursor-pointer">폐쇄</button>
-                                    </div>
-                                </div>
-
-                                <div className="border p-2 rounded text-center bg-white shadow">
-                                    <p className="font-semibold">잔여 용량 배터리</p>
-                                    <div className="flex justify-between mt-1">
-                                        <button className="border p-1 rounded bg-gray-200 cursor-pointer">개방</button>
-                                        <button className="border p-1 rounded bg-gray-200 cursor-pointer">폐쇄</button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {showCollectorControlPanel && (
-                            <div
-                                className="fixed z-50 bg-white border shadow-md p-3 rounded flex gap-4 transform -translate-x-1/2"
-                                style={{ top: `${collectorPanelStyle.top}px`, left: `${collectorPanelStyle.left}px` }}
-                            >
-                                <div className="border p-2 rounded text-center bg-white shadow">
-                                    <p className="font-semibold">수거자 입구</p>
-                                    <div className="flex justify-between mt-1">
-                                        <button className="border p-1 rounded bg-gray-200 cursor-pointer">개방</button>
-                                        <button className="border p-1 rounded bg-gray-200 cursor-pointer">폐쇄</button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
 
                 <div className="bg-white shadow-md p-3 rounded w-1/3 max-h-600 overflow-y-auto">
                     <h2 className="text-lg font-semibold mb-2">수거함</h2>
-
                     <input
                         type="text"
                         placeholder="수거함 검색"
@@ -203,7 +136,6 @@ const BoxControlLogPage = () => {
                         onChange={(e) => setSearch(e.target.value)}
                         className="border p-1 rounded w-full mb-2"
                     />
-
                     <ul className="border rounded h-40 overflow-auto">
                         {boxes
                             .filter((box) => box.name.includes(search))
@@ -230,13 +162,11 @@ const BoxControlLogPage = () => {
                         <option value="배출">배출</option>
                         <option value="수거">수거</option>
                     </select>
-
                     <input
                         type="text"
                         placeholder="로그 검색"
                         className="border p-1 rounded w-full mb-2"
                     />
-
                     <ul className="border rounded h-[400px] overflow-y-auto">
                         {logs[selectedBox.id]?.map((log) => (
                             <li
@@ -260,6 +190,60 @@ const BoxControlLogPage = () => {
                     </div>
                 )}
             </div>
+
+            {/* 사용자 개폐 조작 모달 */}
+            {showControlModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-1/2">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold">사용자 개폐 조작</h3>
+                            <button
+                                className="text-gray-500 hover:text-gray-700"
+                                onClick={() => setShowControlModal(false)}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="flex gap-4 justify-center">
+                            {["건전지", "방전 배터리", "잔여 용량 배터리"].map((type) => (
+                                <div key={type} className="border p-4 rounded text-center bg-white shadow">
+                                    <p className="font-semibold mb-2">{type}</p>
+                                    <div className="flex justify-between gap-2">
+                                        <button className="border p-2 rounded bg-gray-200 hover:bg-gray-300">개방</button>
+                                        <button className="border p-2 rounded bg-gray-200 hover:bg-gray-300">폐쇄</button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 수거자 개폐 조작 모달 */}
+            {showCollectorModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold">수거자 개폐 조작</h3>
+                            <button
+                                className="text-gray-500 hover:text-gray-700"
+                                onClick={() => setShowCollectorModal(false)}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="flex justify-center">
+                            <div className="border p-4 rounded text-center bg-white shadow">
+                                <p className="font-semibold mb-2">수거자 입구</p>
+                                <div className="flex justify-between gap-2">
+                                    <button className="border p-2 rounded bg-gray-200 hover:bg-gray-300">개방</button>
+                                    <button className="border p-2 rounded bg-gray-200 hover:bg-gray-300">폐쇄</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
