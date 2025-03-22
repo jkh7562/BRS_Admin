@@ -84,11 +84,20 @@ const MonitoringPage = () => {
                 </select>
 
                 <label className="ml-4">시/군/구:</label>
-                <select value={district} onChange={(e) => setDistrict(e.target.value)} className="border p-1 rounded">
-                    <option>전체</option>
-                    <option>아산시</option>
-                    <option>천안시</option>
-                    <option>강남구</option>
+                <select
+                    value={district}
+                    onChange={(e) => setDistrict(e.target.value)}
+                    className="border p-1 rounded"
+                    disabled={region === "전체"} // ← 여기서 비활성화 조건 추가
+                >
+                    <option value="전체">전체</option>
+                    {region === "충청남도" && (
+                        <>
+                            <option value="아산시">아산시</option>
+                            <option value="천안시">천안시</option>
+                        </>
+                    )}
+                    {region === "서울특별시" && <option value="강남구">강남구</option>}
                 </select>
             </div>
 
