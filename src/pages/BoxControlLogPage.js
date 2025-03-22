@@ -30,8 +30,8 @@ const BoxControlLogPage = () => {
     const [showCollectorModal, setShowCollectorModal] = useState(false); // 수거자 모달
     const userButtonRef = useRef(null);
     const collectorButtonRef = useRef(null);
+    const [logType, setLogType] = useState("배출");
 
-    // 모달을 위한 별도의 위치 계산 useEffect 제거 (모달은 중앙 고정 위치 사용)
 
     const toggleModal = (type) => {
         if (type === 'user') {
@@ -41,6 +41,23 @@ const BoxControlLogPage = () => {
             setShowCollectorModal(prev => !prev);
             setShowControlModal(false);
         }
+    };
+
+    // 수거 로그 예시 데이터
+    const pickupLogs = {
+        box1: [
+            {
+                id: 101,
+                user: "홍길동",
+                userid: "jkh7562",
+                date: "2025-03-17 18:22:40",
+                batteries: "건전지 6개, 방전 배터리 5개, 잔여 용량 배터리 7개",
+                lat: 36.80823242,
+                lng: 1227.0090151
+            }
+        ],
+        box2: [],
+        box3: []
     };
 
     return (
@@ -156,9 +173,17 @@ const BoxControlLogPage = () => {
             </div>
 
             <div className="mt-4 w-3/4 flex gap-4">
+                {/* 로그 종류와 검색 */}
                 <div className="bg-white shadow-md p-3 rounded w-1/3 h-[600px] overflow-y-auto">
                     <h2 className="text-lg font-semibold mb-2">로그 종류:</h2>
-                    <select className="border p-1 rounded w-full mb-2">
+                    <select
+                        className="border p-1 rounded w-full mb-2"
+                        value={logType}
+                        onChange={(e) => {
+                            setLogType(e.target.value);
+                            setSelectedLog(null); // 로그 종류 바뀌면 선택된 로그 초기화
+                        }}
+                    >
                         <option value="배출">배출</option>
                         <option value="수거">수거</option>
                     </select>
@@ -168,25 +193,46 @@ const BoxControlLogPage = () => {
                         className="border p-1 rounded w-full mb-2"
                     />
                     <ul className="border rounded h-[400px] overflow-y-auto">
-                        {logs[selectedBox.id]?.map((log) => (
+                        {(logType === "배출" ? logs : pickupLogs)[selectedBox.id]?.map((log) => (
                             <li
                                 key={log.id}
                                 className={`p-2 border-b cursor-pointer ${selectedLog?.id === log.id ? "bg-gray-200" : ""}`}
                                 onClick={() => setSelectedLog(log)}
                             >
-                                {log.user} - {log.date}
+                                {log.user} - {log.date.split(" ")[0]}
                             </li>
                         ))}
                     </ul>
                 </div>
 
+                {/* 상세 정보 영역 */}
                 {selectedLog && (
                     <div className="bg-white shadow-md p-3 rounded w-2/3 h-[600px] overflow-y-auto">
-                        <h2 className="text-lg font-semibold mb-2">배출 상세 정보</h2>
-                        <p><strong>사용자:</strong> {selectedLog.user}</p>
-                        <p><strong>배출 일자:</strong> {selectedLog.date}</p>
-                        <p><strong>수거함:</strong> {selectedBox.name}</p>
-                        <p><strong>배출 정보:</strong> {selectedLog.batteries}</p>
+                        <h2 className="text-lg font-semibold mb-2">
+                            {logType === "수거" ? "수거 상세 정보" : "배출 상세 정보"}
+                        </h2>
+                        <p>
+                            <strong>사용자:</strong>{" "}
+                            {logType === "수거"
+                                ? `${selectedLog.user} (${selectedLog.userid})`
+                                : selectedLog.user}
+                        </p>
+                        <p>
+                            <strong>{logType === "수거" ? "수거 일자" : "배출 일자"}:</strong>{" "}
+                            {selectedLog.date}
+                        </p>
+                        <p>
+                            <strong>수거함:</strong> {selectedBox.name}
+                        </p>
+                        {logType === "수거" && (
+                            <p>
+                                <strong>수거 좌표:</strong> {selectedLog.lat} / {selectedLog.lng}
+                            </p>
+                        )}
+                        <p>
+                            <strong>{logType === "수거" ? "수거 정보" : "배출 정보"}:</strong>{" "}
+                            {selectedLog.batteries}
+                        </p>
                     </div>
                 )}
             </div>
