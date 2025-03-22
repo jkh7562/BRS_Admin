@@ -28,7 +28,7 @@ const BoxAddRemovePage = () => {
             <NavigationBar />
 
             {/* 상단 여백 추가 */}
-            <div className="mt-28 w-3/4 bg-white shadow-md p-4 rounded">
+            <div className="mt-24 w-3/4 bg-white shadow-md p-4 rounded">
                 <Map center={{ lat: 36.8082, lng: 127.0090 }} style={{ width: "100%", height: "450px" }} level={3}>
                     {filteredLocations.map((loc) => (
                         <MapMarker key={loc.id} position={{ lat: loc.lat, lng: loc.lng }} onClick={() => setSelectedBox(loc)} />
