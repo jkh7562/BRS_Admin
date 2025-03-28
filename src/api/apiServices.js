@@ -252,17 +252,20 @@ export const runRecommendationAlgorithm = async () => {
     }
 };
 
-// 📌 필터링된 추천 수거함 위치 조회 API
+// 📌 Flask로부터 필터링된 추천 수거함 위치 받아오기
 export const fetchFilteredRecommendedBoxes = async () => {
     try {
-        const response = await axiosInstance.get("/admin/getFilteredRecommendedBoxes");
+        const response = await axios.post(`${FLASK_BASE_URL}/recommend/compare`, {
+            withCredentials: true
+        });
         console.log("✅ 필터링된 추천 위치:", response.data);
-        return response.data; // [{ lat: 36.78, lng: 127.01 }, ...]
+        return response.data;
     } catch (error) {
         console.error("❌ 추천 위치 조회 실패:", error);
         throw error;
     }
 };
+
 
 // 파일 업로드 함수
 export const uploadFileToFlask = async (file) => {
