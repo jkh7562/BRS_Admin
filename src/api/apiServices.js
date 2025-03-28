@@ -227,19 +227,6 @@ export const fetchOrdersByUserId = async (userId) => {
     }
 };
 
-/*
-// 모든 추천 위치를 조회하는 API
-export const getAllLocations = async () => {
-    try {
-        const response = await axiosInstance.get('/locations');
-        console.log("Locations fetched successfully:", response.data);
-        return response.data;  // 서버에서 받은 위치 데이터 반환
-    } catch (error) {
-        console.error("Error fetching locations:", error);
-        throw error;  // 오류 발생 시 예외를 던짐
-    }
-};*/
-
 // ✅ Flask 추천 알고리즘 실행 API
 export const runRecommendationAlgorithm = async () => {
     try {
@@ -278,14 +265,5 @@ export const uploadFileToFlask = async (file) => {
         },
     });
 
-    return response.data;
-};
-
-export const uploadMultipleFilesToFlask = async (formData) => {
-    const response = await axios.post(`http://localhost:5000/upload-multiple`, formData, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    });
     return response.data;
 };
