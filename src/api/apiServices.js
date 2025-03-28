@@ -1,7 +1,7 @@
 import axios from "axios";
 import axiosInstance from "./axiosInstance"; // ✅ axiosInstance import 추가
 
-const FLASK_BASE_URL = "http://localhost:5000";
+/*const FLASK_BASE_URL = "http://localhost:5000";*/
 
 // 회원가입 API
 export const postCreateNewUser = (id, pw, name, phoneNumber) => {
@@ -242,7 +242,7 @@ export const runRecommendationAlgorithm = async () => {
 // 📌 Flask로부터 필터링된 추천 수거함 위치 받아오기
 export const fetchFilteredRecommendedBoxes = async () => {
     try {
-        const response = await axios.post(`${FLASK_BASE_URL}/recommend/compare`, {
+        const response = await axiosInstance.post("/admin/getFilteredRecommendedBoxes", {
             withCredentials: true
         });
         console.log("✅ 필터링된 추천 위치:", response.data);
@@ -259,7 +259,7 @@ export const uploadFileToFlask = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await axios.post(`${FLASK_BASE_URL}/upload`, formData, {
+    const response = await axiosInstance.post("/admin/upload", formData, {
         headers: {
             "Content-Type": "multipart/form-data",
         },
