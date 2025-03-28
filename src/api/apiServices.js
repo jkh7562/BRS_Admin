@@ -236,3 +236,27 @@ export const getAllLocations = async () => {
         throw error;  // 오류 발생 시 예외를 던짐
     }
 };*/
+
+// ✅ Flask 추천 알고리즘 실행 API
+export const runRecommendationAlgorithm = async () => {
+    try {
+        const response = await axiosInstance.post("/admin/recommendation/run");
+        console.log("✅ 추천 알고리즘 실행 완료:", response.data);
+        return response.data; // Flask에서 온 메시지
+    } catch (error) {
+        console.error("❌ 추천 알고리즘 실행 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// 📌 필터링된 추천 수거함 위치 조회 API
+export const fetchFilteredRecommendedBoxes = async () => {
+    try {
+        const response = await axiosInstance.get("/admin/getFilteredRecommendedBoxes");
+        console.log("✅ 필터링된 추천 위치:", response.data);
+        return response.data; // [{ lat: 36.78, lng: 127.01 }, ...]
+    } catch (error) {
+        console.error("❌ 추천 위치 조회 실패:", error);
+        throw error;
+    }
+};

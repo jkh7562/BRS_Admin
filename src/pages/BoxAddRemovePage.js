@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import NavigationBar from "../component/NavigationBar";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
+import { runRecommendationAlgorithm, fetchFilteredRecommendedBoxes } from "../api/apiServices";
 
+// 더미 수거함 위치
 const locations = [
     { id: 1, type: "설치", name: "홍길동", region: "충청남도", district: "아산시", status: "설치 요청중", date: "2025-03-17", lat: 36.8082, lng: 127.0090 },
     { id: 2, type: "설치", name: "김유신", region: "충청남도", district: "천안시", status: "설치 확정", date: "2025-03-16", lat: 36.8090, lng: 127.0100 },
@@ -14,6 +16,19 @@ const BoxAddRemovePage = () => {
     const [selectedBox, setSelectedBox] = useState(null);
     const [region, setRegion] = useState("전체");
     const [district, setDistrict] = useState("전체");
+    const [recommendedLocations, setRecommendedLocations] = useState([]);
+
+    useEffect(() => {
+        const loadRecommended = async () => {
+            try {
+                const data = await fetchFilteredRecommendedBoxes();
+                setRecommendedLocations(data);
+            } catch (err) {
+                console.error("❌ 추천 위치 불러오기 실패:", err);
+            }
+        };
+        loadRecommended();
+    }, []);
 
     const filteredLocations = locations.filter(
         (loc) =>
@@ -23,20 +38,52 @@ const BoxAddRemovePage = () => {
             loc.name.includes(search)
     );
 
+    const handleRunRecommendation = async () => {
+        try {
+            const result = await runRecommendationAlgorithm();
+            alert("✅ 추천 알고리즘 실행 완료!\n\n" + result);
+        } catch (error) {
+            alert("❌ 실행 실패: " + (error.response?.data || error.message));
+        }
+    };
+
     return (
         <div className="min-h-screen flex flex-col bg-gray-100 items-center px-4">
             <NavigationBar />
 
-            {/* 상단 여백 추가 */}
-            <div className="mt-24 w-3/4 bg-white shadow-md p-4 rounded">
+            <div className="mt-24 w-3/4 flex justify-end">
+                <button
+                    onClick={handleRunRecommendation}
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                >
+                    수거함 추천 최신화 (1년에 한번 실행)
+                </button>
+            </div>
+
+            <div className="mt-2 w-3/4 bg-white shadow-md p-4 rounded">
                 <Map center={{ lat: 36.8082, lng: 127.0090 }} style={{ width: "100%", height: "450px" }} level={3}>
                     {filteredLocations.map((loc) => (
-                        <MapMarker key={loc.id} position={{ lat: loc.lat, lng: loc.lng }} onClick={() => setSelectedBox(loc)} />
+                        <MapMarker
+                            key={`loc-${loc.id}`}
+                            position={{ lat: loc.lat, lng: loc.lng }}
+                            onClick={() => setSelectedBox(loc)}
+                        />
+                    ))}
+
+                    {recommendedLocations.map((loc, index) => (
+                        <MapMarker
+                            key={`rec-${index}`}
+                            position={{ lat: loc.lat, lng: loc.lng }}
+                            image={{
+                                src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
+                                size: { width: 24, height: 35 }
+                            }}
+                            onClick={() => setSelectedBox({ ...loc, name: `추천${index + 1}`, type: "추천" })}
+                        />
                     ))}
                 </Map>
             </div>
 
-            {/* 필터 */}
             <div className="mt-2 w-3/4 flex items-center gap-2 bg-white shadow-md p-3 rounded">
                 <label>현황:</label>
                 <select value={filter} onChange={(e) => setFilter(e.target.value)} className="border p-1 rounded">
@@ -56,7 +103,7 @@ const BoxAddRemovePage = () => {
                     value={district}
                     onChange={(e) => setDistrict(e.target.value)}
                     className="border p-1 rounded"
-                    disabled={region === "전체"} // ← 여기서 비활성화 조건 추가
+                    disabled={region === "전체"}
                 >
                     <option value="전체">전체</option>
                     {region === "충청남도" && (
@@ -69,13 +116,9 @@ const BoxAddRemovePage = () => {
                 </select>
             </div>
 
-            {/* 리스트 및 상세정보 */}
             <div className="mt-2 w-3/4 flex gap-4">
-                {/* 리스트 */}
                 <div className="bg-white shadow-md p-3 rounded w-1/2">
                     <h2 className="text-lg font-semibold mb-1">{filter} 목록</h2>
-
-                    {/* 이름 검색 입력 필드 (목록 위쪽에 배치) */}
                     <input
                         type="text"
                         placeholder="이름 검색"
@@ -83,7 +126,6 @@ const BoxAddRemovePage = () => {
                         onChange={(e) => setSearch(e.target.value)}
                         className="border p-1 rounded w-full mb-1"
                     />
-
                     <ul>
                         {filteredLocations.map((loc) => (
                             <li
@@ -97,16 +139,19 @@ const BoxAddRemovePage = () => {
                     </ul>
                 </div>
 
-                {/* 상세 정보 */}
                 {selectedBox && (
                     <div className="bg-white shadow-md p-3 rounded w-1/2">
                         <h2 className="text-lg font-semibold mb-1">상세 정보</h2>
                         <p><strong>이름:</strong> {selectedBox.name}</p>
-                        <p><strong>광역시/도:</strong> {selectedBox.region}</p>
-                        <p><strong>담당 지역:</strong> {selectedBox.district}</p>
-                        <p><strong>알림 일자:</strong> {selectedBox.date}</p>
-                        <p><strong>상태:</strong> {selectedBox.status}</p>
-                        <p><strong>{filter} 좌표:</strong> {selectedBox.lat} / {selectedBox.lng}</p>
+                        {selectedBox.type !== "추천" && (
+                            <>
+                                <p><strong>광역시/도:</strong> {selectedBox.region}</p>
+                                <p><strong>담당 지역:</strong> {selectedBox.district}</p>
+                                <p><strong>알림 일자:</strong> {selectedBox.date}</p>
+                                <p><strong>상태:</strong> {selectedBox.status}</p>
+                            </>
+                        )}
+                        <p><strong>좌표:</strong> {selectedBox.lat} / {selectedBox.lng}</p>
                     </div>
                 )}
             </div>
