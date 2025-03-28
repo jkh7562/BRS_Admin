@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import NavigationBar from "../component/NavigationBar";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
-import { runRecommendationAlgorithm, fetchFilteredRecommendedBoxes } from "../api/apiServices";
+import { fetchFilteredRecommendedBoxes } from "../api/apiServices";
+import axios from "axios";
 
-// 더미 수거함 위치
 const locations = [
     { id: 1, type: "설치", name: "홍길동", region: "충청남도", district: "아산시", status: "설치 요청중", date: "2025-03-17", lat: 36.8082, lng: 127.0090 },
     { id: 2, type: "설치", name: "김유신", region: "충청남도", district: "천안시", status: "설치 확정", date: "2025-03-16", lat: 36.8090, lng: 127.0100 },
@@ -17,18 +17,58 @@ const BoxAddRemovePage = () => {
     const [region, setRegion] = useState("전체");
     const [district, setDistrict] = useState("전체");
     const [recommendedLocations, setRecommendedLocations] = useState([]);
+    const [files, setFiles] = useState({});
+    const [showUploader, setShowUploader] = useState(false);
+
+    const loadRecommended = async () => {
+        try {
+            const data = await fetchFilteredRecommendedBoxes();
+            setRecommendedLocations(data);
+        } catch (err) {
+            console.error("❌ 추천 위치 불러오기 실패:", err);
+        }
+    };
 
     useEffect(() => {
-        const loadRecommended = async () => {
-            try {
-                const data = await fetchFilteredRecommendedBoxes();
-                setRecommendedLocations(data);
-            } catch (err) {
-                console.error("❌ 추천 위치 불러오기 실패:", err);
-            }
-        };
         loadRecommended();
     }, []);
+
+    const handleFileChange = (e, key) => {
+        setFiles((prev) => ({ ...prev, [key]: e.target.files[0] }));
+    };
+
+    const handleUploadAll = async () => {
+        try {
+            const requiredKeys = [
+                "population",
+                "boundarycpg",
+                "boundarydbf",
+                "boundaryprj",
+                "boundaryshp",
+                "boundaryshx",
+                "fireStation",
+                "childSafety",
+            ];
+
+            const allFilled = requiredKeys.every((key) => files[key]);
+            if (!allFilled) {
+                alert("⚠️ 모든 파일을 선택해주세요.");
+                return;
+            }
+
+            const formData = new FormData();
+            requiredKeys.forEach((key) => formData.append(key, files[key]));
+
+            await axios.post("http://localhost:5000/upload-multiple", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            alert("✅ 모든 파일 업로드 성공!");
+        } catch (err) {
+            console.error("❌ 업로드 실패:", err);
+            alert("❌ 업로드 실패: " + (err.response?.data || err.message));
+        }
+    };
 
     const filteredLocations = locations.filter(
         (loc) =>
@@ -38,29 +78,58 @@ const BoxAddRemovePage = () => {
             loc.name.includes(search)
     );
 
-    const handleRunRecommendation = async () => {
-        try {
-            const result = await runRecommendationAlgorithm();
-            alert("✅ 추천 알고리즘 실행 완료!\n\n" + result);
-        } catch (error) {
-            alert("❌ 실행 실패: " + (error.response?.data || error.message));
-        }
-    };
-
     return (
-        <div className="min-h-screen flex flex-col bg-gray-100 items-center px-4">
+        <div className="min-h-screen flex flex-col bg-gray-100 items-center px-4 pb-10">
             <NavigationBar />
 
-            <div className="mt-24 w-3/4 flex justify-end">
+            {/* ✅ 업로드 토글 버튼 */}
+            <div className="mt-20 w-3/4 text-right">
                 <button
-                    onClick={handleRunRecommendation}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                    onClick={() => setShowUploader(!showUploader)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                 >
-                    수거함 추천 최신화 (1년에 한번 실행)
+                    {showUploader ? "📁 업로드 창 닫기" : "📁 데이터 업로드 열기"}
                 </button>
             </div>
 
-            <div className="mt-2 w-3/4 bg-white shadow-md p-4 rounded">
+            {/* ✅ 파일 업로드 박스 */}
+            {showUploader && (
+                <div className="mt-4 w-3/4 bg-white shadow-md rounded p-4">
+                    <h2 className="text-lg font-bold mb-2">📁 수거함 추천 시스템 최신화를 위한 데이터 업로드</h2>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="font-semibold">① 인구밀도 데이터</label>
+                            <input type="file" accept=".csv,.txt" onChange={(e) => handleFileChange(e, "population")} />
+                        </div>
+                        {["cpg", "dbf", "prj", "shp", "shx"].map((n) => (
+                            <div key={n}>
+                                <label className="font-semibold">② 경계 데이터 {n}</label>
+                                <input type="file" accept=".csv" onChange={(e) => handleFileChange(e, `boundary${n}`)} />
+                            </div>
+                        ))}
+                        <div>
+                            <label className="font-semibold">③ 119안전센터 현황</label>
+                            <input type="file" accept=".csv" onChange={(e) => handleFileChange(e, "fireStation")} />
+                        </div>
+                        <div>
+                            <label className="font-semibold">④ 어린이보호구역 표준데이터</label>
+                            <input type="file" accept=".csv" onChange={(e) => handleFileChange(e, "childSafety")} />
+                        </div>
+                    </div>
+
+                    <div className="flex gap-4 mt-4">
+                        <button
+                            onClick={handleUploadAll}
+                            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                        >
+                            📤 업로드 실행
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* 지도 */}
+            <div className="mt-4 w-3/4 bg-white shadow-md p-4 rounded">
                 <Map center={{ lat: 36.8082, lng: 127.0090 }} style={{ width: "100%", height: "450px" }} level={3}>
                     {filteredLocations.map((loc) => (
                         <MapMarker
@@ -69,14 +138,13 @@ const BoxAddRemovePage = () => {
                             onClick={() => setSelectedBox(loc)}
                         />
                     ))}
-
                     {recommendedLocations.map((loc, index) => (
                         <MapMarker
                             key={`rec-${index}`}
                             position={{ lat: loc.lat, lng: loc.lng }}
                             image={{
                                 src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
-                                size: { width: 24, height: 35 }
+                                size: { width: 24, height: 35 },
                             }}
                             onClick={() => setSelectedBox({ ...loc, name: `추천${index + 1}`, type: "추천" })}
                         />
@@ -84,6 +152,7 @@ const BoxAddRemovePage = () => {
                 </Map>
             </div>
 
+            {/* 필터 UI */}
             <div className="mt-2 w-3/4 flex items-center gap-2 bg-white shadow-md p-3 rounded">
                 <label>현황:</label>
                 <select value={filter} onChange={(e) => setFilter(e.target.value)} className="border p-1 rounded">
@@ -116,6 +185,7 @@ const BoxAddRemovePage = () => {
                 </select>
             </div>
 
+            {/* 리스트 및 상세 정보 */}
             <div className="mt-2 w-3/4 flex gap-4">
                 <div className="bg-white shadow-md p-3 rounded w-1/2">
                     <h2 className="text-lg font-semibold mb-1">{filter} 목록</h2>
@@ -136,6 +206,12 @@ const BoxAddRemovePage = () => {
                                 <strong>{loc.name}</strong> - {loc.status} ({loc.date})
                             </li>
                         ))}
+                        {filter === "설치" && recommendedLocations.length > 0 && (
+                            <>
+                                <hr className="my-2" />
+                                <li className="text-sm text-gray-500">⭐ 추천 위치 {recommendedLocations.length}개</li>
+                            </>
+                        )}
                     </ul>
                 </div>
 
