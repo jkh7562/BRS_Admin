@@ -19,6 +19,8 @@ const BoxAddRemovePage = () => {
     const [recommendedLocations, setRecommendedLocations] = useState([]);
     const [files, setFiles] = useState({});
     const [showUploader, setShowUploader] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
 
     const loadRecommended = async () => {
         try {
@@ -39,6 +41,7 @@ const BoxAddRemovePage = () => {
 
     const handleUploadAll = async () => {
         try {
+            setIsUploading(true);
             const requiredKeys = [
                 "population",
                 "boundarycpg",
@@ -67,6 +70,8 @@ const BoxAddRemovePage = () => {
         } catch (err) {
             console.error("❌ 업로드 실패:", err);
             alert("❌ 업로드 실패: " + (err.response?.data || err.message));
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -98,21 +103,21 @@ const BoxAddRemovePage = () => {
                     <h2 className="text-lg font-bold mb-2">📁 수거함 추천 시스템 최신화를 위한 데이터 업로드</h2>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="font-semibold">① 인구밀도 데이터</label>
+                            <label className="font-semibold">① 인구밀도 데이터 </label>
                             <input type="file" accept=".csv,.txt" onChange={(e) => handleFileChange(e, "population")} />
                         </div>
                         {["cpg", "dbf", "prj", "shp", "shx"].map((n) => (
                             <div key={n}>
-                                <label className="font-semibold">② 경계 데이터 {n}</label>
+                                <label className="font-semibold">② 경계 데이터 {n} </label>
                                 <input type="file" accept=".csv" onChange={(e) => handleFileChange(e, `boundary${n}`)} />
                             </div>
                         ))}
                         <div>
-                            <label className="font-semibold">③ 119안전센터 현황</label>
+                            <label className="font-semibold">③ 119안전센터 현황 </label>
                             <input type="file" accept=".csv" onChange={(e) => handleFileChange(e, "fireStation")} />
                         </div>
                         <div>
-                            <label className="font-semibold">④ 어린이보호구역 표준데이터</label>
+                            <label className="font-semibold">④ 어린이보호구역 표준데이터 </label>
                             <input type="file" accept=".csv" onChange={(e) => handleFileChange(e, "childSafety")} />
                         </div>
                     </div>
@@ -124,6 +129,10 @@ const BoxAddRemovePage = () => {
                         >
                             📤 업로드 실행
                         </button>
+                        {/* 업로드 중 표시 */}
+                        {isUploading && (
+                            <div className="text-blue-600 ml-4">파일 업로드 중... 잠시만 기다려 주세요. 최대 10분이 소요될 수 있습니다.</div>
+                        )}
                     </div>
                 </div>
             )}
@@ -151,6 +160,20 @@ const BoxAddRemovePage = () => {
                     ))}
                 </Map>
             </div>
+
+            {/* 로딩 상태 표시 */}
+            {isLoading && (
+                <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-500 bg-opacity-50 z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        <div className="text-lg">추천 위치를 불러오는 중...</div>
+                        <div className="mt-4">
+                            <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full" role="status">
+                                <span className="sr-only">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* 필터 UI */}
             <div className="mt-2 w-3/4 flex items-center gap-2 bg-white shadow-md p-3 rounded">
