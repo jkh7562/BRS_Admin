@@ -131,7 +131,7 @@ const BoxAddRemovePage = () => {
                         </button>
                         {/* 업로드 중 표시 */}
                         {isUploading && (
-                            <div className="text-blue-600 ml-4">파일 업로드 중... 잠시만 기다려 주세요. 최대 10분이 소요될 수 있습니다.</div>
+                            <div className="text-blue-600 ml-4">파일 업로드 중... 최대 7시간이 소요될 수 있습니다.</div>
                         )}
                     </div>
                 </div>
