@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+    font-family: 'NEXON Lv1 Gothic';
+    src: url('./assets/fonts/NEXON Lv1 Gothic OTF Bold.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+    font-family: 'Pretendard', sans-serif;
+}

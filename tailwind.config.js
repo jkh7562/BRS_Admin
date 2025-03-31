@@ -15,6 +15,9 @@ module.exports = {
           "100%": { opacity: "1" },
         },
       },
+      fontFamily: {
+        nexon: ["'NEXON Lv1 Gothic'", "sans-serif"],
+      },
     },
   },
   plugins: [],
