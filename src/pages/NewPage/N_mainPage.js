@@ -1,6 +1,7 @@
 import React from "react";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
 import Sidebar from "../../component/Sidebar";
+import Topbar from "../../component/Topbar";
 
 // 더미 데이터 정의
 const dummyBoxes = [
@@ -18,32 +19,15 @@ const dummyUsers = [
 const N_mainPage = () => {
     return (
         <div className="flex bg-gray-50 min-h-screen">
-            {/* 사이드바 */}
             <Sidebar />
 
-            {/* 우측 메인 컨텐츠 */}
+            {/* 우측 전체 영역 */}
             <div className="flex-1 relative">
-                {/* ✅ 상단 바 - 고정 위치 */}
-                <div className="fixed top-0 left-[340px] right-0 bg-white z-10 border-b border-gray-200 h-16 flex items-center justify-end px-6">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <img
-                                src="https://via.placeholder.com/32"
-                                alt="profile"
-                                className="w-8 h-8 rounded-full"
-                            />
-                            <span className="text-sm font-medium text-gray-700">재민</span>
-                            <span className="text-gray-400 text-xs">▼</span>
-                        </div>
-                        <div className="relative">
-                            <span className="text-xl text-gray-500">🔔</span>
-                            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-                        </div>
-                    </div>
-                </div>
+                <Topbar />
 
-                {/* ✅ 메인 콘텐츠 (상단 바 높이만큼 여백 줌) */}
-                <main className="p-6 pt-24 space-y-6">
+                {/* 메인 콘텐츠 (여백 적용) */}
+                <main className="pt-24 px-24 pb-6 space-y-4">
+                    <p className="text-xl">대시 보드</p>
                     {/* 상단 카드 */}
                     <div className="grid grid-cols-3 gap-4">
                         <div className="bg-white rounded-lg p-4 shadow">
@@ -123,12 +107,12 @@ const N_mainPage = () => {
                             </div>
                             <div className="w-2/3 h-[420px]">
                                 <Map
-                                    center={{ lat: 36.8082, lng: 127.0090 }}
-                                    style={{ width: "100%", height: "100%" }}
+                                    center={{lat: 36.8082, lng: 127.0090}}
+                                    style={{width: "100%", height: "100%"}}
                                     level={3}
                                 >
                                     {dummyBoxes.map((box) => (
-                                        <MapMarker key={box.id} position={{ lat: box.lat, lng: box.lng }} />
+                                        <MapMarker key={box.id} position={{lat: box.lat, lng: box.lng}}/>
                                     ))}
                                 </Map>
                             </div>
@@ -145,7 +129,8 @@ const N_mainPage = () => {
                                 <button className="text-gray-500">방전 배터리</button>
                                 <button className="text-gray-500">잔여 용량 배터리</button>
                             </div>
-                            <div className="h-48 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-sm">
+                            <div
+                                className="h-48 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-sm">
                                 배출량 차트 영역
                             </div>
                         </div>
@@ -157,7 +142,8 @@ const N_mainPage = () => {
                                 <button className="text-gray-500">방전 배터리</button>
                                 <button className="text-gray-500">잔여 용량 배터리</button>
                             </div>
-                            <div className="h-48 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-sm">
+                            <div
+                                className="h-48 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-sm">
                                 수거량 차트 영역
                             </div>
                         </div>
@@ -211,7 +197,8 @@ const N_mainPage = () => {
                                     <p className="text-gray-500">잔여 마일리지</p>
                                 </div>
                             </div>
-                            <div className="h-40 bg-gray-100 rounded flex items-center justify-center text-sm text-gray-400">
+                            <div
+                                className="h-40 bg-gray-100 rounded flex items-center justify-center text-sm text-gray-400">
                                 배출로그 차트 영역
                             </div>
                         </div>
