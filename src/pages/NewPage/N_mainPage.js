@@ -52,16 +52,16 @@ const N_mainPage = () => {
                                     <img src={dayIcon} alt="일간 아이콘" className="w-4 h-4"/>
                                     <h2 className="text-xl font-semibold whitespace-nowrap">일간 이용 현황</h2>
                                 </div>
-                                <p className="text-xs text-gray-500 whitespace-nowrap">마지막 업데이트 2025.03.31</p>
+                                <p className="text-xs text-gray-500 whitespace-nowrap pr-3 mt-4">마지막 업데이트 2025.03.31</p>
                             </div>
 
                             <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center text-sm text-left">
                                 <div className="ml-4 min-w-[90px]">
-                                    <div className="flex items-center justify-start gap-1 text-nowrap">
+                                    <div className="flex items-center justify-center gap-1 text-nowrap">
                                         <p className="text-gray-500 mr-2">일간 배출량</p>
                                         <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="text-[22px] mt-2 text-left">1,197g</p>
+                                    <p className="text-[22px] mt-2 pl-2 text-left">1,197g</p>
                                 </div>
 
                                 <div className="flex justify-center pl-8 pr-8">
@@ -69,11 +69,11 @@ const N_mainPage = () => {
                                 </div>
 
                                 <div className="min-w-[90px]">
-                                    <div className="flex items-center justify-start gap-1 text-nowrap">
+                                    <div className="flex items-center justify-center gap-1 text-nowrap">
                                         <p className="text-gray-500 mr-2">일간 수거량</p>
                                         <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="text-[22px] mt-2 text-left">1,062g</p>
+                                    <p className="text-[22px] mt-2 pl-4 text-left">1,062g</p>
                                 </div>
 
                                 <div className="flex justify-center pl-8 pr-8">
@@ -81,7 +81,7 @@ const N_mainPage = () => {
                                 </div>
 
                                 <div className="mr-4 min-w-[90px]">
-                                    <div className="flex items-center justify-start gap-1 text-nowrap">
+                                    <div className="flex items-center justify-center gap-1 text-nowrap">
                                         <p className="text-gray-500 mr-2">일간 이용자수</p>
                                         <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
@@ -97,16 +97,16 @@ const N_mainPage = () => {
                                     <img src={customerIcon} alt="고객 관리 아이콘" className="w-4 h-4"/>
                                     <h2 className="text-xl font-semibold whitespace-nowrap">고객 관리</h2>
                                 </div>
-                                <p className="text-xs text-gray-500 whitespace-nowrap">마지막 업데이트 2025.03.31</p>
+                                <p className="text-xs text-gray-500 whitespace-nowrap pr-3 mt-4">마지막 업데이트 2025.03.31</p>
                             </div>
 
                             <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center text-sm text-left">
                                 <div className="ml-4 min-w-[90px]">
-                                    <div className="flex items-center justify-start gap-1 text-nowrap">
+                                    <div className="flex items-center justify-center gap-1 text-nowrap">
                                         <p className="text-gray-500 mr-2">사용자 문의</p>
                                         <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="text-[22px] mt-2 text-left">13건</p>
+                                    <p className="text-[22px] mt-2 pl-2 text-left">13건</p>
                                 </div>
 
                                 <div className="flex justify-center pl-8 pr-8">
@@ -114,11 +114,11 @@ const N_mainPage = () => {
                                 </div>
 
                                 <div className="min-w-[90px]">
-                                    <div className="flex items-center justify-start gap-1 text-nowrap">
+                                    <div className="flex items-center justify-center gap-1 text-nowrap">
                                     <p className="text-gray-500 mr-2">수거자 문의</p>
                                         <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="text-[22px] mt-2 text-left">5건</p>
+                                    <p className="text-[22px] mt-2 pl-4 text-left">5건</p>
                                 </div>
 
                                 <div className="flex justify-center pl-8 pr-8">
@@ -126,11 +126,11 @@ const N_mainPage = () => {
                                 </div>
 
                                 <div className="mr-4 min-w-[90px]">
-                                    <div className="flex items-center justify-start gap-1 text-nowrap">
+                                    <div className="flex items-center justify-center gap-1 text-nowrap">
                                         <p className="text-gray-500 mr-2">일반 민원</p>
                                         <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="text-[22px] mt-2 text-left">0건</p>
+                                    <p className="text-[22px] mt-2 pl-4 text-left">0건</p>
                                 </div>
                             </div>
                         </div>
