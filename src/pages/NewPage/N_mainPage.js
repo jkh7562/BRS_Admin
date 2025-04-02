@@ -1,5 +1,6 @@
 import React from "react";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
+import Sidebar from "../../component/Sidebar";
 
 // 더미 데이터 정의
 const dummyBoxes = [
@@ -18,26 +19,7 @@ const N_mainPage = () => {
     return (
         <div className="flex bg-gray-50 min-h-screen overflow-y-auto">
             {/* 사이드바 */}
-            <aside className="w-60 min-h-screen bg-black text-white p-5">
-                <h1 className="text-2xl font-bold mb-6 text-green-400">batter</h1>
-                <ul className="space-y-4 text-sm">
-                    <li className="font-semibold">🏠 메인 대시보드</li>
-                    <li>📦 수거함 설치/제거</li>
-                    <li>📶 수거함 제어/로그</li>
-                    <li>🚛 수거자 배치</li>
-                    <li>📊 모니터링</li>
-                    <li>👥 가입관리</li>
-                    <li>🧾 주문내역</li>
-                </ul>
-                <div className="mt-8 border-t border-gray-600 pt-4 text-xs space-y-2">
-                    <p className="text-gray-400">서버 관리</p>
-                    <p className="text-green-400">🟢 Spring Boot</p>
-                    <p>⚪ App</p>
-                    <p>⚪ Web</p>
-                    <p className="text-blue-400">🟢 MySQL</p>
-                    <p className="text-blue-400">🟢 React</p>
-                </div>
-            </aside>
+            <Sidebar />
 
             {/* 메인 콘텐츠 */}
             <main className="flex-1 p-6 space-y-6">
@@ -46,41 +28,41 @@ const N_mainPage = () => {
                     <div className="bg-white rounded-lg p-4 shadow">
                         <h2 className="text-sm font-semibold mb-2">👤 신규 수거자 가입신청</h2>
                         <p className="text-xs text-gray-500">가입신청이 들어왔어요! 여기를 눌러 확인해주세요!</p>
-                        <p className="text-2xl font-bold mt-3">16건</p>
+                        <p className="text-2xl mt-3">16건</p>
                     </div>
                     <div className="bg-white rounded-lg p-4 shadow">
-                        <h2 className="text-sm font-semibold mb-2">📅 일간 이용 현황</h2>
+                        <h2 className="text-sm mb-2">📅 일간 이용 현황</h2>
                         <p className="text-xs text-gray-500">마지막 업데이트 2025.03.31</p>
                         <div className="grid grid-cols-3 gap-2 mt-2 text-sm">
                             <div>
                                 <p className="text-gray-500">일간 배출량</p>
-                                <p className="font-bold">1,197g</p>
+                                <p>1,197g</p>
                             </div>
                             <div>
                                 <p className="text-gray-500">일간 수거량</p>
-                                <p className="font-bold">1,062g</p>
+                                <p>1,062g</p>
                             </div>
                             <div>
                                 <p className="text-gray-500">일간 이용자수</p>
-                                <p className="font-bold">31명</p>
+                                <p>31명</p>
                             </div>
                         </div>
                     </div>
                     <div className="bg-white rounded-lg p-4 shadow">
-                        <h2 className="text-sm font-semibold mb-2">📞 고객 관리</h2>
+                        <h2 className="text-sm mb-2">📞 고객 관리</h2>
                         <p className="text-xs text-gray-500">마지막 업데이트 2025.03.31</p>
                         <div className="grid grid-cols-3 gap-2 mt-2 text-sm">
                             <div>
                                 <p className="text-gray-500">사용자 문의</p>
-                                <p className="font-bold">13건</p>
+                                <p>13건</p>
                             </div>
                             <div>
                                 <p className="text-gray-500">수거자 문의</p>
-                                <p className="font-bold">5건</p>
+                                <p>5건</p>
                             </div>
                             <div>
                                 <p className="text-gray-500">일반 민원</p>
-                                <p className="font-bold">0건</p>
+                                <p>0건</p>
                             </div>
                         </div>
                     </div>
@@ -88,9 +70,9 @@ const N_mainPage = () => {
 
                 {/* 수거함 현황 */}
                 <div className="bg-white rounded-lg p-4 shadow">
-                    <h3 className="text-lg font-semibold mb-2">수거함 현황</h3>
+                    <h3 className="text-lg mb-2">수거함 현황</h3>
                     <div className="flex items-center gap-4 mb-3 text-sm">
-                        <button className="font-semibold border-b-2 border-black">전체 수거함</button>
+                        <button className="border-b-2 border-black">전체 수거함</button>
                         <button className="text-gray-500">수거 필요</button>
                         <button className="text-red-600 flex items-center gap-1">
                             화재감지 <span className="text-red-500 text-xl">●</span>
@@ -109,7 +91,7 @@ const N_mainPage = () => {
                                         key={box.id}
                                         className="border p-2 rounded hover:bg-gray-100 cursor-pointer"
                                     >
-                                        <p className="font-semibold">{box.name}</p>
+                                        <p>{box.name}</p>
                                         <p className="text-gray-500 text-xs">충남 아산시 탕정면 선문로 221번길 70</p>
                                         <p className="text-gray-500 text-xs">
                                             {box.lat} / {box.lng}
@@ -132,12 +114,12 @@ const N_mainPage = () => {
                     </div>
                 </div>
 
-                {/* 배출량 및 수거량 섹션 */}
+                {/* 배출량 및 수거량 */}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white rounded-lg p-4 shadow">
-                        <h3 className="text-lg font-semibold mb-2">배출량</h3>
+                        <h3 className="text-lg mb-2">배출량</h3>
                         <div className="flex gap-4 mb-2 text-sm">
-                            <button className="font-semibold border-b-2 border-black">전체 수거함</button>
+                            <button className="border-b-2 border-black">전체 수거함</button>
                             <button className="text-gray-500">건전지</button>
                             <button className="text-gray-500">방전 배터리</button>
                             <button className="text-gray-500">잔여 용량 배터리</button>
@@ -147,9 +129,9 @@ const N_mainPage = () => {
                         </div>
                     </div>
                     <div className="bg-white rounded-lg p-4 shadow">
-                        <h3 className="text-lg font-semibold mb-2">수거량</h3>
+                        <h3 className="text-lg mb-2">수거량</h3>
                         <div className="flex gap-4 mb-2 text-sm">
-                            <button className="font-semibold border-b-2 border-black">전체 수거함</button>
+                            <button className="border-b-2 border-black">전체 수거함</button>
                             <button className="text-gray-500">건전지</button>
                             <button className="text-gray-500">방전 배터리</button>
                             <button className="text-gray-500">잔여 용량 배터리</button>
@@ -160,10 +142,10 @@ const N_mainPage = () => {
                     </div>
                 </div>
 
-                {/* 회원 정보 섹션 */}
+                {/* 회원 정보 */}
                 <div className="grid grid-cols-3 gap-4">
                     <div className="bg-white rounded-lg p-4 shadow">
-                        <h3 className="text-lg font-semibold mb-3">사용자 (총 17,302명)</h3>
+                        <h3 className="text-lg mb-3">사용자 (총 17,302명)</h3>
                         <input
                             type="text"
                             placeholder="사용자 이름 검색"
@@ -175,7 +157,7 @@ const N_mainPage = () => {
                                     key={user.id}
                                     className="p-2 border rounded hover:bg-gray-100 cursor-pointer"
                                 >
-                                    <p className="font-semibold">{user.name}</p>
+                                    <p>{user.name}</p>
                                     <p className="text-xs text-gray-500">총 배출량 {user.amount}g</p>
                                     <p className="text-xs text-gray-500">{user.date}</p>
                                 </li>
@@ -190,21 +172,21 @@ const N_mainPage = () => {
                                 className="rounded-full w-16 h-16"
                             />
                             <div>
-                                <p className="text-lg font-bold">정윤식</p>
+                                <p className="text-lg">정윤식</p>
                                 <p className="text-sm text-gray-500">가입일자: 2025-02-03</p>
                             </div>
                         </div>
                         <div className="grid grid-cols-3 text-sm text-center mb-4">
                             <div>
-                                <p className="font-semibold">3,200g</p>
+                                <p>3,200g</p>
                                 <p className="text-gray-500">총 배출량</p>
                             </div>
                             <div>
-                                <p className="font-semibold">300p</p>
+                                <p>300p</p>
                                 <p className="text-gray-500">누적 마일리지</p>
                             </div>
                             <div>
-                                <p className="font-semibold">60p</p>
+                                <p>60p</p>
                                 <p className="text-gray-500">잔여 마일리지</p>
                             </div>
                         </div>
@@ -213,15 +195,15 @@ const N_mainPage = () => {
                         </div>
                     </div>
                     <div className="bg-white rounded-lg p-4 shadow">
-                        <h3 className="text-lg font-semibold mb-2">주문 내역</h3>
+                        <h3 className="text-lg mb-2">주문 내역</h3>
                         <div className="text-sm space-y-2 max-h-[320px] overflow-y-auto">
                             <div className="border rounded p-2">
-                                <p className="text-green-600 font-bold text-xs mb-1">배송준비중</p>
+                                <p className="text-green-600 text-xs mb-1">배송준비중</p>
                                 <p>주문일자: 2025.03.01</p>
                                 <p>상품코드: 101 (수량 1200ml일지)</p>
                             </div>
                             <div className="border rounded p-2">
-                                <p className="text-blue-600 font-bold text-xs mb-1">배송완료</p>
+                                <p className="text-blue-600 text-xs mb-1">배송완료</p>
                                 <p>주문일자: 2025.02.19</p>
                                 <p>상품코드: 101 (수량 600ml일지)</p>
                             </div>
