@@ -2,6 +2,11 @@ import React from "react";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
 import Sidebar from "../../component/Sidebar";
 import Topbar from "../../component/Topbar";
+import joinIcon from "../../assets/가입관리2.png";
+import dayIcon from "../../assets/일간.png";
+import infoIcon from "../../assets/추가정보2.png"
+import customerIcon from "../../assets/고객관리.png"
+import lineIcon from "../../assets/구분선.png"
 
 // 더미 데이터 정의
 const dummyBoxes = [
@@ -20,58 +25,117 @@ const N_mainPage = () => {
     return (
         <div className="flex bg-gray-50 min-h-screen">
             <Sidebar />
-
             {/* 우측 전체 영역 */}
             <div className="flex-1 relative">
                 <Topbar />
-
                 {/* 메인 콘텐츠 (여백 적용) */}
                 <main className="pt-24 px-24 pb-6 space-y-4">
                     <p className="text-xl">대시 보드</p>
                     {/* 상단 카드 */}
-                    <div className="grid grid-cols-3 gap-4">
-                        <div className="bg-white rounded-lg p-4 shadow">
-                            <h2 className="text-sm font-semibold mb-2">👤 신규 수거자 가입신청</h2>
-                            <p className="text-xs text-gray-500">가입신청이 들어왔어요! 여기를 눌러 확인해주세요!</p>
-                            <p className="text-2xl mt-3">16건</p>
+                    <div className="flex gap-4">
+                        {/* 신규 수거자 가입신청 - 1/5 width */}
+                        <div className="w-1/5 bg-[#21262B] rounded-2xl p-4 shadow">
+                            <div className="flex items-center gap-2 mt-4 mb-4 ml-4 mr-4">
+                                <img src={joinIcon} alt="신규 수거자 아이콘" className="w-6 h-6"/>
+                                <h2 className="text-xl font-semibold text-white whitespace-nowrap">신규 수거자 가입신청</h2>
+                            </div>
+                            <p className="text-sm text-gray-500 ml-4 mr-4 mb-6">
+                                가입신청이 들어왔어요! 여기를 눌러 <span className="text-blue-400 underline cursor-pointer">확인</span>해주세요!
+                            </p>
+                            <p className="text-[22px] text-white mt-3 ml-4 mr-4 mb-2">16건</p>
                         </div>
-                        <div className="bg-white rounded-lg p-4 shadow">
-                            <h2 className="text-sm mb-2">📅 일간 이용 현황</h2>
-                            <p className="text-xs text-gray-500">마지막 업데이트 2025.03.31</p>
-                            <div className="grid grid-cols-3 gap-2 mt-2 text-sm">
-                                <div>
-                                    <p className="text-gray-500">일간 배출량</p>
-                                    <p>1,197g</p>
+
+                        {/* 일간 이용 현황 */}
+                        <div className="flex-1 bg-white rounded-2xl p-4 shadow">
+                            <div className="flex items-center justify-between mb-14">
+                                <div className="flex items-center gap-2 mt-4 ml-4 mr-4">
+                                    <img src={dayIcon} alt="일간 아이콘" className="w-4 h-4"/>
+                                    <h2 className="text-xl font-semibold whitespace-nowrap">일간 이용 현황</h2>
                                 </div>
-                                <div>
-                                    <p className="text-gray-500">일간 수거량</p>
-                                    <p>1,062g</p>
+                                <p className="text-xs text-gray-500 whitespace-nowrap">마지막 업데이트 2025.03.31</p>
+                            </div>
+
+                            <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center text-sm text-left">
+                                <div className="ml-4 min-w-[90px]">
+                                    <div className="flex items-center justify-start gap-1 text-nowrap">
+                                        <p className="text-gray-500 mr-2">일간 배출량</p>
+                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
+                                    </div>
+                                    <p className="text-[22px] mt-2 text-left">1,197g</p>
                                 </div>
-                                <div>
-                                    <p className="text-gray-500">일간 이용자수</p>
-                                    <p>31명</p>
+
+                                <div className="flex justify-center pl-8 pr-8">
+                                    <img src={lineIcon} alt="line" className="h-8"/>
+                                </div>
+
+                                <div className="min-w-[90px]">
+                                    <div className="flex items-center justify-start gap-1 text-nowrap">
+                                        <p className="text-gray-500 mr-2">일간 수거량</p>
+                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
+                                    </div>
+                                    <p className="text-[22px] mt-2 text-left">1,062g</p>
+                                </div>
+
+                                <div className="flex justify-center pl-8 pr-8">
+                                    <img src={lineIcon} alt="line" className="h-8"/>
+                                </div>
+
+                                <div className="mr-4 min-w-[90px]">
+                                    <div className="flex items-center justify-start gap-1 text-nowrap">
+                                        <p className="text-gray-500 mr-2">일간 이용자수</p>
+                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
+                                    </div>
+                                    <p className="text-[22px] mt-2 text-left">31명</p>
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-white rounded-lg p-4 shadow">
-                            <h2 className="text-sm mb-2">📞 고객 관리</h2>
-                            <p className="text-xs text-gray-500">마지막 업데이트 2025.03.31</p>
-                            <div className="grid grid-cols-3 gap-2 mt-2 text-sm">
-                                <div>
-                                    <p className="text-gray-500">사용자 문의</p>
-                                    <p>13건</p>
+
+                        {/* 고객 관리 */}
+                        <div className="flex-1 bg-white rounded-2xl p-4 shadow">
+                            <div className="flex items-center justify-between mb-14">
+                                <div className="flex items-center gap-2 mt-4 ml-4 mr-4">
+                                    <img src={customerIcon} alt="고객 관리 아이콘" className="w-4 h-4"/>
+                                    <h2 className="text-xl font-semibold whitespace-nowrap">고객 관리</h2>
                                 </div>
-                                <div>
-                                    <p className="text-gray-500">수거자 문의</p>
-                                    <p>5건</p>
+                                <p className="text-xs text-gray-500 whitespace-nowrap">마지막 업데이트 2025.03.31</p>
+                            </div>
+
+                            <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center text-sm text-left">
+                                <div className="ml-4 min-w-[90px]">
+                                    <div className="flex items-center justify-start gap-1 text-nowrap">
+                                        <p className="text-gray-500 mr-2">사용자 문의</p>
+                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
+                                    </div>
+                                    <p className="text-[22px] mt-2 text-left">13건</p>
                                 </div>
-                                <div>
-                                    <p className="text-gray-500">일반 민원</p>
-                                    <p>0건</p>
+
+                                <div className="flex justify-center pl-8 pr-8">
+                                    <img src={lineIcon} alt="line" className="h-8"/>
+                                </div>
+
+                                <div className="min-w-[90px]">
+                                    <div className="flex items-center justify-start gap-1 text-nowrap">
+                                    <p className="text-gray-500 mr-2">수거자 문의</p>
+                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
+                                    </div>
+                                    <p className="text-[22px] mt-2 text-left">5건</p>
+                                </div>
+
+                                <div className="flex justify-center pl-8 pr-8">
+                                    <img src={lineIcon} alt="line" className="h-8"/>
+                                </div>
+
+                                <div className="mr-4 min-w-[90px]">
+                                    <div className="flex items-center justify-start gap-1 text-nowrap">
+                                        <p className="text-gray-500 mr-2">일반 민원</p>
+                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
+                                    </div>
+                                    <p className="text-[22px] mt-2 text-left">0건</p>
                                 </div>
                             </div>
                         </div>
                     </div>
+
 
                     {/* 수거함 현황 */}
                     <div className="bg-white rounded-lg p-4 shadow">
