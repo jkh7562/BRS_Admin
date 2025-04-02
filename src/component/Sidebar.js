@@ -19,6 +19,8 @@ import springIcon from "../assets/spring.png";
 import SQLIcon from "../assets/SQL.png";
 import reactIcon from "../assets/React.png";
 import flaskIcon from "../assets/Flask.png";
+import logoutIcon from "../assets/logout.png";
+import infoIcon from "../assets/추가정보.png";
 
 const Sidebar = () => {
     const [activeMenu, setActiveMenu] = useState("main");
@@ -83,11 +85,11 @@ const Sidebar = () => {
 
     return (
         <aside className="w-[340px] min-h-screen text-white p-5" style={{ backgroundColor: "#101213" }}>
-            <div className="mb-12 pl-6 mt-2">
+            <div className="mb-20 pl-8 mt-2">
                 <img src={logoImage} alt="batter logo" className="w-[93px]" />
             </div>
 
-            <ul className="space-y-8 text-base pl-6">
+            <ul className="space-y-10 text-base pl-8">
                 {menuList.map((menu) => (
                     <li
                         key={menu.key}
@@ -107,22 +109,25 @@ const Sidebar = () => {
             </ul>
 
             <div className="mt-12 pt-4 text-base space-y-2 pl-6">
-                <p className="text-[#A5ACBA]">서버 관리</p>
+                <div className="flex items-center gap-44 text-[#A5ACBA]">
+                    <p>서버 관리</p>
+                    <img src={infoIcon} alt="info" className="w-4 h-4"/>
+                </div>
 
                 {/* Spring Boot */}
                 <p
-                    className="pt-4 pb-2 flex items-center gap-2 text-[#A5ACBA] cursor-pointer"
+                    className="pt-6 pb-2 flex items-center gap-2 text-[#A5ACBA] cursor-pointer"
                     onClick={() => toggleSection("spring")}
                 >
-                    <img src={springIcon} alt="Spring Boot" className="w-8 h-8" />
+                    <img src={springIcon} alt="Spring Boot" className="w-8 h-8"/>
                     Spring Boot
                 </p>
                 {openSection.spring && (
                     <>
-                        <p className="ml-6 pb-2 flex items-center gap-2">
+                        <p className="ml-10 pb-2 flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-[#6DDFC0] inline-block"></span> App
                         </p>
-                        <p className="ml-6 pb-2 flex items-center gap-2">
+                        <p className="ml-10 pb-2 flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-[#6DDFC0] inline-block"></span> Web
                         </p>
                     </>
@@ -133,11 +138,11 @@ const Sidebar = () => {
                     className="pt-4 pb-2 flex items-center gap-2 text-[#A5ACBA] cursor-pointer"
                     onClick={() => toggleSection("mysql")}
                 >
-                    <img src={SQLIcon} alt="MySQL" className="w-8 h-8" />
+                    <img src={SQLIcon} alt="MySQL" className="w-8 h-8"/>
                     MySQL
                 </p>
                 {openSection.mysql && (
-                    <p className="ml-6 pb-2 flex items-center gap-2">
+                    <p className="ml-10 pb-2 flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-[#6DDFC0] inline-block"></span> DataBase
                     </p>
                 )}
@@ -147,18 +152,18 @@ const Sidebar = () => {
                     className="pt-4 pb-2 flex items-center gap-2 text-[#A5ACBA] cursor-pointer"
                     onClick={() => toggleSection("react")}
                 >
-                    <img src={reactIcon} alt="React" className="w-8 h-8" />
+                    <img src={reactIcon} alt="React" className="w-8 h-8"/>
                     React
                 </p>
                 {openSection.react && (
                     <>
-                        <p className="ml-6 pb-2 flex items-center gap-2">
+                        <p className="ml-10 pb-2 flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-[#6DDFC0] inline-block"></span> 사용자
                         </p>
-                        <p className="ml-6 pb-2 flex items-center gap-2">
+                        <p className="ml-10 pb-2 flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-[#6DDFC0] inline-block"></span> 수거자
                         </p>
-                        <p className="ml-6 pb-2 flex items-center gap-2">
+                        <p className="ml-10 pb-2 flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-[#6DDFC0] inline-block"></span> 관리자
                         </p>
                     </>
@@ -169,14 +174,22 @@ const Sidebar = () => {
                     className="pt-4 pb-2 flex items-center gap-2 text-[#A5ACBA] cursor-pointer"
                     onClick={() => toggleSection("flask")}
                 >
-                    <img src={flaskIcon} alt="Flask" className="w-8 h-8" />
+                    <img src={flaskIcon} alt="Flask" className="w-8 h-8"/>
                     Flask
                 </p>
                 {openSection.flask && (
-                    <p className="ml-6 pb-2 flex items-center gap-2">
+                    <p className="ml-10 pb-2 flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-[#6DDFC0] inline-block"></span> AI
                     </p>
                 )}
+            </div>
+            {/* 로그아웃 + 버전 */}
+            <div className="mt-12 pl-6 pr-6 flex items-center justify-between text-[#A5ACBA] text-sm">
+                <div className="flex items-center gap-4 cursor-pointer">
+                    <img src={logoutIcon} alt="logout" className="w-5 h-5" />
+                    <span>로그아웃</span>
+                </div>
+                <span className="text-xs text-[#7A7F8A]">version 25.3.1</span>
             </div>
         </aside>
     );
