@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
 import Sidebar from "../../component/Sidebar";
 import Topbar from "../../component/Topbar";
+import MapWithSidebar from "../../component/MapWithSidebar";
 import joinIcon from "../../assets/가입관리2.png";
 import dayIcon from "../../assets/일간.png";
 import infoIcon from "../../assets/추가정보2.png"
@@ -175,7 +176,7 @@ const N_mainPage = () => {
 
                         <div className="relative text-sm mb-9">
                             {/* 전체 구분선 (얇은 회색 선) */}
-                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
+                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
 
                             {/* 탭 버튼들 */}
                             <div className="flex items-center gap-4 z-10 relative">
@@ -196,6 +197,13 @@ const N_mainPage = () => {
                                         }`}
                                     >
                                         {tab}
+                                        {tab === "화재감지" && (
+                                            <img
+                                                src={FireInfoIcon}
+                                                alt="화재 정보 아이콘"
+                                                className="w-[14px] h-[14px] ml-[2px]"
+                                            />
+                                        )}
                                     </button>
                                 ))}
                             </div>
@@ -203,54 +211,7 @@ const N_mainPage = () => {
                     </div>
 
                     {/* 수거함 리스트 + 지도 분리된 파트 */}
-                    <div className="flex gap-4 bg-white rounded-2xl p-4 shadow">
-                        <div className="w-1/3 max-h-[420px] overflow-y-auto border rounded p-2">
-                            <input
-                                type="text"
-                                placeholder="장소, 주소, 수거함 코드 검색"
-                                className="w-full border rounded px-2 py-1 mb-2 text-sm"
-                            />
-                            <ul className="space-y-2 text-sm">
-                                {filteredBoxes.map((box) => (
-                                    <li
-                                        key={box.id}
-                                        className="border p-2 rounded hover:bg-gray-100 cursor-pointer"
-                                    >
-                                        <p>{box.name}</p>
-                                        <p className="text-gray-500 text-xs">
-                                            충남 아산시 탕정면 선문로 221번길 70
-                                        </p>
-                                        <p className="text-gray-500 text-xs">
-                                            {box.lat} / {box.lng}
-                                        </p>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                        <div className="w-2/3 h-[420px]">
-                            <Map
-                                center={{ lat: 36.8082, lng: 127.009 }}
-                                style={{ width: "100%", height: "100%" }}
-                                level={3}
-                            >
-                                {filteredBoxes.map((box) => (
-                                    <MapMarker
-                                        key={box.id}
-                                        position={{ lat: box.lat, lng: box.lng }}
-                                        image={{
-                                            src:
-                                                box.status === "fire"
-                                                    ? "/marker-red.png"
-                                                    : box.status === "need-collect"
-                                                        ? "/marker-yellow.png"
-                                                        : "/marker-green.png",
-                                            size: { width: 40, height: 42 },
-                                        }}
-                                    />
-                                ))}
-                            </Map>
-                        </div>
-                    </div>
+                    <MapWithSidebar filteredBoxes={filteredBoxes} />
 
                     {/* 배출량 및 수거량 */}
                     <div className="grid grid-cols-2 gap-4">
