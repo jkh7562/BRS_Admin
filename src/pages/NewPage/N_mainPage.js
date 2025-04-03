@@ -214,7 +214,7 @@ const N_mainPage = () => {
                     <MapWithSidebar filteredBoxes={filteredBoxes} />
 
                     {/* 배출량 및 수거량 */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="pt-12 grid grid-cols-2 gap-4">
                         <div className="bg-white rounded-lg p-4 shadow">
                             <h3 className="text-lg mb-2">배출량</h3>
                             <div className="flex gap-4 mb-2 text-sm">
