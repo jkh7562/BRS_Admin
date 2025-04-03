@@ -9,21 +9,21 @@ const MapWithSidebar = ({ filteredBoxes }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     return (
-        <div className="flex bg-white rounded-2xl shadow overflow-hidden h-[540px] relative">
+        <div className="flex bg-white rounded-2xl shadow overflow-hidden h-[570px] relative">
             {/* 토글 화살표 (사이드바 바깥에 위치) */}
             <img
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                 src={isSidebarOpen ? ArrowLeftIcon : ArrowRightIcon}
                 alt="toggle arrow"
                 className={`absolute top-1/2 -translate-y-1/2 cursor-pointer rounded-r transition-all duration-300 w-5 h-10 z-20 ${
-                    isSidebarOpen ? "left-[320px]" : "left-0"
+                    isSidebarOpen ? "left-[390px]" : "left-0"
                 }`}
                 style={{ boxShadow: "2px 0 4px rgba(0, 0, 0, 0.1)" }} // 오른쪽 그림자
             />
 
             {/* 좌측 패널 */}
             <div
-                className={`transition-all duration-300 ${isSidebarOpen ? "w-[320px]" : "w-0"} overflow-hidden shadow-md h-full relative z-10 bg-white`}>
+                className={`transition-all duration-300 ${isSidebarOpen ? "w-[390px]" : "w-0"} overflow-hidden shadow-md h-full relative z-10 bg-white`}>
                 <div className="h-full p-4 pr-0">
                     {/* 검색창 */}
                     <div className="relative mb-4 pr-4">
@@ -40,13 +40,13 @@ const MapWithSidebar = ({ filteredBoxes }) => {
                     </div>
 
                     {/* 리스트 */}
-                    <ul className="space-y-3 overflow-y-auto h-[calc(100%-60px)] pr-4 custom-scroll">
+                    <ul className="overflow-y-auto h-[calc(100%-60px)] pr-4 space-y-2 custom-scroll">
                         {filteredBoxes.map((box) => (
                             <li
                                 key={box.id}
-                                className="p-3 rounded-lg border hover:bg-gray-100 cursor-pointer transition duration-150"
+                                className="p-4 rounded-xl bg-white shadow hover:shadow-md cursor-pointer transition duration-150"
                             >
-                                <p className="font-semibold">{box.name}</p>
+                                <p className="font-semibold text-sm">{box.name}</p>
                                 <p className="text-xs text-gray-500 mt-1">충남 아산시 탕정면 선문로 221번길 70</p>
                                 <p className="text-xs text-gray-500">{box.lat} / {box.lng}</p>
                             </li>
@@ -58,8 +58,8 @@ const MapWithSidebar = ({ filteredBoxes }) => {
             {/* 지도 (항상 전체 화면 차지, 사이드바와 독립) */}
             <div className="absolute top-0 left-0 w-full h-full z-0">
                 <Map
-                    center={{ lat: 36.8082, lng: 127.009 }}
-                    style={{ width: "100%", height: "100%" }}
+                    center={{lat: 36.8082, lng: 127.009}}
+                    style={{width: "100%", height: "100%"}}
                     level={3}
                 />
             </div>

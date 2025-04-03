@@ -1,4 +1,5 @@
 import React from "react";
+import AlarmIcon from "../assets/알림.png";
 
 const Topbar = () => {
     return (
@@ -13,9 +14,13 @@ const Topbar = () => {
                     <span className="text-sm font-medium text-gray-700">재민</span>
                     <span className="text-gray-400 text-xs">▼</span>
                 </div>
-                <div className="relative">
-                    <span className="text-xl text-gray-500">🔔</span>
-                    <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                <div className="relative w-6 h-6">
+                    <img
+                        src={AlarmIcon}
+                        alt="알림 아이콘"
+                        className="w-full h-full object-contain"
+                    />
+                    {/*<span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>*/}
                 </div>
             </div>
         </div>

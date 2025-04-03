@@ -63,19 +63,19 @@ const N_mainPage = () => {
                 <Topbar />
                 {/* 메인 콘텐츠 (여백 적용) */}
                 <main className="pt-24 px-24 pb-6 space-y-4">
-                    <p className="text-xl font-semibold">대시 보드</p>
+                    <p className="font-medium text-xl">대시 보드</p>
                     {/* 상단 카드 */}
                     <div className="flex gap-4">
                         {/* 신규 수거자 가입신청 - 1/5 width */}
                         <div className="w-1/5 bg-[#21262B] rounded-2xl p-4 shadow">
                             <div className="flex items-center gap-2 mt-4 mb-4 ml-4 mr-4">
                                 <img src={joinIcon} alt="신규 수거자 아이콘" className="w-6 h-6"/>
-                                <h2 className="text-xl font-semibold text-white whitespace-nowrap">신규 수거자 가입신청</h2>
+                                <h2 className="font-[550] text-xl text-white whitespace-nowrap">신규 수거자 가입신청</h2>
                             </div>
-                            <p className="text-sm text-gray-500 ml-4 mr-4 mb-6">
+                            <p className="text-sm text-[#A5ACBA] ml-4 mr-4 mb-6">
                                 가입신청이 들어왔어요! 여기를 눌러 <span className="text-blue-400 underline cursor-pointer">확인</span>해주세요!
                             </p>
-                            <p className="text-[22px] text-white mt-3 ml-4 mr-4 mb-2">16건</p>
+                            <p className="font-[550] text-[22px] text-white mt-3 ml-4 mr-4 mb-2">16건</p>
                         </div>
 
                         {/* 일간 이용 현황 */}
@@ -83,18 +83,18 @@ const N_mainPage = () => {
                             <div className="flex items-center justify-between mb-14">
                                 <div className="flex items-center gap-2 mt-4 ml-4 mr-4">
                                     <img src={dayIcon} alt="일간 아이콘" className="w-4 h-4"/>
-                                    <h2 className="text-xl font-semibold whitespace-nowrap">일간 이용 현황</h2>
+                                    <h2 className="text-xl font-medium whitespace-nowrap">일간 이용 현황</h2>
                                 </div>
-                                <p className="text-xs text-gray-500 whitespace-nowrap pr-3 mt-4">마지막 업데이트 2025.03.31</p>
+                                <p className="text-sm font-medium text-[#7A7F8A] whitespace-nowrap pr-3 mt-4">마지막 업데이트 2025.03.31</p>
                             </div>
 
                             <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center text-sm text-left">
                                 <div className="ml-4 min-w-[90px]">
                                     <div className="flex items-center justify-center gap-1 text-nowrap">
-                                        <p className="text-gray-500 mr-2">일간 배출량</p>
+                                        <p className="font-medium text-gray-500 mr-2">일간 배출량</p>
                                         <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="text-[22px] mt-2 pl-2 text-left">1,197g</p>
+                                    <p className="font-medium text-[22px] mt-2 pl-2 text-left">1,197g</p>
                                 </div>
 
                                 <div className="flex justify-center pl-8 pr-8">
@@ -103,10 +103,10 @@ const N_mainPage = () => {
 
                                 <div className="min-w-[90px]">
                                     <div className="flex items-center justify-center gap-1 text-nowrap">
-                                        <p className="text-gray-500 mr-2">일간 수거량</p>
+                                        <p className="font-medium text-gray-500 mr-2">일간 수거량</p>
                                         <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="text-[22px] mt-2 pl-4 text-left">1,062g</p>
+                                    <p className="font-medium text-[22px] mt-2 pl-4 text-left">1,062g</p>
                                 </div>
 
                                 <div className="flex justify-center pl-8 pr-8">
@@ -115,10 +115,10 @@ const N_mainPage = () => {
 
                                 <div className="mr-4 min-w-[90px]">
                                     <div className="flex items-center justify-center gap-1 text-nowrap">
-                                        <p className="text-gray-500 mr-2">일간 이용자수</p>
+                                        <p className="font-medium text-gray-500 mr-2">일간 이용자수</p>
                                         <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="text-[22px] mt-2 text-left">31명</p>
+                                    <p className="font-medium text-[22px] mt-2 text-left">31명</p>
                                 </div>
                             </div>
                         </div>
@@ -128,18 +128,18 @@ const N_mainPage = () => {
                             <div className="flex items-center justify-between mb-14">
                                 <div className="flex items-center gap-2 mt-4 ml-4 mr-4">
                                     <img src={customerIcon} alt="고객 관리 아이콘" className="w-4 h-4"/>
-                                    <h2 className="text-xl font-semibold whitespace-nowrap">고객 관리</h2>
+                                    <h2 className="font-medium text-xl whitespace-nowrap">고객 관리</h2>
                                 </div>
-                                <p className="text-xs text-gray-500 whitespace-nowrap pr-3 mt-4">마지막 업데이트 2025.03.31</p>
+                                <p className="font-medium text-sm text-[#7A7F8A] whitespace-nowrap pr-3 mt-4">마지막 업데이트 2025.03.31</p>
                             </div>
 
                             <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center text-sm text-left">
                                 <div className="ml-4 min-w-[90px]">
                                     <div className="flex items-center justify-center gap-1 text-nowrap">
-                                        <p className="text-gray-500 mr-2">사용자 문의</p>
+                                        <p className="font-medium text-gray-500 mr-2">사용자 문의</p>
                                         <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="text-[22px] mt-2 pl-2 text-left">13건</p>
+                                    <p className="font-medium text-[22px] mt-2 pl-2 text-left">13건</p>
                                 </div>
 
                                 <div className="flex justify-center pl-8 pr-8">
@@ -148,10 +148,10 @@ const N_mainPage = () => {
 
                                 <div className="min-w-[90px]">
                                     <div className="flex items-center justify-center gap-1 text-nowrap">
-                                    <p className="text-gray-500 mr-2">수거자 문의</p>
+                                    <p className="font-medium text-gray-500 mr-2">수거자 문의</p>
                                         <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="text-[22px] mt-2 pl-4 text-left">5건</p>
+                                    <p className="font-medium text-[22px] mt-2 pl-4 text-left">5건</p>
                                 </div>
 
                                 <div className="flex justify-center pl-8 pr-8">
@@ -160,10 +160,10 @@ const N_mainPage = () => {
 
                                 <div className="mr-4 min-w-[90px]">
                                     <div className="flex items-center justify-center gap-1 text-nowrap">
-                                        <p className="text-gray-500 mr-2">일반 민원</p>
+                                        <p className="font-medium text-gray-500 mr-2">일반 민원</p>
                                         <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="text-[22px] mt-2 pl-4 text-left">0건</p>
+                                    <p className="font-medium text-[22px] mt-2 pl-4 text-left">0건</p>
                                 </div>
                             </div>
                         </div>
@@ -172,7 +172,7 @@ const N_mainPage = () => {
 
                     {/* 수거함 현황 - 상단 제목 + 탭 버튼 + 선 겹치기 */}
                     <div className="pt-12 mb-4">
-                        <h3 className="text-xl mb-4 font-semibold">수거함 현황</h3>
+                        <h3 className="font-medium text-xl mb-4">수거함 현황</h3>
 
                         <div className="relative text-sm mb-9">
                             {/* 전체 구분선 (얇은 회색 선) */}

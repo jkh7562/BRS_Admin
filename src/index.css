@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* NEXON Lv1 Gothic 폰트 등록 */
 @font-face {
     font-family: 'NEXON Lv1 Gothic';
     src: url('./assets/fonts/NEXON Lv1 Gothic OTF Bold.otf') format('opentype');
@@ -9,6 +10,15 @@
     font-style: normal;
 }
 
+/* Pretendard Variable TTF 폰트 등록 */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('./assets/fonts/PretendardVariable.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+}
+
+/* 전체 기본 폰트 적용 */
 body {
     font-family: 'Pretendard', sans-serif;
 }

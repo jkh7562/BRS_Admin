@@ -3,6 +3,9 @@ module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
+  safelist: [
+    'font-[550]',
+  ],
   theme: {
     extend: {
       animation: {
@@ -17,6 +20,7 @@ module.exports = {
       },
       fontFamily: {
         nexon: ["'NEXON Lv1 Gothic'", "sans-serif"],
+        sans: ['Pretendard', 'sans-serif']
       },
     },
   },
