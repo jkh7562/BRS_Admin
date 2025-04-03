@@ -1,12 +1,19 @@
-import React, { useState } from "react";
-import { Map } from "react-kakao-maps-sdk";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { useState } from "react"
+import { Map } from "react-kakao-maps-sdk"
 import ArrowLeftIcon from "../assets/arrow_left.png"
 import ArrowRightIcon from "../assets/arrow_right.png"
 import SearchIcon from "../assets/검색.png"
+import CopyIcon from "../assets/copy.png"
 
 const MapWithSidebar = ({ filteredBoxes }) => {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+    const [selectedBoxId, setSelectedBoxId] = useState(3) // 기본적으로 세 번째 항목 선택
+    const [searchTerm, setSearchTerm] = useState("")
+
+    // 검색어에 따라 필터링
+    const displayedBoxes = searchTerm
+        ? filteredBoxes.filter((box) => box.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        : filteredBoxes
 
     return (
         <div className="flex bg-white rounded-2xl shadow overflow-hidden h-[570px] relative">
@@ -23,48 +30,58 @@ const MapWithSidebar = ({ filteredBoxes }) => {
 
             {/* 좌측 패널 */}
             <div
-                className={`transition-all duration-300 ${isSidebarOpen ? "w-[390px]" : "w-0"} overflow-hidden shadow-md h-full relative z-10 bg-white`}>
-                <div className="h-full p-4 pr-0">
+                className={`transition-all duration-300 ${isSidebarOpen ? "w-[390px]" : "w-0"} overflow-hidden shadow-md h-full relative z-10 bg-white`}
+            >
+                <div className="h-full">
                     {/* 검색창 */}
-                    <div className="relative mb-4 pr-4">
+                    <div className="relative mx-2 my-4 p-3">
                         <input
                             type="text"
                             placeholder="장소, 주소, 수거함 코드 검색"
-                            className="w-full border border-gray-300 rounded-full px-4 py-2 text-sm placeholder:text-gray-400"
+                            className="w-full py-2 pl-4 rounded-2xl border border-black/20 text-sm focus:outline-none"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                         />
                         <img
-                            src={SearchIcon}
+                            src={SearchIcon || "/placeholder.svg"}
                             alt="검색 아이콘"
-                            className="absolute right-8 top-2.5 w-4 h-4 text-gray-400"
+                            className="absolute right-8 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
                         />
                     </div>
 
-                    {/* 리스트 */}
-                    <ul className="overflow-y-auto h-[calc(100%-60px)] pr-4 space-y-2 custom-scroll">
-                        {filteredBoxes.map((box) => (
-                            <li
+                    {/* 리스트 - 이미지와 동일하게 스타일 적용 */}
+                    <div className="overflow-y-auto h-[calc(100%-60px)] mx-4">
+                        {displayedBoxes.map((box) => (
+                            <div
                                 key={box.id}
-                                className="p-4 rounded-xl bg-white shadow hover:shadow-md cursor-pointer transition duration-150"
+                                className={`border-t border-gray-100 p-3 cursor-pointer ${selectedBoxId === box.id ? "bg-blue-50" : ""}`}
+                                onClick={() => setSelectedBoxId(box.id)}
                             >
-                                <p className="font-semibold text-sm">{box.name}</p>
-                                <p className="text-xs text-gray-500 mt-1">충남 아산시 탕정면 선문로 221번길 70</p>
-                                <p className="text-xs text-gray-500">{box.lat} / {box.lng}</p>
-                            </li>
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3>{box.name}</h3>
+                                        <p className="text-sm text-gray-500 mt-1">충남 아산시 탕정면 선문로 221번길 70</p>
+                                        <p className="text-sm text-gray-500 mt-1">
+                                            {typeof box.lat === "number" ? box.lat.toFixed(8) : box.lat} /{" "}
+                                            {typeof box.lng === "number" ? box.lng.toFixed(8) : box.lng}
+                                        </p>
+                                    </div>
+                                    <button className="text-gray-400 p-1">
+                                        <img src={CopyIcon || "/placeholder.svg"} alt="복사" className="w-4 h-5"/>
+                                    </button>
+                                </div>
+                            </div>
                         ))}
-                    </ul>
+                    </div>
                 </div>
             </div>
 
             {/* 지도 (항상 전체 화면 차지, 사이드바와 독립) */}
             <div className="absolute top-0 left-0 w-full h-full z-0">
-                <Map
-                    center={{lat: 36.8082, lng: 127.009}}
-                    style={{width: "100%", height: "100%"}}
-                    level={3}
-                />
+                <Map center={{ lat: 36.8082, lng: 127.009 }} style={{ width: "100%", height: "100%" }} level={3} />
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default MapWithSidebar;
+export default MapWithSidebar
