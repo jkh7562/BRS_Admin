@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
 import Sidebar from "../../component/Sidebar";
 import Topbar from "../../component/Topbar";
@@ -7,14 +7,34 @@ import dayIcon from "../../assets/일간.png";
 import infoIcon from "../../assets/추가정보2.png"
 import customerIcon from "../../assets/고객관리.png"
 import lineIcon from "../../assets/구분선.png"
+import FireInfoIcon from "../../assets/FireInfo.png"
 
-// 더미 데이터 정의
+// 수거함 더미 데이터
 const dummyBoxes = [
-    { id: 1, name: "선문대학교 공학관 1층 수거함", lat: 36.8082, lng: 127.0090 },
-    { id: 2, name: "선문대학교 CU 수거함", lat: 36.8084, lng: 127.0093 },
-    { id: 3, name: "선문대 인문관 1층 수거함", lat: 36.8086, lng: 127.0095 },
+    {
+        id: 1,
+        name: "선문대학교 공학관 1층 수거함",
+        lat: 36.8082,
+        lng: 127.009,
+        status: "normal",
+    },
+    {
+        id: 2,
+        name: "선문대학교 CU 수거함",
+        lat: 36.8084,
+        lng: 127.0093,
+        status: "need-collect",
+    },
+    {
+        id: 3,
+        name: "선문대 인문관 1층 수거함",
+        lat: 36.8086,
+        lng: 127.0095,
+        status: "fire",
+    },
 ];
 
+// 사용자 더미 데이터
 const dummyUsers = [
     { id: 1, name: "정윤식", amount: 3200, date: "2025-02-03" },
     { id: 2, name: "김민수", amount: 1500, date: "2025-01-15" },
@@ -22,6 +42,18 @@ const dummyUsers = [
 ];
 
 const N_mainPage = () => {
+
+    const [selectedTab, setSelectedTab] = useState("전체");
+
+    const filteredBoxes =
+        selectedTab === "전체"
+            ? dummyBoxes
+            : dummyBoxes.filter((box) =>
+                selectedTab === "수거 필요"
+                    ? box.status === "need-collect"
+                    : box.status === "fire"
+            );
+
     return (
         <div className="flex bg-gray-50 min-h-screen">
             <Sidebar />
@@ -30,7 +62,7 @@ const N_mainPage = () => {
                 <Topbar />
                 {/* 메인 콘텐츠 (여백 적용) */}
                 <main className="pt-24 px-24 pb-6 space-y-4">
-                    <p className="text-xl">대시 보드</p>
+                    <p className="text-xl font-semibold">대시 보드</p>
                     {/* 상단 카드 */}
                     <div className="flex gap-4">
                         {/* 신규 수거자 가입신청 - 1/5 width */}
@@ -137,49 +169,86 @@ const N_mainPage = () => {
                     </div>
 
 
-                    {/* 수거함 현황 */}
-                    <div className="bg-white rounded-lg p-4 shadow">
-                        <h3 className="text-lg mb-2">수거함 현황</h3>
-                        <div className="flex items-center gap-4 mb-3 text-sm">
-                            <button className="border-b-2 border-black">전체 수거함</button>
-                            <button className="text-gray-500">수거 필요</button>
-                            <button className="text-red-600 flex items-center gap-1">
-                                화재감지 <span className="text-red-500 text-xl">●</span>
-                            </button>
+                    {/* 수거함 현황 - 상단 제목 + 탭 버튼 + 선 겹치기 */}
+                    <div className="pt-12 mb-4">
+                        <h3 className="text-xl mb-4 font-semibold">수거함 현황</h3>
+
+                        <div className="relative text-sm mb-9">
+                            {/* 전체 구분선 (얇은 회색 선) */}
+                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
+
+                            {/* 탭 버튼들 */}
+                            <div className="flex items-center gap-4 z-10 relative">
+                                {["전체 수거함", "수거 필요", "화재감지"].map((tab) => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setSelectedTab(tab)}
+                                        className={`pb-1 flex items-center gap-1 bg-transparent ${
+                                            selectedTab === tab
+                                                ? `border-b-[3px] ${
+                                                    tab === "화재감지"
+                                                        ? "border-black text-[#940000] font-semibold"
+                                                        : "border-black text-black font-normal"
+                                                }`
+                                                : tab === "화재감지"
+                                                    ? "text-[#940000]"
+                                                    : "text-gray-500"
+                                        }`}
+                                    >
+                                        {tab}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                        <div className="flex gap-4">
-                            <div className="w-1/3 max-h-[420px] overflow-y-auto border rounded p-2">
-                                <input
-                                    type="text"
-                                    placeholder="장소, 주소, 수거함 코드 검색"
-                                    className="w-full border rounded px-2 py-1 mb-2 text-sm"
-                                />
-                                <ul className="space-y-2 text-sm">
-                                    {dummyBoxes.map((box) => (
-                                        <li
-                                            key={box.id}
-                                            className="border p-2 rounded hover:bg-gray-100 cursor-pointer"
-                                        >
-                                            <p>{box.name}</p>
-                                            <p className="text-gray-500 text-xs">충남 아산시 탕정면 선문로 221번길 70</p>
-                                            <p className="text-gray-500 text-xs">
-                                                {box.lat} / {box.lng}
-                                            </p>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                            <div className="w-2/3 h-[420px]">
-                                <Map
-                                    center={{lat: 36.8082, lng: 127.0090}}
-                                    style={{width: "100%", height: "100%"}}
-                                    level={3}
-                                >
-                                    {dummyBoxes.map((box) => (
-                                        <MapMarker key={box.id} position={{lat: box.lat, lng: box.lng}}/>
-                                    ))}
-                                </Map>
-                            </div>
+                    </div>
+
+                    {/* 수거함 리스트 + 지도 분리된 파트 */}
+                    <div className="flex gap-4 bg-white rounded-2xl p-4 shadow">
+                        <div className="w-1/3 max-h-[420px] overflow-y-auto border rounded p-2">
+                            <input
+                                type="text"
+                                placeholder="장소, 주소, 수거함 코드 검색"
+                                className="w-full border rounded px-2 py-1 mb-2 text-sm"
+                            />
+                            <ul className="space-y-2 text-sm">
+                                {filteredBoxes.map((box) => (
+                                    <li
+                                        key={box.id}
+                                        className="border p-2 rounded hover:bg-gray-100 cursor-pointer"
+                                    >
+                                        <p>{box.name}</p>
+                                        <p className="text-gray-500 text-xs">
+                                            충남 아산시 탕정면 선문로 221번길 70
+                                        </p>
+                                        <p className="text-gray-500 text-xs">
+                                            {box.lat} / {box.lng}
+                                        </p>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="w-2/3 h-[420px]">
+                            <Map
+                                center={{ lat: 36.8082, lng: 127.009 }}
+                                style={{ width: "100%", height: "100%" }}
+                                level={3}
+                            >
+                                {filteredBoxes.map((box) => (
+                                    <MapMarker
+                                        key={box.id}
+                                        position={{ lat: box.lat, lng: box.lng }}
+                                        image={{
+                                            src:
+                                                box.status === "fire"
+                                                    ? "/marker-red.png"
+                                                    : box.status === "need-collect"
+                                                        ? "/marker-yellow.png"
+                                                        : "/marker-green.png",
+                                            size: { width: 40, height: 42 },
+                                        }}
+                                    />
+                                ))}
+                            </Map>
                         </div>
                     </div>
 
