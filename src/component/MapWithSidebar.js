@@ -16,7 +16,7 @@ const MapWithSidebar = ({ filteredBoxes }) => {
         : filteredBoxes
 
     return (
-        <div className="flex bg-white rounded-2xl shadow overflow-hidden h-[570px] relative">
+        <div className="flex bg-white rounded-2xl shadow-md overflow-hidden h-[570px] relative">
             {/* 토글 화살표 (사이드바 바깥에 위치) */}
             <img
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
