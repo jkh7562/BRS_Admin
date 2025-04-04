@@ -267,7 +267,7 @@ const N_mainPage = () => {
                         </div>
                     </div>
 
-                    <div>
+                    <div className="pb-6">
                         <h3 className="text-xl font-bold mb-4">회원 정보 검색</h3>
 
                         <div className="relative text-sm">
