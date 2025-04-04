@@ -65,29 +65,21 @@ const BoxAddRemovePage = () => {
         return true;
     });
 
-    // 수락 버튼 클릭 처리 함수
-    const handleAccept = async (boxId) => {
+    // 수락 버튼 클릭 처리 함수 (설치 완료, 제거 완료에 대해서만 수락)
+    const handleAccept = async (boxId, installStatus) => {
         try {
-            if (boxId) {
+            if (installStatus === 'INSTALL_COMPLETED') {
+                // 설치 완료 상태에서 수락
                 const result = await requestInstallConfirmed(boxId); // 설치 확정 API 호출
                 alert(`수거함 ${boxId} 설치 확정 완료`);
-                dispatch(fetchBoxes()); // 박스 데이터 갱신
-            }
-        } catch (err) {
-            alert("❌ 수락 처리 실패");
-        }
-    };
-
-    // 거절 버튼 클릭 처리 함수
-    const handleReject = async (boxId) => {
-        try {
-            if (boxId) {
+            } else if (installStatus === 'REMOVE_COMPLETED') {
+                // 제거 완료 상태에서 수락
                 const result = await requestRemoveConfirmed(boxId); // 제거 확정 API 호출
                 alert(`수거함 ${boxId} 제거 확정 완료`);
-                dispatch(fetchBoxes()); // 박스 데이터 갱신
             }
+            dispatch(fetchBoxes()); // 박스 데이터 갱신
         } catch (err) {
-            alert("❌ 거절 처리 실패");
+            alert("❌ 수락 처리 실패");
         }
     };
 
@@ -212,20 +204,14 @@ const BoxAddRemovePage = () => {
                                                                 box.installStatus === 'REMOVE_CONFIRMED' ? '제거 확정' : '알 수 없음'
                                 }
                                 </span>
-                                {/* 수락/거절 버튼 추가 */}
+                                {/* 수락 버튼만 추가 */}
                                 {(box.installStatus === 'INSTALL_COMPLETED' || box.installStatus === 'REMOVE_COMPLETED') && (
                                     <div className="mt-2 flex space-x-2">
                                         <button
-                                            onClick={() => handleAccept(box.id)}
+                                            onClick={() => handleAccept(box.id, box.installStatus)}
                                             className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
                                         >
                                             수락
-                                        </button>
-                                        <button
-                                            onClick={() => handleReject(box.id)}
-                                            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                                        >
-                                            거절
                                         </button>
                                     </div>
                                 )}
