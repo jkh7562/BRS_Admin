@@ -294,7 +294,8 @@ const N_mainPage = () => {
                     </div>
 
                     {/* 사용자 정보 섹션 */}
-                    <UserInfoSection />
+                    <UserInfoSection/>
+                    <div className="pb-32" />
                 </main>
             </div>
         </div>
