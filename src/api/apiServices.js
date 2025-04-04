@@ -267,3 +267,53 @@ export const uploadFileToFlask = async (file) => {
 
     return response.data;
 };
+
+// ✅ 수거함 설치 요청 API (longitude / latitude 별도 전송)
+export const requestInstallBox = async ({ name, ipAddress, longitude, latitude }) => {
+    try {
+        const response = await axiosInstance.post("/admin/installRequest", {
+            name,
+            ipAddress,
+            longitude,
+            latitude,
+        });
+        console.log("✅ 수거함 설치 요청 성공:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ 수거함 설치 요청 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// 수거함 제거 요청 API
+export const requestRemoveBox = async (boxId) => {
+    try {
+        const response = await axiosInstance.patch(`/admin/removeRequest/${boxId}`);
+        return response.data;
+    } catch (error) {
+        console.error("❌ 수거함 제거 요청 실패:", error);
+        throw error;
+    }
+};
+
+// 수거함 설치 확정 API
+export const requestInstallConfirmed = async (boxId) => {
+    try {
+        const response = await axiosInstance.patch(`/admin/installConfirmed/${boxId}`);
+        return response.data;  // 요청 성공 시 서버에서 반환된 데이터
+    } catch (error) {
+        console.error("❌ 수거함 설치 확정 실패:", error);
+        throw error;  // 에러 발생 시 다시 던져서 처리할 수 있도록
+    }
+};
+
+// 수거함 제거 확정 API
+export const requestRemoveConfirmed = async (boxId) => {
+    try {
+        const response = await axiosInstance.patch(`/admin/removeConfirmed/${boxId}`);
+        return response.data;  // 요청 성공 시 서버에서 반환된 데이터
+    } catch (error) {
+        console.error("❌ 수거함 제거 확정 실패:", error);
+        throw error;  // 에러 발생 시 다시 던져서 처리할 수 있도록
+    }
+};

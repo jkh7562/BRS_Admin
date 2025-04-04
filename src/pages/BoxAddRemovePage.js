@@ -1,259 +1,239 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { fetchBoxes } from "../slices/boxSlice";
 import NavigationBar from "../component/NavigationBar";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
-import { fetchFilteredRecommendedBoxes } from "../api/apiServices";
-import axios from "axios";
-
-const locations = [
-    { id: 1, type: "설치", name: "홍길동", region: "충청남도", district: "아산시", status: "설치 요청중", date: "2025-03-17", lat: 36.8082, lng: 127.0090 },
-    { id: 2, type: "설치", name: "김유신", region: "충청남도", district: "천안시", status: "설치 확정", date: "2025-03-16", lat: 36.8090, lng: 127.0100 },
-    { id: 3, type: "제거", name: "이순신", region: "서울특별시", district: "강남구", status: "제거 요청중", date: "2025-03-15", lat: 36.8075, lng: 127.0115 },
-];
+import { requestInstallBox, requestRemoveBox, requestInstallConfirmed, requestRemoveConfirmed } from "../api/apiServices";
+import useBoxes from "../hooks/useBoxes";
 
 const BoxAddRemovePage = () => {
+    const dispatch = useDispatch();
+    const { boxes, loading, error } = useBoxes();
+
     const [filter, setFilter] = useState("설치");
-    const [search, setSearch] = useState("");
-    const [selectedBox, setSelectedBox] = useState(null);
-    const [region, setRegion] = useState("전체");
-    const [district, setDistrict] = useState("전체");
-    const [recommendedLocations, setRecommendedLocations] = useState([]);
-    const [files, setFiles] = useState({});
-    const [showUploader, setShowUploader] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isUploading, setIsUploading] = useState(false);
+    const [userAddedMarker, setUserAddedMarker] = useState(null);
+    const [boxName, setBoxName] = useState("");
+    const [boxIp, setBoxIp] = useState("");
+    const [isFromExistingBox, setIsFromExistingBox] = useState(false);
+    const [selectedBoxId, setSelectedBoxId] = useState(null);
 
-    const loadRecommended = async () => {
+    const handleSubmitRequest = async () => {
         try {
-            const data = await fetchFilteredRecommendedBoxes();
-            setRecommendedLocations(data);
-        } catch (err) {
-            console.error("❌ 추천 위치 불러오기 실패:", err);
-        }
-    };
+            if (isFromExistingBox) {
+                if (!selectedBoxId) {
+                    alert("❗ 수거함 ID가 없습니다.");
+                    return;
+                }
+                const result = await requestRemoveBox(selectedBoxId);
+                alert(`✅ 제거 요청 완료: ${result}`);
+            } else {
+                if (!boxName || !boxIp) {
+                    alert("❗ 이름과 IP를 입력해주세요.");
+                    return;
+                }
 
-    useEffect(() => {
-        loadRecommended();
-    }, []);
+                const payload = {
+                    name: boxName,
+                    ipAddress: boxIp,
+                    latitude: userAddedMarker.lat,
+                    longitude: userAddedMarker.lng
+                };
 
-    const handleFileChange = (e, key) => {
-        setFiles((prev) => ({ ...prev, [key]: e.target.files[0] }));
-    };
-
-    const handleUploadAll = async () => {
-        try {
-            setIsUploading(true);
-            const requiredKeys = [
-                "population",
-                "boundarycpg",
-                "boundarydbf",
-                "boundaryprj",
-                "boundaryshp",
-                "boundaryshx",
-                "fireStation",
-                "childSafety",
-            ];
-
-            const allFilled = requiredKeys.every((key) => files[key]);
-            if (!allFilled) {
-                alert("⚠️ 모든 파일을 선택해주세요.");
-                return;
+                const result = await requestInstallBox(payload);
+                alert(`✅ 설치 요청 완료: ${result}`);
             }
 
-            const formData = new FormData();
-            requiredKeys.forEach((key) => formData.append(key, files[key]));
-
-            await axios.post("http://localhost:5000/upload-multiple", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-
-            alert("✅ 모든 파일 업로드 성공!");
+            setUserAddedMarker(null);
+            setBoxName("");
+            setBoxIp("");
+            setSelectedBoxId(null);
+            setIsFromExistingBox(false);
+            dispatch(fetchBoxes());
         } catch (err) {
-            console.error("❌ 업로드 실패:", err);
-            alert("❌ 업로드 실패: " + (err.response?.data || err.message));
-        } finally {
-            setIsUploading(false);
+            alert("❌ 요청 실패");
         }
     };
 
-    const filteredLocations = locations.filter(
-        (loc) =>
-            loc.type === filter &&
-            (region === "전체" || loc.region === region) &&
-            (district === "전체" || loc.district === district) &&
-            loc.name.includes(search)
-    );
+    // 필터링 함수: 설치 상태나 제거 상태에 맞는 박스를 필터링
+    const filteredBoxes = boxes.filter((box) => {
+        if (filter === "설치") {
+            return box.installStatus === 'INSTALL_REQUEST' || box.installStatus === 'INSTALL_IN_PROGRESS' || box.installStatus === 'INSTALL_CONFIRMED' || box.installStatus === 'INSTALL_COMPLETED';
+        }
+        if (filter === "제거") {
+            return box.installStatus === 'REMOVE_REQUEST' || box.installStatus === 'REMOVE_IN_PROGRESS' || box.installStatus === 'REMOVE_CONFIRMED' || box.installStatus === 'REMOVE_COMPLETED';
+        }
+        return true;
+    });
+
+    // 수락 버튼 클릭 처리 함수
+    const handleAccept = async (boxId) => {
+        try {
+            if (boxId) {
+                const result = await requestInstallConfirmed(boxId); // 설치 확정 API 호출
+                alert(`수거함 ${boxId} 설치 확정 완료`);
+                dispatch(fetchBoxes()); // 박스 데이터 갱신
+            }
+        } catch (err) {
+            alert("❌ 수락 처리 실패");
+        }
+    };
+
+    // 거절 버튼 클릭 처리 함수
+    const handleReject = async (boxId) => {
+        try {
+            if (boxId) {
+                const result = await requestRemoveConfirmed(boxId); // 제거 확정 API 호출
+                alert(`수거함 ${boxId} 제거 확정 완료`);
+                dispatch(fetchBoxes()); // 박스 데이터 갱신
+            }
+        } catch (err) {
+            alert("❌ 거절 처리 실패");
+        }
+    };
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-100 items-center px-4 pb-10">
             <NavigationBar />
 
-            {/* ✅ 업로드 토글 버튼 */}
-            <div className="mt-20 w-3/4 text-right">
-                <button
-                    onClick={() => setShowUploader(!showUploader)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                >
-                    {showUploader ? "📁 업로드 창 닫기" : "📁 데이터 업로드 열기"}
-                </button>
-            </div>
-
-            {/* ✅ 파일 업로드 박스 */}
-            {showUploader && (
-                <div className="mt-4 w-3/4 bg-white shadow-md rounded p-4">
-                    <h2 className="text-lg font-bold mb-2">📁 수거함 추천 시스템 최신화를 위한 데이터 업로드</h2>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="font-semibold">① 인구밀도 데이터 </label>
-                            <input type="file" accept=".csv,.txt" onChange={(e) => handleFileChange(e, "population")} />
-                        </div>
-                        {["cpg", "dbf", "prj", "shp", "shx"].map((n) => (
-                            <div key={n}>
-                                <label className="font-semibold">② 경계 데이터 {n} </label>
-                                <input type="file" accept=".csv" onChange={(e) => handleFileChange(e, `boundary${n}`)} />
-                            </div>
+            <div className="mt-24 w-3/4 bg-white shadow-md p-4 rounded">
+                {loading ? (
+                    <p>⏳ 박스 데이터를 불러오는 중...</p>
+                ) : error ? (
+                    <p>🚨 오류 발생: {error.message}</p>
+                ) : (
+                    <Map
+                        center={{lat: 36.8082, lng: 127.009}}
+                        style={{width: "100%", height: "450px"}}
+                        level={3}
+                        onClick={(_, mouseEvent) => {
+                            const latlng = mouseEvent.latLng;
+                            setUserAddedMarker({lat: latlng.getLat(), lng: latlng.getLng()});
+                            setBoxName("");
+                            setBoxIp("");
+                            setIsFromExistingBox(false);
+                            setSelectedBoxId(null);
+                        }}
+                    >
+                        {filteredBoxes.map((box) => (
+                            <MapMarker
+                                key={box.id}
+                                position={{lat: box.lat, lng: box.lng}}
+                                onClick={() => {
+                                    setUserAddedMarker({lat: box.lat, lng: box.lng});
+                                    setBoxName(box.name);
+                                    setBoxIp("");
+                                    setIsFromExistingBox(true);
+                                    setSelectedBoxId(box.id);
+                                }}
+                            />
                         ))}
-                        <div>
-                            <label className="font-semibold">③ 119안전센터 현황 </label>
-                            <input type="file" accept=".csv" onChange={(e) => handleFileChange(e, "fireStation")} />
-                        </div>
-                        <div>
-                            <label className="font-semibold">④ 어린이보호구역 표준데이터 </label>
-                            <input type="file" accept=".csv" onChange={(e) => handleFileChange(e, "childSafety")} />
-                        </div>
-                    </div>
 
-                    <div className="flex gap-4 mt-4">
-                        <button
-                            onClick={handleUploadAll}
-                            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                        >
-                            📤 업로드 실행
-                        </button>
-                        {/* 업로드 중 표시 */}
-                        {isUploading && (
-                            <div className="text-blue-600 ml-4">파일 업로드 중... 최대 7시간이 소요될 수 있습니다.</div>
+                        {userAddedMarker && (
+                            <MapMarker position={userAddedMarker}>
+                                <div className="w-[220px] p-2 bg-white rounded-lg shadow border text-sm">
+                                    <div
+                                        className={`font-bold mb-1 ${isFromExistingBox ? "text-red-600" : "text-green-600"}`}>
+                                        {isFromExistingBox ? "수거함 제거 요청" : "수거함 설치 요청"}
+                                    </div>
+
+                                    {isFromExistingBox ? (
+                                        <p className="text-xs mb-2">
+                                            <strong>이름:</strong> {boxName}
+                                        </p>
+                                    ) : (
+                                        <>
+                                            <input
+                                                type="text"
+                                                placeholder="수거함 이름"
+                                                value={boxName}
+                                                onChange={(e) => setBoxName(e.target.value)}
+                                                className="w-full mb-1 px-2 py-1 border rounded text-xs"
+                                            />
+                                            <input
+                                                type="text"
+                                                placeholder="수거함 IP"
+                                                value={boxIp}
+                                                onChange={(e) => setBoxIp(e.target.value)}
+                                                className="w-full mb-2 px-2 py-1 border rounded text-xs"
+                                            />
+                                        </>
+                                    )}
+
+                                    <button
+                                        onClick={handleSubmitRequest}
+                                        className={`w-full ${isFromExistingBox ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"} text-white text-xs py-1 rounded`}>
+                                        {isFromExistingBox ? "제거 요청 등록" : "설치 요청 등록"}
+                                    </button>
+                                </div>
+                            </MapMarker>
                         )}
-                    </div>
-                </div>
-            )}
-
-            {/* 지도 */}
-            <div className="mt-4 w-3/4 bg-white shadow-md p-4 rounded">
-                <Map center={{ lat: 36.8082, lng: 127.0090 }} style={{ width: "100%", height: "450px" }} level={3}>
-                    {filteredLocations.map((loc) => (
-                        <MapMarker
-                            key={`loc-${loc.id}`}
-                            position={{ lat: loc.lat, lng: loc.lng }}
-                            onClick={() => setSelectedBox(loc)}
-                        />
-                    ))}
-                    {recommendedLocations.map((loc, index) => (
-                        <MapMarker
-                            key={`rec-${index}`}
-                            position={{ lat: loc.lat, lng: loc.lng }}
-                            image={{
-                                src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
-                                size: { width: 24, height: 35 },
-                            }}
-                            onClick={() => setSelectedBox({ ...loc, name: `추천${index + 1}`, type: "추천" })}
-                        />
-                    ))}
-                </Map>
+                    </Map>
+                )}
             </div>
 
-            {/* 로딩 상태 표시 */}
-            {isLoading && (
-                <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-500 bg-opacity-50 z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-md">
-                        <div className="text-lg">추천 위치를 불러오는 중...</div>
-                        <div className="mt-4">
-                            <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full" role="status">
-                                <span className="sr-only">Loading...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* 필터 UI */}
-            <div className="mt-2 w-3/4 flex items-center gap-2 bg-white shadow-md p-3 rounded">
-                <label>현황:</label>
-                <select value={filter} onChange={(e) => setFilter(e.target.value)} className="border p-1 rounded">
+            <div className="mt-6 w-3/4 text-left">
+                <label className="mr-2 font-semibold">현황:</label>
+                <select
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
+                    className="border p-1 rounded"
+                >
                     <option value="설치">설치</option>
                     <option value="제거">제거</option>
                 </select>
-
-                <label>광역시/도:</label>
-                <select value={region} onChange={(e) => setRegion(e.target.value)} className="border p-1 rounded">
-                    <option value="전체">전체</option>
-                    <option value="충청남도">충청남도</option>
-                    <option value="서울특별시">서울특별시</option>
-                </select>
-
-                <label>시/군/구:</label>
-                <select
-                    value={district}
-                    onChange={(e) => setDistrict(e.target.value)}
-                    className="border p-1 rounded"
-                    disabled={region === "전체"}
-                >
-                    <option value="전체">전체</option>
-                    {region === "충청남도" && (
-                        <>
-                            <option value="아산시">아산시</option>
-                            <option value="천안시">천안시</option>
-                        </>
-                    )}
-                    {region === "서울특별시" && <option value="강남구">강남구</option>}
-                </select>
             </div>
 
-            {/* 리스트 및 상세 정보 */}
-            <div className="mt-2 w-3/4 flex gap-4">
-                <div className="bg-white shadow-md p-3 rounded w-1/2">
-                    <h2 className="text-lg font-semibold mb-1">{filter} 목록</h2>
-                    <input
-                        type="text"
-                        placeholder="이름 검색"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="border p-1 rounded w-full mb-1"
-                    />
-                    <ul>
-                        {filteredLocations.map((loc) => (
+            {/* ✅ 모든 수거함 리스트 UI */}
+            {!loading && !error && (
+                <div className="mt-6 w-3/4 bg-white shadow-md p-4 rounded max-h-[300px] overflow-y-auto">
+                    <h2 className="text-lg font-bold mb-2">📦 수거함 리스트</h2>
+                    <ul className="text-sm space-y-1">
+                        {filteredBoxes.map((box) => (
                             <li
-                                key={loc.id}
-                                className={`p-1 border-b cursor-pointer ${selectedBox?.id === loc.id ? "bg-gray-200" : ""}`}
-                                onClick={() => setSelectedBox(loc)}
+                                key={box.id}
+                                className="hover:text-blue-600 cursor-pointer flex justify-between items-center"
+                                onClick={() => {
+                                    setUserAddedMarker({lat: box.lat, lng: box.lng});
+                                    setBoxName(box.name);
+                                    setBoxIp("");
+                                    setIsFromExistingBox(true);
+                                    setSelectedBoxId(box.id);
+                                }}
                             >
-                                <strong>{loc.name}</strong> - {loc.status} ({loc.date})
+                                <span>
+                                    • {box.name} — 위도: {box.lat}, 경도: {box.lng} — 상태: {
+                                    box.installStatus === 'INSTALL_REQUEST' ? '설치 요청 중' :
+                                        box.installStatus === 'INSTALL_IN_PROGRESS' ? '설치 진행 중' :
+                                            box.installStatus === 'INSTALL_CONFIRMED' ? '설치 확정' :
+                                                box.installStatus === 'INSTALL_COMPLETED' ? '설치 완료' :
+                                                    box.installStatus === 'REMOVE_REQUEST' ? '제거 요청 중' :
+                                                        box.installStatus === 'REMOVE_IN_PROGRESS' ? '제거 진행 중' :
+                                                            box.installStatus === 'REMOVE_COMPLETED' ? '제거 완료' :
+                                                                box.installStatus === 'REMOVE_CONFIRMED' ? '제거 확정' : '알 수 없음'
+                                }
+                                </span>
+                                {/* 수락/거절 버튼 추가 */}
+                                {(box.installStatus === 'INSTALL_COMPLETED' || box.installStatus === 'REMOVE_COMPLETED') && (
+                                    <div className="mt-2 flex space-x-2">
+                                        <button
+                                            onClick={() => handleAccept(box.id)}
+                                            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                                        >
+                                            수락
+                                        </button>
+                                        <button
+                                            onClick={() => handleReject(box.id)}
+                                            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                                        >
+                                            거절
+                                        </button>
+                                    </div>
+                                )}
                             </li>
                         ))}
-                        {filter === "설치" && recommendedLocations.length > 0 && (
-                            <>
-                                <hr className="my-2" />
-                                <li className="text-sm text-gray-500">⭐ 추천 위치 {recommendedLocations.length}개</li>
-                            </>
-                        )}
                     </ul>
                 </div>
-
-                {selectedBox && (
-                    <div className="bg-white shadow-md p-3 rounded w-1/2">
-                        <h2 className="text-lg font-semibold mb-1">상세 정보</h2>
-                        <p><strong>이름:</strong> {selectedBox.name}</p>
-                        {selectedBox.type !== "추천" && (
-                            <>
-                                <p><strong>광역시/도:</strong> {selectedBox.region}</p>
-                                <p><strong>담당 지역:</strong> {selectedBox.district}</p>
-                                <p><strong>알림 일자:</strong> {selectedBox.date}</p>
-                                <p><strong>상태:</strong> {selectedBox.status}</p>
-                            </>
-                        )}
-                        <p><strong>좌표:</strong> {selectedBox.lat} / {selectedBox.lng}</p>
-                    </div>
-                )}
-            </div>
+            )}
         </div>
     );
 };
