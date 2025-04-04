@@ -70,14 +70,15 @@ const BoxAddRemovePage = () => {
         try {
             if (installStatus === 'INSTALL_COMPLETED') {
                 // 설치 완료 상태에서 수락
-                const result = await requestInstallConfirmed(boxId); // 설치 확정 API 호출
-                alert(`수거함 ${boxId} 설치 확정 완료`);
+                const result = await requestInstallConfirmed(boxId);
+                alert("설치 확정 API호출됨");
             } else if (installStatus === 'REMOVE_COMPLETED') {
                 // 제거 완료 상태에서 수락
-                const result = await requestRemoveConfirmed(boxId); // 제거 확정 API 호출
-                alert(`수거함 ${boxId} 제거 확정 완료`);
+                const result = await requestRemoveConfirmed(boxId);
+                alert("제거 확정 API호출됨");
+            } else{
+                alert("Error");
             }
-            dispatch(fetchBoxes()); // 박스 데이터 갱신
         } catch (err) {
             alert("❌ 수락 처리 실패");
         }
@@ -94,12 +95,12 @@ const BoxAddRemovePage = () => {
                     <p>🚨 오류 발생: {error.message}</p>
                 ) : (
                     <Map
-                        center={{lat: 36.8082, lng: 127.009}}
-                        style={{width: "100%", height: "450px"}}
+                        center={{ lat: 36.8082, lng: 127.009 }}
+                        style={{ width: "100%", height: "450px" }}
                         level={3}
                         onClick={(_, mouseEvent) => {
                             const latlng = mouseEvent.latLng;
-                            setUserAddedMarker({lat: latlng.getLat(), lng: latlng.getLng()});
+                            setUserAddedMarker({ lat: latlng.getLat(), lng: latlng.getLng() });
                             setBoxName("");
                             setBoxIp("");
                             setIsFromExistingBox(false);
@@ -109,9 +110,9 @@ const BoxAddRemovePage = () => {
                         {filteredBoxes.map((box) => (
                             <MapMarker
                                 key={box.id}
-                                position={{lat: box.lat, lng: box.lng}}
+                                position={{ lat: box.lat, lng: box.lng }}
                                 onClick={() => {
-                                    setUserAddedMarker({lat: box.lat, lng: box.lng});
+                                    setUserAddedMarker({ lat: box.lat, lng: box.lng });
                                     setBoxName(box.name);
                                     setBoxIp("");
                                     setIsFromExistingBox(true);
@@ -123,8 +124,7 @@ const BoxAddRemovePage = () => {
                         {userAddedMarker && (
                             <MapMarker position={userAddedMarker}>
                                 <div className="w-[220px] p-2 bg-white rounded-lg shadow border text-sm">
-                                    <div
-                                        className={`font-bold mb-1 ${isFromExistingBox ? "text-red-600" : "text-green-600"}`}>
+                                    <div className={`font-bold mb-1 ${isFromExistingBox ? "text-red-600" : "text-green-600"}`}>
                                         {isFromExistingBox ? "수거함 제거 요청" : "수거함 설치 요청"}
                                     </div>
 
@@ -185,7 +185,7 @@ const BoxAddRemovePage = () => {
                                 key={box.id}
                                 className="hover:text-blue-600 cursor-pointer flex justify-between items-center"
                                 onClick={() => {
-                                    setUserAddedMarker({lat: box.lat, lng: box.lng});
+                                    setUserAddedMarker({ lat: box.lat, lng: box.lng });
                                     setBoxName(box.name);
                                     setBoxIp("");
                                     setIsFromExistingBox(true);

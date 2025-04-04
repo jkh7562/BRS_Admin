@@ -299,7 +299,7 @@ export const requestRemoveBox = async (boxId) => {
 // 수거함 설치 확정 API
 export const requestInstallConfirmed = async (boxId) => {
     try {
-        const response = await axiosInstance.patch(`/admin/installConfirmed/${boxId}`);
+        const response = await axiosInstance.patch(`/admin/installConFiremed/${boxId}`);
         return response.data;  // 요청 성공 시 서버에서 반환된 데이터
     } catch (error) {
         console.error("❌ 수거함 설치 확정 실패:", error);
@@ -310,7 +310,7 @@ export const requestInstallConfirmed = async (boxId) => {
 // 수거함 제거 확정 API
 export const requestRemoveConfirmed = async (boxId) => {
     try {
-        const response = await axiosInstance.patch(`/admin/removeConfirmed/${boxId}`);
+        const response = await axiosInstance.patch(`/admin/removeConFiremed/${boxId}`);
         return response.data;  // 요청 성공 시 서버에서 반환된 데이터
     } catch (error) {
         console.error("❌ 수거함 제거 확정 실패:", error);
