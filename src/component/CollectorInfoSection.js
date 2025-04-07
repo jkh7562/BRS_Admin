@@ -5,7 +5,7 @@ import InfoIcon from "../assets/추가정보2.png"
 import LineIcon from "../assets/구분선.png"
 import VectorIcon from "../assets/Vector.png"
 
-export default function UserInfoSection() {
+export default function CollectorInfoSection() {
     const [selectedPeriod, setSelectedPeriod] = useState("일")
 
     return (
@@ -14,12 +14,12 @@ export default function UserInfoSection() {
             <div className="w-full md:w-[350px] h-full flex flex-col shadow-lg">
                 <div className="p-3 pt-8">
                     <div className="flex items-center justify-between mx-4">
-                        <h2 className="text-2xl font-bold">총 사용자 수 17,302명</h2>
+                        <h2 className="text-2xl font-bold">총 수거자 수 7,302명</h2>
                     </div>
                     <div className="relative mt-4">
                         <input
                             type="text"
-                            placeholder="사용자 이름 검색"
+                            placeholder="수거자 이름 검색"
                             className="w-full pl-4 pr-4 py-2 text-sm border border border-black/20 rounded-2xl"
                         />
                         <div className="absolute right-5 top-2 text-gray-400">
@@ -71,19 +71,23 @@ export default function UserInfoSection() {
 
                         {/* Stats Cards */}
                         <div className="flex items-center mt-6 mb-6">
-                            <StatCard title="총 배출량" value="3,200g" number="1" />
+                            <StatCard title="담당 구역" value="충청남도 아산시"/>
                             <div className="h-12 flex items-center">
-                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
+                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11"/>
                             </div>
-                            <StatCard title="누적 마일리지" value="300p" number="1" />
+                            <StatCard title="총 수거량" value="3,200g"/>
                             <div className="h-12 flex items-center">
-                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
+                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11"/>
                             </div>
-                            <StatCard title="사용 마일리지" value="240p" number="1" />
+                            <StatCard title="설치 횟수" value="16회"/>
                             <div className="h-12 flex items-center">
-                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
+                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11"/>
                             </div>
-                            <StatCard title="잔여 마일리지" value="60p" number="1" />
+                            <StatCard title="제거 횟수" value="3회"/>
+                            <div className="h-12 flex items-center">
+                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11"/>
+                            </div>
+                            <StatCard title="화재 후 재가동 횟수" value="2회"/>
                         </div>
 
                         {/* Chart Section */}
@@ -111,7 +115,7 @@ export default function UserInfoSection() {
                                         </button>
                                     </div>
                                     <button className="text-sm font-medium text-gray-500">
-                                        배출 로그 자세히보기{" "}
+                                        수거 로그 자세히보기{" "}
                                         <img
                                             src={VectorIcon || "/placeholder.svg"}
                                             alt="Vector Icon"
@@ -176,61 +180,6 @@ export default function UserInfoSection() {
                         </div>
                     </div>
                 </div>
-
-                {/* Right Sidebar - Activity Log */}
-                <div className="w-full md:w-[300px] h-full flex flex-col shadow-lg pl-7 pt-9">
-                    <div className="pb-7">
-                        <h2 className="font-bold text-xl">주문 내역</h2>
-                    </div>
-
-                    {/* 주문 내역 영역에만 스크롤바 적용 */}
-                    <div className="overflow-auto flex-1 custom-scrollbar">
-                        <ActivityItem
-                            status="배송완료"
-                            date="2025.03.01"
-                            time="오전 10:31"
-                            code="1ASEF"
-                            amount="101 (수량2 : 120마일리지)"
-                        />
-
-                        <ActivityItem
-                            status="배송완료"
-                            date="2025.02.19"
-                            time="오후 2:17"
-                            code="1ZA7JK"
-                            amount="101 (수량1 : 60마일리지)"
-                        />
-
-                        <ActivityItem
-                            status="배송완료"
-                            date="2025.02.11"
-                            time="오전 11:23"
-                            code="1KABPQ"
-                            amount="101 (수량1 : 60마일리지)"
-                        />
-                        <ActivityItem
-                            status="배송완료"
-                            date="2025.02.11"
-                            time="오전 11:23"
-                            code="1KABPQ"
-                            amount="101 (수량1 : 60마일리지)"
-                        />
-                        <ActivityItem
-                            status="배송완료"
-                            date="2025.02.11"
-                            time="오전 11:23"
-                            code="1KABPQ"
-                            amount="101 (수량1 : 60마일리지)"
-                        />
-                        <ActivityItem
-                            status="배송완료"
-                            date="2025.02.11"
-                            time="오전 11:23"
-                            code="1KABPQ"
-                            amount="101 (수량1 : 60마일리지)"
-                        />
-                    </div>
-                </div>
             </div>
 
             {/* 스크롤바 스타일 */}
@@ -264,7 +213,7 @@ function UserListItem({ name, points, date, isActive }) {
         <div className={`p-4 border-b flex items-center justify-between hover:bg-[#D1E3EE] hover:bg-opacity-50`}>
             <div>
                 <h3 className="text-base font-bold">{name}</h3>
-                <p className="text-sm font-normal text-gray-500">총 배출량 {points}</p>
+                <p className="text-sm font-normal text-gray-500">총 수거량 {points}</p>
                 <p className="text-sm font-normal text-gray-500">{date}</p>
             </div>
             <button className="pb-10 text-gray-400">
@@ -297,34 +246,6 @@ function ChartBar({ height, date }) {
                 <div className="w-5 bg-rose-500 rounded-sm" style={{ height: barHeight }}></div>
             </div>
             <div className="text-xs text-gray-500 mt-1">{date}</div>
-        </div>
-    )
-}
-
-function ActivityItem({ status, date, time, code, amount }) {
-    return (
-        <div>
-            <div>
-                <span className="inline-block px-2 py-0.5 bg-[#21262B] text-white text-sm rounded-md font-nomal">{status}</span>
-            </div>
-            <table className="w-full text-sm border-collapse mt-4 mb-8">
-                <tbody>
-                <tr>
-                    <td className="w-16 text-gray-500 ">주문일자</td>
-                    <td>
-                        {date} {time}
-                    </td>
-                </tr>
-                <tr>
-                    <td className="w-16 text-gray-500">주문번호</td>
-                    <td>{code}</td>
-                </tr>
-                <tr>
-                    <td className="w-16 text-gray-500">상품코드</td>
-                    <td>{amount}</td>
-                </tr>
-                </tbody>
-            </table>
         </div>
     )
 }

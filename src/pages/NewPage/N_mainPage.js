@@ -2,7 +2,8 @@ import { useState } from "react"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import MapWithSidebar from "../../component/MapWithSidebar"
-import UserInfoSection from "../../component/UserInfoSection";
+import UserInfoSection from "../../component/UserInfoSection"
+import CollectorInfoSection from "../../component/CollectorInfoSection"
 import joinIcon from "../../assets/가입관리2.png"
 import dayIcon from "../../assets/일간.png"
 import infoIcon from "../../assets/추가정보2.png"
@@ -43,20 +44,19 @@ const dummyUsers = [
 ]
 
 const N_mainPage = () => {
-    const tabs = ["전체 수거함", "건전지", "방전 배터리", "잔여 용량 배터리"];
-    const [selectedEmissionTab, setSelectedEmissionTab] = useState("전체 수거함");
-    const [selectedCollectionTab, setSelectedCollectionTab] = useState("전체 수거함");
-    const [selectedTab, setSelectedTab] = useState("전체 수거함");
-    const memberTabs = ["사용자", "수거자"];
-    const [memberselectedTab, setMemberSelectedTab] = useState("사용자");
+    const tabs = ["전체 수거함", "건전지", "방전 배터리", "잔여 용량 배터리"]
+    const [selectedEmissionTab, setSelectedEmissionTab] = useState("전체 수거함")
+    const [selectedCollectionTab, setSelectedCollectionTab] = useState("전체 수거함")
+    const [selectedTab, setSelectedTab] = useState("전체 수거함")
+    const memberTabs = ["사용자", "수거자"]
+    const [memberselectedTab, setMemberSelectedTab] = useState("사용자")
 
-    const filteredBoxes = selectedTab === "전체 수거함"
-        ? dummyBoxes
-        : dummyBoxes.filter((box) =>
-            selectedTab === "수거 필요"
-                ? box.status === "need-collect"
-                : box.status === "fire"
-        );
+    const filteredBoxes =
+        selectedTab === "전체 수거함"
+            ? dummyBoxes
+            : dummyBoxes.filter((box) =>
+                selectedTab === "수거 필요" ? box.status === "need-collect" : box.status === "fire",
+            )
 
     return (
         <div className="flex bg-gray-50 min-h-screen">
@@ -69,7 +69,7 @@ const N_mainPage = () => {
                         {/* 신규 수거자 가입신청 */}
                         <div className="w-1/5 bg-[#21262B] rounded-2xl p-4 shadow">
                             <div className="flex items-center gap-2 mt-4 mb-4 ml-4 mr-4">
-                                <img src={joinIcon || "/placeholder.svg"} alt="신규 수거자 아이콘" className="w-6 h-6"/>
+                                <img src={joinIcon || "/placeholder.svg"} alt="신규 수거자 아이콘" className="w-6 h-6" />
                                 <h2 className="font-bold text-xl text-white whitespace-nowrap">신규 수거자 가입신청</h2>
                             </div>
                             <p className="text-sm text-[#A5ACBA] ml-4 mr-4 mb-6">
@@ -83,7 +83,7 @@ const N_mainPage = () => {
                         <div className="flex-1 bg-white rounded-2xl p-4 shadow">
                             <div className="flex items-center justify-between mb-14">
                                 <div className="flex items-center gap-2 mt-4 ml-6 mr-4">
-                                    <img src={dayIcon || "/placeholder.svg"} alt="일간 아이콘" className="w-5 h-5"/>
+                                    <img src={dayIcon || "/placeholder.svg"} alt="일간 아이콘" className="w-5 h-5" />
                                     <h2 className="pl-1 text-xl font-bold whitespace-nowrap">일간 이용 현황</h2>
                                 </div>
                                 <p className="text-sm font-medium text-[#7A7F8A] whitespace-nowrap pr-3 mt-4">
@@ -94,27 +94,27 @@ const N_mainPage = () => {
                                 <div className="ml-4 min-w-[90px]">
                                     <div className="flex items-center justify-center gap-1 text-nowrap">
                                         <p className="font-normal text-gray-500 mr-2">일간 배출량</p>
-                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4"/>
+                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4" />
                                     </div>
                                     <p className="font-bold text-[22px] mt-2 pl-2 text-left">1,197g</p>
                                 </div>
                                 <div className="flex justify-center pl-8 pr-8">
-                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8"/>
+                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8" />
                                 </div>
                                 <div className="min-w-[90px]">
                                     <div className="flex items-center justify-center gap-1 text-nowrap">
                                         <p className="font-normal text-gray-500 mr-2">일간 수거량</p>
-                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4"/>
+                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4" />
                                     </div>
                                     <p className="font-bold text-[22px] mt-2 pl-4 text-left">1,062g</p>
                                 </div>
                                 <div className="flex justify-center pl-8 pr-8">
-                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8"/>
+                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8" />
                                 </div>
                                 <div className="mr-4 min-w-[90px]">
                                     <div className="flex items-center justify-center gap-1 text-nowrap">
                                         <p className="font-normal text-gray-500 mr-2">일간 이용자수</p>
-                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4"/>
+                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4" />
                                     </div>
                                     <p className="font-bold text-[22px] mt-2 text-left">31명</p>
                                 </div>
@@ -125,7 +125,7 @@ const N_mainPage = () => {
                         <div className="flex-1 bg-white rounded-2xl p-4 shadow">
                             <div className="flex items-center justify-between mb-14">
                                 <div className="flex items-center gap-2 mt-4 ml-6 mr-4">
-                                    <img src={customerIcon || "/placeholder.svg"} alt="고객 관리 아이콘" className="w-5 h-5"/>
+                                    <img src={customerIcon || "/placeholder.svg"} alt="고객 관리 아이콘" className="w-5 h-5" />
                                     <h2 className="font-bold text-xl whitespace-nowrap">고객 관리</h2>
                                 </div>
                                 <p className="font-medium text-sm text-[#7A7F8A] whitespace-nowrap pr-3 mt-4">
@@ -136,27 +136,27 @@ const N_mainPage = () => {
                                 <div className="ml-4 min-w-[90px]">
                                     <div className="flex items-center justify-center gap-1 text-nowrap">
                                         <p className="font-normal text-gray-500 mr-2">사용자 문의</p>
-                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4"/>
+                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4" />
                                     </div>
                                     <p className="font-bold text-[22px] mt-2 pl-2 text-left">13건</p>
                                 </div>
                                 <div className="flex justify-center pl-8 pr-8">
-                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8"/>
+                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8" />
                                 </div>
                                 <div className="min-w-[90px]">
                                     <div className="flex items-center justify-center gap-1 text-nowrap">
                                         <p className="font-normal text-gray-500 mr-2">수거자 문의</p>
-                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4"/>
+                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4" />
                                     </div>
                                     <p className="font-bold text-[22px] mt-2 pl-4 text-left">5건</p>
                                 </div>
                                 <div className="flex justify-center pl-8 pr-8">
-                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8"/>
+                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8" />
                                 </div>
                                 <div className="mr-4 min-w-[90px]">
                                     <div className="flex items-center justify-center gap-1 text-nowrap">
                                         <p className="font-normal text-gray-500 mr-2">일반 민원</p>
-                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4"/>
+                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4" />
                                     </div>
                                     <p className="font-bold text-[22px] mt-2 pl-4 text-left">0건</p>
                                 </div>
@@ -168,7 +168,7 @@ const N_mainPage = () => {
                     <div className="pt-12 mb-4">
                         <h3 className="font-bold text-xl mb-4">수거함 현황</h3>
                         <div className="relative text-sm mb-9">
-                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
+                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
                             <div className="flex items-center gap-4 relative">
                                 {["전체 수거함", "수거 필요", "화재감지"].map((tab) => (
                                     <button
@@ -200,7 +200,7 @@ const N_mainPage = () => {
                         </div>
                     </div>
 
-                    <MapWithSidebar filteredBoxes={filteredBoxes}/>
+                    <MapWithSidebar filteredBoxes={filteredBoxes} />
 
                     {/* 탭 영역: 배출량 + 수거량 */}
                     <div className="grid grid-cols-2 gap-6 pt-9 bg-gray-50 mb-2">
@@ -208,7 +208,7 @@ const N_mainPage = () => {
                         <div>
                             <h3 className="text-xl font-bold mb-3">배출량</h3>
                             <div className="relative text-sm mb-6">
-                                <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
+                                <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
                                 <div className="flex gap-6 relative z-10">
                                     {tabs.map((tab) => (
                                         <button
@@ -231,7 +231,7 @@ const N_mainPage = () => {
                         <div>
                             <h3 className="text-xl font-bold mb-3">수거량</h3>
                             <div className="relative text-sm mb-6">
-                                <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
+                                <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
                                 <div className="flex gap-6 relative z-10">
                                     {tabs.map((tab) => (
                                         <button
@@ -254,14 +254,12 @@ const N_mainPage = () => {
                     {/* 차트 영역: 배출량 + 수거량 */}
                     <div className="grid grid-cols-2 gap-4 pb-10">
                         <div className="bg-white rounded-lg p-4 shadow">
-                            <div
-                                className="h-52 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-sm">
+                            <div className="h-52 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-sm">
                                 배출량 차트 영역
                             </div>
                         </div>
                         <div className="bg-white rounded-lg p-4 shadow">
-                            <div
-                                className="h-52 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-sm">
+                            <div className="h-52 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-sm">
                                 수거량 차트 영역
                             </div>
                         </div>
@@ -272,29 +270,30 @@ const N_mainPage = () => {
 
                         <div className="relative text-sm">
                             {/* 얇은 하단 선 */}
-                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
+                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
 
                             {/* 탭 버튼 */}
                             <div className="flex gap-6 relative z-10">
-                                {memberTabs.map((memberTabs) => (
+                                {memberTabs.map((tab) => (
                                     <button
-                                        key={memberTabs}
-                                        onClick={() => setMemberSelectedTab(memberTabs)}
+                                        key={tab}
+                                        onClick={() => setMemberSelectedTab(tab)}
                                         className={`pb-1 bg-transparent ${
-                                            memberselectedTab === memberTabs
+                                            memberselectedTab === tab
                                                 ? "border-b-[3px] border-black text-black font-semibold"
                                                 : "text-gray-400"
                                         }`}
                                     >
-                                        {memberTabs}
+                                        {tab}
                                     </button>
                                 ))}
                             </div>
                         </div>
                     </div>
 
-                    {/* 사용자 정보 섹션 */}
-                    <UserInfoSection/>
+                    {/* 사용자/수거자 정보 섹션 - 선택된 탭에 따라 표시 */}
+                    {memberselectedTab === "사용자" ? <UserInfoSection /> : <CollectorInfoSection />}
+
                     <div className="pb-32" />
                 </main>
             </div>
