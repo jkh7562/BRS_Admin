@@ -79,15 +79,15 @@ export default function CollectorInfoSection() {
                             <div className="h-12 flex items-center">
                                 <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11"/>
                             </div>
-                            <StatCard title="설치 횟수" value="16회"/>
+                            <StatCard title="수거함 설치" value="16회"/>
                             <div className="h-12 flex items-center">
                                 <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11"/>
                             </div>
-                            <StatCard title="제거 횟수" value="3회"/>
+                            <StatCard title="수거함 제거" value="3회"/>
                             <div className="h-12 flex items-center">
                                 <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11"/>
                             </div>
-                            <StatCard title="화재 후 재가동 횟수" value="2회"/>
+                            <StatCard title="화재 후 재가동" value="2회"/>
                         </div>
 
                         {/* Chart Section */}
