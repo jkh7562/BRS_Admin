@@ -1,5 +1,8 @@
-import { Search } from "lucide-react"
-// Remove shadcn imports and use regular HTML elements instead
+import SearchIcon from "../assets/검색.png"
+import CopyIcon from "../assets/copy.png"
+import InfoIcon from "../assets/추가정보2.png"
+import LineIcon from "../assets/구분선.png"
+import VectorIcon from "../assets/Vector.png"
 
 export default function UserInfoSection() {
     return (
@@ -16,8 +19,8 @@ export default function UserInfoSection() {
                             placeholder="사용자 이름 검색"
                             className="w-full pl-4 pr-4 py-2 text-sm border rounded-2xl"
                         />
-                        <div className="absolute right-4 top-1.5 h-4 w-4 text-gray-400">
-                            <Search />
+                        <div className="absolute right-4 top-2.5 text-gray-400">
+                            <img src={SearchIcon || "/placeholder.svg"} alt="검색" className="w-5 h-4" />
                         </div>
                     </div>
                 </div>
@@ -53,19 +56,30 @@ export default function UserInfoSection() {
                             <div>
                                 <h2 className="font-bold text-lg">정윤식</h2>
                                 <div className="flex">
-                                    <p className="text-sm text-gray-500">기업담당자 2025.02.03</p>
+                                    <p className="text-sm text-gray-500">
+                                        <span className="font-bold">가입일자</span> <span className="font-normal">2025.02.03</span>
+                                    </p>
                                 </div>
                             </div>
-                            <div className="ml-auto">
-                                <p className="text-sm text-gray-500">마지막 이용일 2025.03.06</p>
+                            <div className="ml-auto pt-7 pr-2">
+                                <p className="text-sm font-medium text-gray-500">마지막 이용일 2025.03.06</p>
                             </div>
                         </div>
 
                         {/* Stats Cards */}
-                        <div className="grid grid-cols-4 gap-4 mt-6 mb-6">
+                        <div className="flex items-center mt-6 mb-6">
                             <StatCard title="총 배출량" value="3,200g" number="1" />
+                            <div className="h-12 flex items-center">
+                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
+                            </div>
                             <StatCard title="누적 마일리지" value="300p" number="1" />
+                            <div className="h-12 flex items-center">
+                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
+                            </div>
                             <StatCard title="사용 마일리지" value="240p" number="1" />
+                            <div className="h-12 flex items-center">
+                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
+                            </div>
                             <StatCard title="잔여 마일리지" value="60p" number="1" />
                         </div>
 
@@ -78,7 +92,10 @@ export default function UserInfoSection() {
                                         <button className="px-4 py-1.5 text-sm">일</button>
                                         <button className="px-4 py-1.5 bg-gray-900 text-white text-sm font-medium">월</button>
                                     </div>
-                                    <button className="text-sm text-gray-500 px-2 py-1">배송 로그 자세히보기 &gt;</button>
+                                    <button className="text-sm font-medium text-gray-500">
+                                        배출 로그 자세히보기 <img src={VectorIcon} alt="Vector Icon"
+                                                         className="ml-1 inline-block w-2 h-3 mb-1"/>
+                                    </button>
                                 </div>
 
                                 <div className="tab-content">
@@ -139,9 +156,9 @@ export default function UserInfoSection() {
                 </div>
 
                 {/* Right Sidebar - Activity Log */}
-                <div className="w-full md:w-[300px] h-full flex flex-col shadow-lg">
-                    <div className="p-3">
-                        <h2 className="font-medium">주문 내역</h2>
+                <div className="w-full md:w-[300px] h-full flex flex-col shadow-lg pl-7 pt-9">
+                    <div className="pb-3">
+                        <h2 className="font-bold text-xl">주문 내역</h2>
                     </div>
 
                     {/* 주문 내역 영역에만 스크롤바 적용 */}
@@ -151,7 +168,7 @@ export default function UserInfoSection() {
                             date="2025.03.01"
                             time="오전 10:31"
                             code="1ASEF"
-                            amount="10↑ (약할인 : 1200원일치)"
+                            amount="101 (수량2 : 120마일리지)"
                         />
 
                         <ActivityItem
@@ -159,7 +176,7 @@ export default function UserInfoSection() {
                             date="2025.02.19"
                             time="오후 2:17"
                             code="1ZA7JK"
-                            amount="10↑ (약할인 : 600원일치)"
+                            amount="101 (수량1 : 60마일리지)"
                         />
 
                         <ActivityItem
@@ -167,28 +184,28 @@ export default function UserInfoSection() {
                             date="2025.02.11"
                             time="오전 11:23"
                             code="1KABPQ"
-                            amount="10↑ (약할인 : 600원일치)"
+                            amount="101 (수량1 : 60마일리지)"
                         />
                         <ActivityItem
                             status="배송완료"
                             date="2025.02.11"
                             time="오전 11:23"
                             code="1KABPQ"
-                            amount="10↑ (약할인 : 600원일치)"
+                            amount="101 (수량1 : 60마일리지)"
                         />
                         <ActivityItem
                             status="배송완료"
                             date="2025.02.11"
                             time="오전 11:23"
                             code="1KABPQ"
-                            amount="10↑ (약할인 : 600원일치)"
+                            amount="101 (수량1 : 60마일리지)"
                         />
                         <ActivityItem
                             status="배송완료"
                             date="2025.02.11"
                             time="오전 11:23"
                             code="1KABPQ"
-                            amount="10↑ (약할인 : 600원일치)"
+                            amount="101 (수량1 : 60마일리지)"
                         />
                     </div>
                 </div>
@@ -228,20 +245,8 @@ function UserListItem({ name, points, date, isActive }) {
                 <p className="text-sm font-normal text-gray-500">총 배출량 {points}</p>
                 <p className="text-sm font-normal text-gray-500">{date}</p>
             </div>
-            <button className="text-gray-400">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                >
-                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                </svg>
+            <button className="pb-10 text-gray-400">
+                <img src={CopyIcon || "/placeholder.svg"} alt="복사" className="w-4 h-5" />
             </button>
         </div>
     )
@@ -274,36 +279,43 @@ function ChartBar({ height, date }) {
     )
 }
 
-// Component for activity items
 function ActivityItem({ status, date, time, code, amount }) {
     return (
-        <div className="p-4">
-            <div className="mb-2">
-        <span className="inline-block px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-md font-medium">
-          {status}
-        </span>
+        <div>
+            <div className="py-4">
+                <span className="inline-block px-2 py-0.5 bg-[#21262B] text-white text-sm rounded-md font-nomal">
+                    {status}
+                </span>
             </div>
-            <div className="grid grid-cols-2 gap-1 text-sm">
-                <div className="text-gray-500">주문일자</div>
-                <div>
-                    {date} {time}
-                </div>
-                <div className="text-gray-500">주문번호</div>
-                <div>{code}</div>
-                <div className="text-gray-500">상품코드</div>
-                <div>{amount}</div>
-            </div>
+            <table className="w-full text-sm border-collapse">
+                <tbody>
+                <tr>
+                    <td className="w-16 text-gray-500 ">주문일자</td>
+                    <td>{date} {time}</td>
+                </tr>
+                <tr>
+                    <td className="w-16 text-gray-500">주문번호</td>
+                    <td>{code}</td>
+                </tr>
+                <tr>
+                    <td className="w-16 text-gray-500">상품코드</td>
+                    <td>{amount}</td>
+                </tr>
+                </tbody>
+            </table>
         </div>
-    )
+    );
 }
 
 // Component for stat cards
 function StatCard({ title, value, number }) {
     return (
-        <div className="p-4 rounded-lg shadow-sm">
-            <div className="flex items-center justify-between mb-2">
+        <div className="py-4">
+            <div className="flex items-center justify-start gap-2 mb-2">
                 <span className="text-sm font-normal text-gray-500">{title}</span>
-                <span className="text-xs bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center">{number}</span>
+                <span>
+          <img src={InfoIcon || "/placeholder.svg"} alt="정보" className="w-4 h-4 object-contain" />
+        </span>
             </div>
             <div className="text-[22px] font-bold">{value}</div>
         </div>
