@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import AlarmIcon from "../assets/알림.png"
 import DownIcon from "../assets/Down.png"
