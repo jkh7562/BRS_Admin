@@ -216,9 +216,9 @@ const Topbar = () => {
                 </div>
 
                 <div className="p-4 overflow-y-auto h-[calc(100%-60px)]">
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-2">
                         {/* 화재 알림 */}
-                        <div className="bg-gray-800 text-white p-4 rounded-lg">
+                        <div className="bg-gray-800 text-white py-6 px-3 rounded-2xl shadow">
                             <div className="flex items-start gap-2">
                                 <img
                                     src={FireInfoIcon || "/placeholder.svg"}
@@ -236,7 +236,7 @@ const Topbar = () => {
                         </div>
 
                         {/* 수거함 추가 */}
-                        <div className="bg-white p-4 rounded-lg">
+                        <div className="bg-white py-6 px-3 rounded-2xl shadow">
                             <div className="flex items-start gap-3">
                                 <img src={BoxIcon || "/placeholder.svg"} alt="수거함 아이콘" className="w-5 h-5 object-contain" />
                                 <div>
@@ -247,7 +247,7 @@ const Topbar = () => {
                         </div>
 
                         {/* 수거함 제거 */}
-                        <div className="bg-white p-4 rounded-lg">
+                        <div className="bg-white py-6 px-3 rounded-2xl shadow">
                             <div className="flex items-start gap-3">
                                 <img src={BoxIcon || "/placeholder.svg"} alt="수거함 아이콘" className="w-5 h-5 object-contain" />
                                 <div>
@@ -258,7 +258,7 @@ const Topbar = () => {
                         </div>
 
                         {/* 신규 수거자 가입신청 */}
-                        <div className="bg-white p-4 rounded-lg">
+                        <div className="bg-white py-6 px-3 rounded-2xl shadow-md">
                             <div className="flex items-start gap-3">
                                 <img src={PlusIcon || "/placeholder.svg"} alt="가입신청 아이콘" className="w-5 h-5 object-contain" />
                                 <div>
