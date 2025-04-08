@@ -37,7 +37,7 @@ const NavigationBar = () => {
     }, [status, dispatch]);
 
     useEffect(() => {
-        const eventSource = new EventSource(`https://localhost:8443/SSEsubscribe`, {
+        const eventSource = new EventSource(`https://192.168.0.20:8443/SSEsubscribe`, {
             withCredentials: true,
         });
         console.log("구독 후", eventSource);
@@ -46,11 +46,15 @@ const NavigationBar = () => {
             console.log("SSE 연결 성공");
         };
 
-        eventSource.onmessage = (event) => {
-            console.log("SSE 메시지 수신:", event.event);
-            const alarmData = JSON.parse(event.data);
-            setAlarms((prev) => [...prev, alarmData]);
-        };
+        eventSource.addEventListener("alarm", (event) => {
+            try {
+                console.log("SSE 메시지 수신:", event.event);
+                const alarmData = JSON.parse(event.data);
+                setAlarms((prev) => [...prev, alarmData]);
+            } catch (error) {
+                console.error("SSE 데이터 파싱 에러:", error);
+            }
+        });
 
         eventSource.onerror = (error) => {
             console.error("SSE Error:", error);
