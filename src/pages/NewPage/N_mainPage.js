@@ -59,7 +59,7 @@ const N_mainPage = () => {
             )
 
     return (
-        <div className="flex bg-gray-50 min-h-screen">
+        <div className="flex bg-[#F3F3F5] min-h-screen">
             <Sidebar />
             <div className="flex-1 relative">
                 <Topbar />
