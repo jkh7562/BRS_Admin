@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react"
 import AlarmIcon from "../assets/알림.png"
 import DownIcon from "../assets/Down.png"
+import FireInfoIcon from "../assets/FireInfo.png"
 import { X } from "lucide-react"
+import BoxIcon from "../assets/수거함Black.png"
+import PlusIcon from "../assets/가입신청Black.png"
 
 const Topbar = () => {
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
@@ -107,7 +110,7 @@ const Topbar = () => {
 
                         {isProfileDropdownOpen && (
                             <div className="profile-dropdown absolute top-full right-0 mt-2 w-80 bg-white rounded-md shadow-lg z-50 overflow-hidden">
-                                <div className="p-4 flex items-center gap-3 border-b border-gray-100">
+                                <div className="p-4 flex items-center gap-3">
                                     <img
                                         src="https://via.placeholder.com/32"
                                         alt="profile"
@@ -205,7 +208,7 @@ const Topbar = () => {
                     isNotificationSidebarOpen ? "transform-none" : "transform translate-x-full"
                 }`}
             >
-                <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <div className="flex items-center justify-between p-4">
                     <h2 className="font-medium text-lg">알림 4건</h2>
                     <button onClick={toggleNotificationSidebar} className="text-gray-500 hover:text-gray-700">
                         <X size={20} />
@@ -217,7 +220,11 @@ const Topbar = () => {
                         {/* 화재 알림 */}
                         <div className="bg-gray-800 text-white p-4 rounded-lg">
                             <div className="flex items-start gap-2">
-                                <div className="min-w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white">!</div>
+                                <img
+                                    src={FireInfoIcon || "/placeholder.svg"}
+                                    alt="화재 알림 아이콘"
+                                    className="w-5 h-5 object-contain"
+                                />
                                 <div>
                                     <p className="font-medium">화재가 감지됐어요.</p>
                                     <p className="text-sm mt-1">
@@ -228,54 +235,24 @@ const Topbar = () => {
                             </div>
                         </div>
 
-                        {/* 수거한 쓰기 */}
+                        {/* 수거함 추가 */}
                         <div className="bg-white p-4 rounded-lg">
                             <div className="flex items-start gap-3">
-                                <div className="text-gray-500">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    >
-                                        <rect width="18" height="18" x="3" y="3" rx="2" />
-                                        <path d="M9 14l2 2 4-4" />
-                                    </svg>
-                                </div>
+                                <img src={BoxIcon || "/placeholder.svg"} alt="수거함 아이콘" className="w-5 h-5 object-contain" />
                                 <div>
-                                    <p className="font-medium text-gray-800">수거한 쓰기</p>
-                                    <p className="text-sm text-gray-500 mt-1">선릉대 동문 앞 쓰레기가 수거되었어요</p>
+                                    <p className="font-medium text-gray-800">수거함 추가</p>
+                                    <p className="text-sm text-gray-500 mt-1">선문대 동문 앞 수거함이 추가되었어요</p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* 수거한 재활 */}
+                        {/* 수거함 제거 */}
                         <div className="bg-white p-4 rounded-lg">
                             <div className="flex items-start gap-3">
-                                <div className="text-gray-500">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    >
-                                        <rect width="18" height="18" x="3" y="3" rx="2" />
-                                        <path d="M9 14l2 2 4-4" />
-                                    </svg>
-                                </div>
+                                <img src={BoxIcon || "/placeholder.svg"} alt="수거함 아이콘" className="w-5 h-5 object-contain" />
                                 <div>
-                                    <p className="font-medium text-gray-800">수거한 재활</p>
-                                    <p className="text-sm text-gray-500 mt-1">선릉대 서문 앞 쓰레기가 재활되었어요</p>
+                                    <p className="font-medium text-gray-800">수거함 제거</p>
+                                    <p className="text-sm text-gray-500 mt-1">선문대 서문 앞 수거함이 제거되었어요</p>
                                 </div>
                             </div>
                         </div>
@@ -283,24 +260,7 @@ const Topbar = () => {
                         {/* 신규 수거자 가입신청 */}
                         <div className="bg-white p-4 rounded-lg">
                             <div className="flex items-start gap-3">
-                                <div className="text-gray-500">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    >
-                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                                        <circle cx="9" cy="7" r="4" />
-                                        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                                    </svg>
-                                </div>
+                                <img src={PlusIcon || "/placeholder.svg"} alt="가입신청 아이콘" className="w-5 h-5 object-contain" />
                                 <div>
                                     <p className="font-medium text-gray-800">신규 수거자 가입신청</p>
                                     <p className="text-sm text-gray-500 mt-1">16건의 가입신청이 들어왔어요</p>
