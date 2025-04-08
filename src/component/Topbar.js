@@ -208,14 +208,11 @@ const Topbar = () => {
                     isNotificationSidebarOpen ? "transform-none" : "transform translate-x-full"
                 }`}
             >
-                <div className="flex items-center justify-between p-4">
+                <div className="flex items-center justify-between px-5 pt-8">
                     <h2 className="font-medium text-lg">알림 4건</h2>
-                    <button onClick={toggleNotificationSidebar} className="text-gray-500 hover:text-gray-700">
-                        <X size={20} />
-                    </button>
                 </div>
 
-                <div className="p-4 overflow-y-auto h-[calc(100%-60px)]">
+                <div className="p-5 overflow-y-auto h-[calc(100%-60px)]">
                     <div className="flex flex-col gap-2">
                         {/* 화재 알림 */}
                         <div className="bg-gray-800 text-white py-6 px-3 rounded-2xl shadow">
