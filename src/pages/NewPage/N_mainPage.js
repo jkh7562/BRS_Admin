@@ -235,7 +235,7 @@ const N_mainPage = () => {
                                             className={`pb-1 bg-transparent ${
                                                 selectedEmissionTab === tab
                                                     ? "border-b-[3px] border-black text-black font-semibold"
-                                                    : "text-gray-400"
+                                                    : "text-gray-500"
                                             }`}
                                         >
                                             {tab}
@@ -258,7 +258,7 @@ const N_mainPage = () => {
                                             className={`pb-1 bg-transparent ${
                                                 selectedCollectionTab === tab
                                                     ? "border-b-[3px] border-black text-black font-semibold"
-                                                    : "text-gray-400"
+                                                    : "text-gray-500"
                                             }`}
                                         >
                                             {tab}
@@ -301,7 +301,7 @@ const N_mainPage = () => {
                                         className={`pb-1 bg-transparent ${
                                             memberselectedTab === tab
                                                 ? "border-b-[3px] border-black text-black font-semibold"
-                                                : "text-gray-400"
+                                                : "text-gray-500"
                                         }`}
                                     >
                                         {tab}
