@@ -67,7 +67,7 @@ const N_mainPage = () => {
                     <p className="font-bold text-xl">대시 보드</p>
                     <div className="flex gap-4">
                         {/* 신규 수거자 가입신청 */}
-                        <div className="w-1/5 bg-[#21262B] rounded-2xl p-4 shadow">
+                        <div className="w-[19%] bg-[#21262B] rounded-2xl p-4 shadow">
                             <div className="flex items-center gap-2 mt-4 mb-4 ml-4 mr-4">
                                 <img src={joinIcon || "/placeholder.svg"} alt="신규 수거자 아이콘" className="w-6 h-6"/>
                                 <h2 className="font-bold text-xl text-white whitespace-nowrap">신규 수거자 가입신청</h2>
@@ -185,7 +185,7 @@ const N_mainPage = () => {
                     {/* 수거함 현황 */}
                     <div className="pt-12 mb-4">
                         <h3 className="font-bold text-xl mb-4">수거함 현황</h3>
-                        <div className="relative text-sm mb-9">
+                        <div className="relative mb-9">
                             <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
                             <div className="flex items-center gap-4 relative">
                                 {["전체 수거함", "수거 필요", "화재감지"].map((tab) => (
@@ -225,7 +225,7 @@ const N_mainPage = () => {
                         {/* 배출량 */}
                         <div>
                             <h3 className="text-xl font-bold mb-3">배출량</h3>
-                            <div className="relative text-sm mb-6">
+                            <div className="relative mb-6">
                                 <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
                                 <div className="flex gap-6 relative z-10">
                                     {tabs.map((tab) => (
@@ -248,7 +248,7 @@ const N_mainPage = () => {
                         {/* 수거량 */}
                         <div>
                             <h3 className="text-xl font-bold mb-3">수거량</h3>
-                            <div className="relative text-sm mb-6">
+                            <div className="relative mb-6">
                                 <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
                                 <div className="flex gap-6 relative z-10">
                                     {tabs.map((tab) => (
@@ -288,7 +288,7 @@ const N_mainPage = () => {
                     <div className="pb-6">
                         <h3 className="text-xl font-bold mb-4">회원 정보 검색</h3>
 
-                        <div className="relative text-sm">
+                        <div className="relative">
                             {/* 얇은 하단 선 */}
                             <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
 
