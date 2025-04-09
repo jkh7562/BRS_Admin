@@ -141,33 +141,42 @@ const N_mainPage = () => {
                                     마지막 업데이트 2025.03.31
                                 </p>
                             </div>
-                            <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center text-sm text-left">
-                                <div className="ml-4 min-w-[90px]">
-                                    <div className="flex items-center justify-center gap-1 text-nowrap">
-                                        <p className="font-normal text-gray-500 mr-2">사용자 문의</p>
+                            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mx-4 text-sm">
+                                {/* 사용자 문의 */}
+                                <div className="flex-1 flex flex-col items-center md:items-start px-2">
+                                    <div className="flex items-center gap-3">
+                                        <p className="font-normal text-gray-500">사용자 문의</p>
                                         <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="font-bold text-[22px] mt-2 pl-2 text-left">13건</p>
+                                    <p className="font-bold text-[22px] mt-2 text-center md:text-left">13건</p>
                                 </div>
-                                <div className="flex justify-center pl-8 pr-8">
+
+                                {/* 구분선 */}
+                                <div className="hidden md:flex justify-center px-4">
                                     <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8"/>
                                 </div>
-                                <div className="min-w-[90px]">
-                                    <div className="flex items-center justify-center gap-1 text-nowrap">
-                                        <p className="font-normal text-gray-500 mr-2">수거자 문의</p>
+
+                                {/* 수거자 문의 */}
+                                <div className="flex-1 flex flex-col items-center md:items-start px-2">
+                                    <div className="flex items-center gap-3">
+                                        <p className="font-normal text-gray-500">수거자 문의</p>
                                         <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="font-bold text-[22px] mt-2 pl-4 text-left">5건</p>
+                                    <p className="font-bold text-[22px] mt-2 text-center md:text-left">5건</p>
                                 </div>
-                                <div className="flex justify-center pl-8 pr-8">
+
+                                {/* 구분선 */}
+                                <div className="hidden md:flex justify-center px-4">
                                     <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8"/>
                                 </div>
-                                <div className="mr-4 min-w-[90px]">
-                                    <div className="flex items-center justify-center gap-1 text-nowrap">
-                                        <p className="font-normal text-gray-500 mr-2">일반 민원</p>
+
+                                {/* 일반 민원 */}
+                                <div className="flex-1 flex flex-col items-center md:items-start px-2">
+                                    <div className="flex items-center gap-3">
+                                        <p className="font-normal text-gray-500">일반 민원</p>
                                         <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="font-bold text-[22px] mt-2 pl-4 text-left">0건</p>
+                                    <p className="font-bold text-[22px] mt-2 text-center md:text-left">0건</p>
                                 </div>
                             </div>
                         </div>
