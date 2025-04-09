@@ -95,7 +95,9 @@ const Topbar = () => {
 
     return (
         <>
-            <div className="fixed top-0 left-[340px] right-0 bg-[#F3F3F5] z-40 border-b border-gray-200 h-16 flex items-center justify-end px-6">
+            <div
+                className="fixed top-0 left-0 right-0 bg-[#F3F3F5] z-40 border-b border-gray-200 h-16 flex items-center justify-end px-6">
+
                 <div className="flex items-center gap-8">
                     <div className="relative flex items-center gap-3">
                         <img
@@ -104,12 +106,15 @@ const Topbar = () => {
                             className="w-8 h-8 rounded-full border border-black"
                         />
                         <span className="text-lg font-medium text-gray-700">재민</span>
-                        <button onClick={toggleProfileDropdown} className="profile-button flex items-center justify-center">
-                            <img src={DownIcon || "/placeholder.svg"} alt="드롭다운 아이콘" className="w-3 h-3 object-contain" />
+                        <button onClick={toggleProfileDropdown}
+                                className="profile-button flex items-center justify-center">
+                            <img src={DownIcon || "/placeholder.svg"} alt="드롭다운 아이콘"
+                                 className="w-3 h-3 object-contain"/>
                         </button>
 
                         {isProfileDropdownOpen && (
-                            <div className="profile-dropdown absolute top-full right-0 mt-2 w-80 bg-white rounded-md shadow-lg z-50 overflow-hidden">
+                            <div
+                                className="profile-dropdown absolute top-full right-0 mt-2 w-80 bg-white rounded-md shadow-lg z-50 overflow-hidden">
                                 <div className="p-4 flex items-center gap-3">
                                     <img
                                         src="https://via.placeholder.com/32"
@@ -131,7 +136,8 @@ const Topbar = () => {
                                         >
                                             비밀번호 변경
                                         </button>
-                                        <button className="w-full py-2 bg-red-400 text-white rounded-md hover:bg-red-500 transition-colors">
+                                        <button
+                                            className="w-full py-2 bg-red-400 text-white rounded-md hover:bg-red-500 transition-colors">
                                             로그아웃
                                         </button>
                                     </div>
@@ -195,7 +201,8 @@ const Topbar = () => {
                             onClick={toggleNotificationSidebar}
                             className="notification-button w-full h-full flex items-center justify-center"
                         >
-                            <img src={AlarmIcon || "/placeholder.svg"} alt="알림 아이콘" className="w-full h-full object-contain" />
+                            <img src={AlarmIcon || "/placeholder.svg"} alt="알림 아이콘"
+                                 className="w-full h-full object-contain"/>
                             <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
                         </button>
                     </div>

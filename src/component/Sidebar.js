@@ -83,7 +83,7 @@ const Sidebar = () => {
     ]
 
     return (
-        <aside className="w-[340px] sticky top-0 h-screen text-white" style={{ backgroundColor: "#101213" }}>
+        <aside className="w-[340px] sticky top-0 z-50 h-screen text-white" style={{ backgroundColor: "#101213" }}>
             <div className="sidebar-content h-full overflow-y-auto p-5">
                 <div className="mb-20 pl-8 mt-2">
                     <img src={logoImage || "/placeholder.svg"} alt="batter logo" className="w-[93px]" />
