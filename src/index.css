@@ -22,3 +22,7 @@
 body {
     font-family: 'Pretendard', sans-serif;
 }
+
+html, body {
+    background-color: #F3F3F5;
+}
