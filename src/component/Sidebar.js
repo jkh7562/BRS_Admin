@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate, useLocation } from "react-router-dom"
 import logoImage from "../assets/로고.png"
 import mainIcon_on from "../assets/Main_on.png"
 import mainIcon from "../assets/Main.png"
@@ -23,6 +24,8 @@ import infoIcon from "../assets/추가정보.png"
 
 const Sidebar = () => {
     const [activeMenu, setActiveMenu] = useState("main")
+    const navigate = useNavigate()
+    const location = useLocation()
     const [openSection, setOpenSection] = useState({
         spring: true,
         mysql: true,
@@ -40,6 +43,7 @@ const Sidebar = () => {
             label: "메인 대시보드",
             icon: mainIcon,
             iconOn: mainIcon_on,
+            route: "/n_MainPage",
         },
         {
             key: "install",
@@ -47,6 +51,7 @@ const Sidebar = () => {
             icon: installIcon,
             iconOn: installIcon_on,
             className: "w-6 h-7",
+            route: "/n_BoxAddRemovePage",
         },
         {
             key: "log",
@@ -85,33 +90,39 @@ const Sidebar = () => {
     return (
         <aside className="w-[340px] sticky top-0 z-50 h-screen text-white" style={{ backgroundColor: "#101213" }}>
             <div className="sidebar-content h-full overflow-y-auto p-5">
-                <div className="mb-20 pl-8 mt-2">
-                    <img src={logoImage || "/placeholder.svg"} alt="batter logo" className="w-[93px]" />
+                {/* 로고 클릭 시 메인으로 이동 */}
+                <div className="mb-20 pl-8 mt-2 cursor-pointer" onClick={() => navigate("/n_MainPage")}>
+                    <img src={logoImage || "/placeholder.svg"} alt="batter logo" className="w-[93px]"/>
                 </div>
 
                 <ul className="space-y-10 text-base pl-8">
-                    {menuList.map((menu) => (
-                        <li
-                            key={menu.key}
-                            onClick={() => setActiveMenu(menu.key)}
-                            className={`flex items-center gap-5 cursor-pointer ${
-                                activeMenu === menu.key ? "text-white" : "text-[#A5ACBA]"
-                            }`}
-                        >
-                            <img
-                                src={activeMenu === menu.key ? menu.iconOn : menu.icon}
-                                alt={menu.label}
-                                className={menu.className ? menu.className : "w-6 h-6"}
-                            />
-                            {menu.label}
-                        </li>
-                    ))}
+                    {menuList.map((menu) => {
+                        const isActive = location.pathname === menu.route
+                        return (
+                            <li
+                                key={menu.key}
+                                onClick={() => {
+                                    if (menu.route) navigate(menu.route)
+                                }}
+                                className={`flex items-center gap-5 cursor-pointer ${
+                                    isActive ? "text-white" : "text-[#A5ACBA]"
+                                }`}
+                            >
+                                <img
+                                    src={isActive ? menu.iconOn : menu.icon}
+                                    alt={menu.label}
+                                    className={menu.className ? menu.className : "w-6 h-6"}
+                                />
+                                {menu.label}
+                            </li>
+                        )
+                    })}
                 </ul>
 
                 <div className="mt-12 pt-4 text-base space-y-2 pl-6">
                     <div className="flex items-center gap-44 text-[#A5ACBA]">
                         <p>서버 관리</p>
-                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4" />
+                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4"/>
                     </div>
 
                     {/* Spring Boot */}
@@ -119,7 +130,7 @@ const Sidebar = () => {
                         className="pt-6 pb-2 flex items-center gap-2 text-[#A5ACBA] cursor-pointer"
                         onClick={() => toggleSection("spring")}
                     >
-                        <img src={springIcon || "/placeholder.svg"} alt="Spring Boot" className="w-8 h-8" />
+                        <img src={springIcon || "/placeholder.svg"} alt="Spring Boot" className="w-8 h-8"/>
                         Spring Boot
                     </p>
                     {openSection.spring && (
@@ -138,7 +149,7 @@ const Sidebar = () => {
                         className="pt-4 pb-2 flex items-center gap-2 text-[#A5ACBA] cursor-pointer"
                         onClick={() => toggleSection("mysql")}
                     >
-                        <img src={SQLIcon || "/placeholder.svg"} alt="MySQL" className="w-8 h-8" />
+                        <img src={SQLIcon || "/placeholder.svg"} alt="MySQL" className="w-8 h-8"/>
                         MySQL
                     </p>
                     {openSection.mysql && (
@@ -152,7 +163,7 @@ const Sidebar = () => {
                         className="pt-4 pb-2 flex items-center gap-2 text-[#A5ACBA] cursor-pointer"
                         onClick={() => toggleSection("react")}
                     >
-                        <img src={reactIcon || "/placeholder.svg"} alt="React" className="w-8 h-8" />
+                        <img src={reactIcon || "/placeholder.svg"} alt="React" className="w-8 h-8"/>
                         React
                     </p>
                     {openSection.react && (
@@ -174,7 +185,7 @@ const Sidebar = () => {
                         className="pt-4 pb-2 flex items-center gap-2 text-[#A5ACBA] cursor-pointer"
                         onClick={() => toggleSection("flask")}
                     >
-                        <img src={flaskIcon || "/placeholder.svg"} alt="Flask" className="w-8 h-8" />
+                        <img src={flaskIcon || "/placeholder.svg"} alt="Flask" className="w-8 h-8"/>
                         Flask
                     </p>
                     {openSection.flask && (
@@ -186,7 +197,7 @@ const Sidebar = () => {
                 {/* 로그아웃 + 버전 */}
                 <div className="mt-12 pl-6 pr-6 flex items-center justify-between text-[#A5ACBA] text-sm">
                     <div className="flex items-center gap-4 cursor-pointer">
-                        <img src={logoutIcon || "/placeholder.svg"} alt="logout" className="w-5 h-5" />
+                        <img src={logoutIcon || "/placeholder.svg"} alt="logout" className="w-5 h-5"/>
                         <span>로그아웃</span>
                     </div>
                     <span className="text-xs text-[#7A7F8A]">version 25.3.1</span>

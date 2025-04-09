@@ -21,6 +21,7 @@ const MonitoringPage = lazy(() => import('../pages/MonitoringPage'))
 
 const N_LoginPage = lazy(() => import('../pages/NewPage/N_loginPage'))
 const N_MainPage = lazy(() => import('../pages/NewPage/N_mainPage'))
+const N_BoxAddRemovePage = lazy(() => import('../pages/NewPage/N_boxAddRemovePage'))
 
 const root = createBrowserRouter([
     {
@@ -90,6 +91,10 @@ const root = createBrowserRouter([
     {
         path:"n_MainPage",
         element:<Suspense fallback={Loading}><N_MainPage/></Suspense>
+    },
+    {
+        path:"n_BoxAddRemovePage",
+        element:<Suspense fallback={Loading}><N_BoxAddRemovePage/></Suspense>
     }
 ]);
 export default root;
