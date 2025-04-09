@@ -209,21 +209,23 @@ const Topbar = () => {
                 }`}
             >
                 <div className="flex items-center justify-between px-5 pt-8">
-                    <h2 className="font-medium text-lg">알림 4건</h2>
+                    <h2 className="font-bold text-lg">알림 4건</h2>
                 </div>
 
                 <div className="p-5 overflow-y-auto h-[calc(100%-60px)]">
                     <div className="flex flex-col gap-2">
                         {/* 화재 알림 */}
-                        <div className="bg-gray-800 text-white py-6 px-3 rounded-2xl shadow">
+                        <div className="bg-gray-800 text-white py-6 px-6 rounded-2xl shadow">
                             <div className="flex items-start gap-2">
-                                <img
-                                    src={FireInfoIcon || "/placeholder.svg"}
-                                    alt="화재 알림 아이콘"
-                                    className="w-5 h-5 object-contain"
-                                />
                                 <div>
-                                    <p className="font-medium">화재가 감지됐어요.</p>
+                                    <div className="flex items-center gap-2">
+                                        <img
+                                            src={FireInfoIcon || "/placeholder.svg"}
+                                            alt="화재 알림 아이콘"
+                                            className="w-5 h-5 object-contain"
+                                        />
+                                        <p className="font-semibold text-lg">화재가 감지됐어요.</p>
+                                    </div>
                                     <p className="text-sm mt-1">
                                         서울특별시 송파구 가락로 111 수거함에서 화재가 감지됐어요. 화재현장 수습을 위해 수거자를
                                         배치해주세요.
@@ -233,33 +235,42 @@ const Topbar = () => {
                         </div>
 
                         {/* 수거함 추가 */}
-                        <div className="bg-white py-6 px-3 rounded-2xl shadow">
+                        <div className="bg-white py-6 px-6 rounded-2xl shadow">
                             <div className="flex items-start gap-3">
-                                <img src={BoxIcon || "/placeholder.svg"} alt="수거함 아이콘" className="w-5 h-5 object-contain" />
                                 <div>
-                                    <p className="font-medium text-gray-800">수거함 추가</p>
+                                    <div className="flex items-start gap-2">
+                                    <img src={BoxIcon || "/placeholder.svg"} alt="수거함 아이콘"
+                                         className="w-5 h-5 object-contain"/>
+                                    <p className="font-bold text-gray-800">수거함 추가</p>
+                                    </div>
                                     <p className="text-sm text-gray-500 mt-1">선문대 동문 앞 수거함이 추가되었어요</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* 수거함 제거 */}
-                        <div className="bg-white py-6 px-3 rounded-2xl shadow">
+                        <div className="bg-white py-6 px-6 rounded-2xl shadow">
                             <div className="flex items-start gap-3">
-                                <img src={BoxIcon || "/placeholder.svg"} alt="수거함 아이콘" className="w-5 h-5 object-contain" />
                                 <div>
-                                    <p className="font-medium text-gray-800">수거함 제거</p>
+                                    <div className="flex items-start gap-2">
+                                    <img src={BoxIcon || "/placeholder.svg"} alt="수거함 아이콘"
+                                         className="w-5 h-5 object-contain"/>
+                                    <p className="font-bold text-gray-800">수거함 제거</p>
+                                    </div>
                                     <p className="text-sm text-gray-500 mt-1">선문대 서문 앞 수거함이 제거되었어요</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* 신규 수거자 가입신청 */}
-                        <div className="bg-white py-6 px-3 rounded-2xl shadow-md">
+                        <div className="bg-white py-6 px-6 rounded-2xl shadow-md">
                             <div className="flex items-start gap-3">
-                                <img src={PlusIcon || "/placeholder.svg"} alt="가입신청 아이콘" className="w-5 h-5 object-contain" />
                                 <div>
-                                    <p className="font-medium text-gray-800">신규 수거자 가입신청</p>
+                                    <div className="flex items-start gap-2">
+                                    <img src={PlusIcon || "/placeholder.svg"} alt="가입신청 아이콘"
+                                         className="w-5 h-5 object-contain"/>
+                                    <p className="font-bold text-gray-800">신규 수거자 가입신청</p>
+                                    </div>
                                     <p className="text-sm text-gray-500 mt-1">16건의 가입신청이 들어왔어요</p>
                                 </div>
                             </div>
