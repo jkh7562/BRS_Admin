@@ -3,6 +3,7 @@ import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import MapWithSidebar from "../../component/MapWithSidebar"
 import DownIcon from "../../assets/Down.png"
+import LocationTracking from "../../component/LocationTracking"
 
 const N_boxAddRemovePage = () => {
     const [activeTab, setActiveTab] = useState("전체")
@@ -83,53 +84,55 @@ const N_boxAddRemovePage = () => {
                     {/* filteredBoxes 데이터를 전달 */}
                     <MapWithSidebar filteredBoxes={filteredBoxes}/>
 
-                    <div className="pt-8"></div>
-                    <p className="font-bold text-xl">설치/제거 수거함 목록</p>
+                    <div className="pt-10 pb-6">
+                        <p className="font-bold text-xl">설치/제거 수거함 목록</p>
 
-                    {/* 필터 UI 추가 */}
-                    <div className="relative">
-                        <div className="flex flex-wrap gap-7 mt-2 font-bold relative z-10">
-                            <div className="relative">
-                                <button
-                                    className="flex items-center gap-2 text-base"
-                                    onClick={() => {
-                                        // 드롭다운 토글 로직 추가
-                                    }}
-                                >
-                                    {filters.type}
-                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
-                                </button>
-                                {/* 드롭다운 메뉴 */}
-                            </div>
+                        {/* 필터 UI 추가 */}
+                        <div className="relative pt-2">
+                            <div className="flex flex-wrap gap-7 mt-2 font-bold relative z-10">
+                                <div className="relative">
+                                    <button
+                                        className="flex items-center gap-2 text-base"
+                                        onClick={() => {
+                                            // 드롭다운 토글 로직 추가
+                                        }}
+                                    >
+                                        {filters.type}
+                                        <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
+                                    </button>
+                                    {/* 드롭다운 메뉴 */}
+                                </div>
 
-                            <div className="relative">
-                                <button
-                                    className="flex items-center gap-2"
-                                    onClick={() => {
-                                        // 드롭다운 토글 로직 추가
-                                    }}
-                                >
-                                    {filters.region}
-                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
-                                </button>
-                                {/* 드롭다운 메뉴 */}
-                            </div>
+                                <div className="relative">
+                                    <button
+                                        className="flex items-center gap-2"
+                                        onClick={() => {
+                                            // 드롭다운 토글 로직 추가
+                                        }}
+                                    >
+                                        {filters.region}
+                                        <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
+                                    </button>
+                                    {/* 드롭다운 메뉴 */}
+                                </div>
 
-                            <div className="relative">
-                                <button
-                                    className="flex items-center gap-2"
-                                    onClick={() => {
-                                        // 드롭다운 토글 로직 추가
-                                    }}
-                                >
-                                    {filters.city}
-                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
-                                </button>
-                                {/* 드롭다운 메뉴 */}
+                                <div className="relative">
+                                    <button
+                                        className="flex items-center gap-2"
+                                        onClick={() => {
+                                            // 드롭다운 토글 로직 추가
+                                        }}
+                                    >
+                                        {filters.city}
+                                        <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
+                                    </button>
+                                    {/* 드롭다운 메뉴 */}
+                                </div>
                             </div>
+                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
                         </div>
-                        <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
                     </div>
+                    <LocationTracking/>
                 </main>
             </div>
         </div>

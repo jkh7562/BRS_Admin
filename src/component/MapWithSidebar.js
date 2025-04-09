@@ -23,14 +23,14 @@ const MapWithSidebar = ({ filteredBoxes }) => {
                 src={isSidebarOpen ? ArrowLeftIcon : ArrowRightIcon}
                 alt="toggle arrow"
                 className={`absolute top-1/2 -translate-y-1/2 cursor-pointer rounded-r transition-all duration-300 w-5 h-10 z-20 ${
-                    isSidebarOpen ? "left-[390px]" : "left-0"
+                    isSidebarOpen ? "left-[350px]" : "left-0"
                 }`}
                 style={{ boxShadow: "2px 0 4px rgba(0, 0, 0, 0.1)" }} // 오른쪽 그림자
             />
 
             {/* 좌측 패널 */}
             <div
-                className={`transition-all duration-300 ${isSidebarOpen ? "w-[390px]" : "w-0"} overflow-hidden shadow-md h-full relative z-10 bg-white`}
+                className={`transition-all duration-300 ${isSidebarOpen ? "w-[350px]" : "w-0"} overflow-hidden shadow-md h-full relative z-10 bg-white`}
             >
                 <div className="h-full">
                     {/* 검색창 */}
