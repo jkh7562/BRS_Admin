@@ -63,7 +63,7 @@ const N_boxAddRemovePage = () => {
                     <p className="font-bold text-xl">설치/제거 수거함 현황</p>
                     <div>
                         <div className="relative mb-6">
-                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
+                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
                             <div className="flex gap-6 relative z-10">
                                 {tabs.map((tab) => (
                                     <button
@@ -81,54 +81,55 @@ const N_boxAddRemovePage = () => {
                     </div>
 
                     {/* filteredBoxes 데이터를 전달 */}
-                    <MapWithSidebar filteredBoxes={filteredBoxes} />
+                    <MapWithSidebar filteredBoxes={filteredBoxes}/>
 
                     <div className="pt-8"></div>
                     <p className="font-bold text-xl">설치/제거 수거함 목록</p>
 
                     {/* 필터 UI 추가 */}
-                    <div className="flex flex-wrap gap-7 mt-2 font-bold">
-                        <div className="relative">
-                            <button
-                                className="flex items-center gap-2 text-base"
-                                onClick={() => {
-                                    // 드롭다운 토글 로직 추가
-                                }}
-                            >
-                                {filters.type}
-                                <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
-                            </button>
-                            {/* 드롭다운 메뉴 */}
-                        </div>
+                    <div className="relative">
+                        <div className="flex flex-wrap gap-7 mt-2 font-bold relative z-10">
+                            <div className="relative">
+                                <button
+                                    className="flex items-center gap-2 text-base"
+                                    onClick={() => {
+                                        // 드롭다운 토글 로직 추가
+                                    }}
+                                >
+                                    {filters.type}
+                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
+                                </button>
+                                {/* 드롭다운 메뉴 */}
+                            </div>
 
-                        <div className="relative">
-                            <button
-                                className="flex items-center gap-2"
-                                onClick={() => {
-                                    // 드롭다운 토글 로직 추가
-                                }}
-                            >
-                                {filters.region}
-                                <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
-                            </button>
-                            {/* 드롭다운 메뉴 */}
-                        </div>
+                            <div className="relative">
+                                <button
+                                    className="flex items-center gap-2"
+                                    onClick={() => {
+                                        // 드롭다운 토글 로직 추가
+                                    }}
+                                >
+                                    {filters.region}
+                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
+                                </button>
+                                {/* 드롭다운 메뉴 */}
+                            </div>
 
-                        <div className="relative">
-                            <button
-                                className="flex items-center gap-2"
-                                onClick={() => {
-                                    // 드롭다운 토글 로직 추가
-                                }}
-                            >
-                                {filters.city}
-                                <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
-                            </button>
-                            {/* 드롭다운 메뉴 */}
+                            <div className="relative">
+                                <button
+                                    className="flex items-center gap-2"
+                                    onClick={() => {
+                                        // 드롭다운 토글 로직 추가
+                                    }}
+                                >
+                                    {filters.city}
+                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
+                                </button>
+                                {/* 드롭다운 메뉴 */}
+                            </div>
                         </div>
+                        <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
                     </div>
-
-
                 </main>
             </div>
         </div>
