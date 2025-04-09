@@ -1,10 +1,8 @@
-"use client"
-
 import { useState } from "react"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import MapWithSidebar from "../../component/MapWithSidebar"
-import { ChevronDown } from "lucide-react"
+import DownIcon from "../../assets/Down.png"
 
 const N_boxAddRemovePage = () => {
     const [activeTab, setActiveTab] = useState("전체")
@@ -89,42 +87,42 @@ const N_boxAddRemovePage = () => {
                     <p className="font-bold text-xl">설치/제거 수거함 목록</p>
 
                     {/* 필터 UI 추가 */}
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    <div className="flex flex-wrap gap-7 mt-2 font-bold">
                         <div className="relative">
                             <button
-                                className="flex items-center gap-1 text-base"
+                                className="flex items-center gap-2 text-base"
                                 onClick={() => {
                                     // 드롭다운 토글 로직 추가
                                 }}
                             >
                                 {filters.type}
-                                <ChevronDown size={16} />
+                                <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
                             </button>
                             {/* 드롭다운 메뉴 */}
                         </div>
 
                         <div className="relative">
                             <button
-                                className="flex items-center gap-1"
+                                className="flex items-center gap-2"
                                 onClick={() => {
                                     // 드롭다운 토글 로직 추가
                                 }}
                             >
                                 {filters.region}
-                                <ChevronDown size={16} />
+                                <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
                             </button>
                             {/* 드롭다운 메뉴 */}
                         </div>
 
                         <div className="relative">
                             <button
-                                className="flex items-center gap-1"
+                                className="flex items-center gap-2"
                                 onClick={() => {
                                     // 드롭다운 토글 로직 추가
                                 }}
                             >
                                 {filters.city}
-                                <ChevronDown size={16} />
+                                <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
                             </button>
                             {/* 드롭다운 메뉴 */}
                         </div>
