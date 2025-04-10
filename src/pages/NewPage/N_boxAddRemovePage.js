@@ -185,12 +185,12 @@ const N_boxAddRemovePage = () => {
                     {/* filteredBoxes 데이터를 전달 */}
                     <MapWithSidebar filteredBoxes={filteredBoxes} />
 
-                    <div className="pt-10 pb-6">
+                    <div className="pt-14 pb-3">
                         <p className="font-bold text-xl">설치/제거 수거함 목록</p>
 
                         {/* 필터 UI 추가 */}
                         <div className="relative pt-2">
-                            <div className="flex flex-wrap gap-7 mt-2 font-bold relative z-10">
+                            <div className="flex flex-wrap gap-7 mt-2 pb-1 font-bold relative z-10">
                                 <div className="relative dropdown-container">
                                     <button className="flex items-center gap-2 text-base" onClick={() => toggleDropdown("type")}>
                                         {filters.type}
