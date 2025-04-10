@@ -1,4 +1,5 @@
 import { Search, Copy, MapPin } from "lucide-react"
+import { Map } from "react-kakao-maps-sdk"
 
 export default function LocationTracking() {
     return (
@@ -28,37 +29,21 @@ export default function LocationTracking() {
             </div>
 
             {/* Center Section - Map View */}
-            <div className="flex-1 relative">
-                {/* Map */}
-                <div className="w-full h-full bg-blue-50">
-
-                    {/* Location marker */}
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                        <div className="bg-black text-white px-2 py-1 rounded text-xs mb-1">설치 진행중</div>
-                        <MapPin className="w-6 h-6 text-red-500 mx-auto" />
-                    </div>
-
-                    {/* Other map markers */}
-                    <div className="absolute top-[30%] left-[20%]">
-                        <MapPin className="w-4 h-4 text-orange-500" />
-                    </div>
-                    <div className="absolute top-[40%] left-[40%]">
-                        <MapPin className="w-4 h-4 text-orange-500" />
-                    </div>
-                    <div className="absolute bottom-[30%] right-[30%]">
-                        <MapPin className="w-4 h-4 text-blue-500" />
-                    </div>
-                </div>
-
-                {/* Map title overlay */}
-                <div className="absolute top-0 left-0 right-0 p-4 bg-white bg-opacity-90">
-                    <h2 className="text-lg font-bold">[설치 진행중] 선문대학교 인문관 1층 수거함</h2>
-                    <p className="text-sm text-gray-600">
-                        설치 좌표 36.8082 / 127.009
-                        <span className="float-right">발행 일자 2025.03.16</span>
-                    </p>
-                </div>
+            ;<div className="flex-1 relative flex flex-col">
+            {/* Map title overlay */}
+            <div className="p-4 bg-white border-b">
+                <h2 className="text-lg font-bold">[설치 진행중] 선문대학교 인문관 1층 수거함</h2>
+                <p className="text-sm text-gray-600">
+                    설치 좌표 36.8082 / 127.009
+                    <span className="float-right">발행 일자 2025.03.16</span>
+                </p>
             </div>
+
+            {/* Map */}
+            <div className="flex-1 w-full bg-blue-50">
+                <Map center={{ lat: 36.8082, lng: 127.009 }} style={{ width: "100%", height: "100%" }} level={3} />
+            </div>
+        </div>
 
             {/* Right Sidebar - User Info */}
             <div className="w-[280px] h-full flex flex-col border-l p-6">
