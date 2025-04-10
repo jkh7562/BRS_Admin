@@ -22,13 +22,13 @@ export default function LocationTracking() {
 
                 {/* User list with scrollbar */}
                 <div className="overflow-auto flex-1 custom-scrollbar mx-4">
-                    <UserListItem name="홍길동" status="설치 완료" date="2025.03.17" isActive={false} />
-                    <UserListItem name="김유신" status="설치 진행중" date="2025.03.16" isActive={true} />
-                    <UserListItem name="이순신" status="설치 완료" date="2025.03.13" isActive={false} />
-                    <UserListItem name="공자철" status="설치 확인" date="2025.03.09" isActive={false} />
-                    <UserListItem name="공자철" status="설치 확인" date="2025.03.09" isActive={false} />
-                    <UserListItem name="공자철" status="설치 확인" date="2025.03.09" isActive={false} />
-                    <UserListItem name="공자철" status="설치 확인" date="2025.03.09" isActive={false} />
+                    <UserListItem name="홍길동" status="설치 완료" date="2025.03.17" isActive={false}/>
+                    <UserListItem name="김유신" status="설치 진행중" date="2025.03.16" isActive={true}/>
+                    <UserListItem name="이순신" status="설치 완료" date="2025.03.13" isActive={false}/>
+                    <UserListItem name="공자철" status="설치 확인" date="2025.03.09" isActive={false}/>
+                    <UserListItem name="공자철" status="설치 확인" date="2025.03.09" isActive={false}/>
+                    <UserListItem name="공자철" status="설치 확인" date="2025.03.09" isActive={false}/>
+                    <UserListItem name="공자철" status="설치 확인" date="2025.03.09" isActive={false}/>
                 </div>
             </div>
 
@@ -47,8 +47,8 @@ export default function LocationTracking() {
                 {/* Map */}
                 <div className="flex-1 w-full px-10 pb-10">
                     <Map
-                        center={{ lat: 36.8082, lng: 127.009 }}
-                        style={{ width: "100%", height: "100%" }}
+                        center={{lat: 36.8082, lng: 127.009}}
+                        style={{width: "100%", height: "100%"}}
                         level={3}
                         className={"border rounded-2xl"}
                     />
@@ -65,11 +65,23 @@ export default function LocationTracking() {
                     </p>
                 </div>
 
-                <div className="space-y-2 text-sm">
-                    <InfoItem label="광역시/도" value="충청남도" />
-                    <InfoItem label="담당지역" value="아산시" />
-                    <InfoItem label="상태" value="설치 진행중" />
-                    <InfoItem label="알림일자" value="2025.03.16" />
+                <div className="space-y-2 text-sm text-[#60697E]">
+                    <div className="flex items-center">
+                        <span className="font-bold w-[80px]">광역시/도</span>
+                        <span className="font-nomal">충청남도</span>
+                    </div>
+                    <div className="flex items-center">
+                        <span className="font-bold w-[80px]">담당지역</span>
+                        <span className="font-nomal">아산시</span>
+                    </div>
+                    <div className="flex items-center">
+                        <span className="font-bold w-[80px]">상태</span>
+                        <span className="font-nomal">설치 진행중</span>
+                    </div>
+                    <div className="flex items-center">
+                        <span className="font-bold w-[80px]">알림일자</span>
+                        <span className="font-nomal">2025.03.16</span>
+                    </div>
                 </div>
 
                 <div className="mt-6">
@@ -102,7 +114,7 @@ export default function LocationTracking() {
     )
 }
 
-function UserListItem({ name, status, date, isActive }) {
+function UserListItem({name, status, date, isActive}) {
     return (
         <div className={`p-4 border-b flex justify-between ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}>
             <div className="flex items-start">
@@ -113,13 +125,13 @@ function UserListItem({ name, status, date, isActive }) {
                 </div>
             </div>
             <button className="text-gray-400 self-start">
-                <img src={CopyIcon || "/placeholder.svg"} alt="복사" width={16} height={16} />
+                <img src={CopyIcon || "/placeholder.svg"} alt="복사" width={16} height={16}/>
             </button>
         </div>
     )
 }
 
-function InfoItem({ label, value }) {
+function InfoItem({label, value}) {
     return (
         <div className="flex justify-between">
             <span className="text-[#21262B] font-bold">{label}</span>
