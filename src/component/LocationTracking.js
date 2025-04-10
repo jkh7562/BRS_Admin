@@ -29,19 +29,19 @@ export default function LocationTracking() {
             </div>
 
             {/* Center Section - Map View */}
-            ;<div className="flex-1 relative flex flex-col">
+            <div className="flex-1 relative flex flex-col">
             {/* Map title overlay */}
-            <div className="p-4 bg-white border-b">
-                <h2 className="text-lg font-bold">[설치 진행중] 선문대학교 인문관 1층 수거함</h2>
+            <div className="p-10 bg-white">
+                <h2 className="text-2xl font-bold">[설치 진행중] 선문대학교 인문관 1층 수거함</h2>
                 <p className="text-sm text-gray-600">
                     설치 좌표 36.8082 / 127.009
-                    <span className="float-right">발행 일자 2025.03.16</span>
+                    <span className="float-right">알림 일자 2025.03.16</span>
                 </p>
             </div>
 
             {/* Map */}
-            <div className="flex-1 w-full bg-blue-50">
-                <Map center={{ lat: 36.8082, lng: 127.009 }} style={{ width: "100%", height: "100%" }} level={3} />
+            <div className="flex-1 w-full px-10 pb-10">
+                <Map center={{ lat: 36.8082, lng: 127.009 }} style={{ width: "100%", height: "100%" }} level={3} className={"border rounded-2xl"}/>
             </div>
         </div>
 
