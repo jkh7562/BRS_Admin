@@ -58,10 +58,10 @@ export default function LocationTracking() {
             {/* Right Sidebar - User Info */}
             <div className="w-[280px] h-full flex flex-col border-l p-6">
                 <div className="mb-10">
-                    <h2 className="text-2xl font-bold">김유신</h2>
+                    <h2 className="text-2xl font-bold pb-1">김유신</h2>
                     <p className="text-[#60697E]">
-                        <span className="font-bold">가입일자</span>{" "}
-                        <span className="font-normal">2025.02.03</span>
+                        <span className="font-bold">가입일자</span>
+                        <span className="ml-3 font-normal">2025.02.03</span>
                     </p>
                 </div>
 
@@ -123,7 +123,7 @@ function InfoItem({ label, value }) {
     return (
         <div className="flex justify-between">
             <span className="text-[#21262B] font-bold">{label}</span>
-            <span className="font-medium">{value}</span>
+            <span className="font-nomal">{value}</span>
         </div>
     )
 }
