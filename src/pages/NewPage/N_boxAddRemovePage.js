@@ -111,18 +111,47 @@ const N_boxAddRemovePage = () => {
         }))
     }
 
-    // 드롭다운 토글 핸들러
+    // 드롭다운 토글 핸들러 - 한 번에 하나의 드롭다운만 열리도록 수정
     const toggleDropdown = (dropdownName) => {
         // 시/군/구 드롭다운은 지역이 선택되지 않았으면 열지 않음
         if (dropdownName === "city" && filters.region === "광역시/도") {
             return
         }
 
-        setOpenDropdown((prev) => ({
-            ...prev,
-            [dropdownName]: !prev[dropdownName],
-        }))
+        // 모든 드롭다운을 닫고, 클릭한 드롭다운만 토글
+        setOpenDropdown((prev) => {
+            // 새로운 상태 객체 생성
+            const newState = {
+                type: false,
+                region: false,
+                city: false,
+            }
+
+            // 클릭한 드롭다운이 이미 열려있으면 닫고, 닫혀있으면 열기
+            newState[dropdownName] = !prev[dropdownName]
+
+            return newState
+        })
     }
+
+    // 드롭다운 외부 클릭 시 모든 드롭다운 닫기
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            // 드롭다운 버튼이나 메뉴를 클릭한 경우가 아니라면 모든 드롭다운 닫기
+            if (!event.target.closest(".dropdown-container")) {
+                setOpenDropdown({
+                    type: false,
+                    region: false,
+                    city: false,
+                })
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+        }
+    }, [])
 
     // 도시 드롭다운 비활성화 여부
     const isCityDisabled = filters.region === "광역시/도"
@@ -162,7 +191,7 @@ const N_boxAddRemovePage = () => {
                         {/* 필터 UI 추가 */}
                         <div className="relative pt-2">
                             <div className="flex flex-wrap gap-7 mt-2 font-bold relative z-10">
-                                <div className="relative">
+                                <div className="relative dropdown-container">
                                     <button className="flex items-center gap-2 text-base" onClick={() => toggleDropdown("type")}>
                                         {filters.type}
                                         <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
@@ -186,7 +215,7 @@ const N_boxAddRemovePage = () => {
                                     )}
                                 </div>
 
-                                <div className="relative">
+                                <div className="relative dropdown-container">
                                     <button className="flex items-center gap-2" onClick={() => toggleDropdown("region")}>
                                         {filters.region}
                                         <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
@@ -207,7 +236,7 @@ const N_boxAddRemovePage = () => {
                                     )}
                                 </div>
 
-                                <div className="relative">
+                                <div className="relative dropdown-container">
                                     <button
                                         className={`flex items-center gap-2 ${isCityDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
                                         onClick={() => toggleDropdown("city")}
