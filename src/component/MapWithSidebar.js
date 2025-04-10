@@ -54,7 +54,7 @@ const MapWithSidebar = ({ filteredBoxes }) => {
                         {displayedBoxes.map((box) => (
                             <div
                                 key={box.id}
-                                className={`border-t border-gray-100 p-3 cursor-pointer ${selectedBoxId === box.id ? "bg-blue-50" : ""}`}
+                                className={`border-t border-gray-100 p-3 cursor-pointer ${selectedBoxId === box.id ? "bg-blue-50" : "hover:bg-gray-50"}`}
                                 onClick={() => setSelectedBoxId(box.id)}
                             >
                                 <div className="flex justify-between items-start">
