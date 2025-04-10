@@ -9,7 +9,7 @@ export default function LocationTracking() {
                     <div className="relative">
                         <input
                             type="text"
-                            placeholder="추적자 이름 검색"
+                            placeholder="수거자 이름 검색"
                             className="w-full pl-4 pr-10 py-2 text-sm border rounded-full"
                         />
                         <div className="absolute right-3 top-2 text-gray-400">
@@ -68,10 +68,10 @@ export default function LocationTracking() {
                 </div>
 
                 <div className="space-y-4 text-sm">
-                    <InfoItem label="관측시도" value="충청남도" />
+                    <InfoItem label="광역시/도" value="충청남도" />
                     <InfoItem label="담당지역" value="아산시" />
                     <InfoItem label="상태" value="설치 진행중" />
-                    <InfoItem label="발행일자" value="2025.03.16" />
+                    <InfoItem label="알림일자" value="2025.03.16" />
                 </div>
 
                 <div className="mt-auto">
