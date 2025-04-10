@@ -56,7 +56,7 @@ export default function LocationTracking() {
             </div>
 
             {/* Right Sidebar - User Info */}
-            <div className="w-[280px] h-full flex flex-col border-l p-6">
+            <div className="w-[280px] h-full flex flex-col border-l p-6 pt-8">
                 <div className="mb-10">
                     <h2 className="text-2xl font-bold pb-1">김유신</h2>
                     <p className="text-[#60697E]">
@@ -67,25 +67,25 @@ export default function LocationTracking() {
 
                 <div className="space-y-2 text-sm text-[#60697E]">
                     <div className="flex items-center">
-                        <span className="font-bold w-[80px]">광역시/도</span>
+                        <span className="font-bold w-[70px]">광역시/도</span>
                         <span className="font-nomal">충청남도</span>
                     </div>
                     <div className="flex items-center">
-                        <span className="font-bold w-[80px]">담당지역</span>
+                        <span className="font-bold w-[70px]">담당지역</span>
                         <span className="font-nomal">아산시</span>
                     </div>
                     <div className="flex items-center">
-                        <span className="font-bold w-[80px]">상태</span>
+                        <span className="font-bold w-[70px]">상태</span>
                         <span className="font-nomal">설치 진행중</span>
                     </div>
                     <div className="flex items-center">
-                        <span className="font-bold w-[80px]">알림일자</span>
+                        <span className="font-bold w-[70px]">알림일자</span>
                         <span className="font-nomal">2025.03.16</span>
                     </div>
                 </div>
 
-                <div className="mt-6">
-                    <button className="w-full py-2 bg-gray-900 text-white rounded-2xl font-medium">수거자 상세정보 보기</button>
+                <div className="mt-7">
+                    <button className="w-full py-2 bg-[#21262B] text-white rounded-2xl font-medium">수거자 상세정보 보기</button>
                 </div>
             </div>
 
