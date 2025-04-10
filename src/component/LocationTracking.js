@@ -1,4 +1,3 @@
-import { Search, Copy, MapPin } from "lucide-react"
 import { Map } from "react-kakao-maps-sdk"
 import SearchIcon from "../assets/검색.png"
 import CopyIcon from "../assets/copy.png"
@@ -8,15 +7,15 @@ export default function LocationTracking() {
         <div className="flex h-[525px] bg-white rounded-2xl shadow-md overflow-hidden">
             {/* Left Sidebar - User List */}
             <div className="w-[350px] h-full flex flex-col border-r">
-                <div className="p-4">
-                    <div className="relative">
+                <div>
+                    <div className="relative mx-2 my-4 p-3">
                         <input
                             type="text"
                             placeholder="수거자 이름 검색"
-                            className="w-full pl-4 pr-10 py-2 text-sm border rounded-full"
+                            className="w-full py-2 pl-4 rounded-2xl border border-black/20 text-sm focus:outline-none"
                         />
-                        <div className="absolute right-3 top-2 text-gray-400">
-                            <Search className="w-4 h-4" />
+                        <div className="absolute right-7 top-5 text-gray-400">
+                            <img src={SearchIcon || "/placeholder.svg"} alt="검색" width={20} height={20} />
                         </div>
                     </div>
                 </div>
@@ -32,20 +31,25 @@ export default function LocationTracking() {
 
             {/* Center Section - Map View */}
             <div className="flex-1 relative flex flex-col">
-            {/* Map title overlay */}
-            <div className="p-10 bg-white">
-                <h2 className="text-2xl font-bold">[설치 진행중] 선문대학교 인문관 1층 수거함</h2>
-                <p className="text-sm text-gray-600">
-                    설치 좌표 36.8082 / 127.009
-                    <span className="float-right">알림 일자 2025.03.16</span>
-                </p>
-            </div>
+                {/* Map title overlay */}
+                <div className="p-10 bg-white">
+                    <h2 className="text-2xl font-bold">[설치 진행중] 선문대학교 인문관 1층 수거함</h2>
+                    <p className="text-sm text-gray-600">
+                        설치 좌표 36.8082 / 127.009
+                        <span className="float-right">알림 일자 2025.03.16</span>
+                    </p>
+                </div>
 
-            {/* Map */}
-            <div className="flex-1 w-full px-10 pb-10">
-                <Map center={{ lat: 36.8082, lng: 127.009 }} style={{ width: "100%", height: "100%" }} level={3} className={"border rounded-2xl"}/>
+                {/* Map */}
+                <div className="flex-1 w-full px-10 pb-10">
+                    <Map
+                        center={{ lat: 36.8082, lng: 127.009 }}
+                        style={{ width: "100%", height: "100%" }}
+                        level={3}
+                        className={"border rounded-2xl"}
+                    />
+                </div>
             </div>
-        </div>
 
             {/* Right Sidebar - User Info */}
             <div className="w-[280px] h-full flex flex-col border-l p-6">
@@ -68,25 +72,25 @@ export default function LocationTracking() {
 
             {/* 스크롤바 스타일 */}
             <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 10px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #c1c1c1;
-          border-radius: 10px;
-          height: 50px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #a1a1a1;
-        }
-      `}</style>
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                }
+
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                    border-radius: 10px;
+                }
+
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: #c1c1c1;
+                    border-radius: 10px;
+                    height: 50px;
+                }
+
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: #a1a1a1;
+                }
+            `}</style>
         </div>
     )
 }
@@ -100,7 +104,7 @@ function UserListItem({ name, status, date, isActive }) {
                 <p className="text-sm font-normal text-gray-500">{date}</p>
             </div>
             <button className="text-gray-400">
-                <Copy className="w-4 h-4" />
+                <img src={CopyIcon || "/placeholder.svg"} alt="복사" width={16} height={16} />
             </button>
         </div>
     )
