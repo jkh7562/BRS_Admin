@@ -133,6 +133,7 @@ const N_boxAddRemovePage = () => {
                         </div>
                     </div>
                     <LocationTracking/>
+                    <div className="pb-32"/>
                 </main>
             </div>
         </div>
