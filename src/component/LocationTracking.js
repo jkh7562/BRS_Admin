@@ -1,5 +1,7 @@
 import { Search, Copy, MapPin } from "lucide-react"
 import { Map } from "react-kakao-maps-sdk"
+import SearchIcon from "../assets/검색.png"
+import CopyIcon from "../assets/copy.png"
 
 export default function LocationTracking() {
     return (
@@ -20,7 +22,7 @@ export default function LocationTracking() {
                 </div>
 
                 {/* User list with scrollbar */}
-                <div className="overflow-auto flex-1 custom-scrollbar">
+                <div className="overflow-auto flex-1 custom-scrollbar mx-4">
                     <UserListItem name="홍길동" status="설치 완료" date="2025.03.17" isActive={false} />
                     <UserListItem name="김유신" status="설치 진행중" date="2025.03.16" isActive={true} />
                     <UserListItem name="이순신" status="설치 완료" date="2025.03.13" isActive={false} />
