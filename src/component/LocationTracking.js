@@ -35,8 +35,8 @@ export default function LocationTracking() {
             {/* Center Section - Map View */}
             <div className="flex-1 relative flex flex-col">
                 {/* Map title overlay */}
-                <div className="p-10 bg-white">
-                    <h2 className="text-2xl font-bold">[설치 진행중] 선문대학교 인문관 1층 수거함</h2>
+                <div className="p-10 pb-9 bg-white">
+                    <h2 className="text-2xl font-bold mb-1">[설치 진행중] 선문대학교 인문관 1층 수거함</h2>
                     <p className="text-[#60697E]">
                         <span className="font-bold">설치 좌표</span>{" "}
                         <span className="font-normal">36.8082 / 127.009</span>
@@ -56,7 +56,7 @@ export default function LocationTracking() {
             </div>
 
             {/* Right Sidebar - User Info */}
-            <div className="w-[280px] h-full flex flex-col border-l p-6 pt-8">
+            <div className="w-[290px] h-full flex flex-col border-l p-8">
                 <div className="mb-10">
                     <h2 className="text-2xl font-bold pb-1">김유신</h2>
                     <p className="text-[#60697E]">
