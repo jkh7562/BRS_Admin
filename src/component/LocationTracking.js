@@ -104,13 +104,15 @@ export default function LocationTracking() {
 
 function UserListItem({ name, status, date, isActive }) {
     return (
-        <div className={`p-4 border-b flex items-center justify-between ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}>
-            <div>
-                <h3 className="text-base font-bold">{name}</h3>
-                <p className="text-sm font-normal text-gray-500">{status}</p>
-                <p className="text-sm font-normal text-gray-500">{date}</p>
+        <div className={`p-4 border-b flex justify-between ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}>
+            <div className="flex items-start">
+                <div>
+                    <h3 className="text-base font-bold">{name}</h3>
+                    <p className="text-sm font-normal text-gray-500">{status}</p>
+                    <p className="text-sm font-normal text-gray-500">{date}</p>
+                </div>
             </div>
-            <button className="text-gray-400">
+            <button className="text-gray-400 self-start">
                 <img src={CopyIcon || "/placeholder.svg"} alt="복사" width={16} height={16} />
             </button>
         </div>
