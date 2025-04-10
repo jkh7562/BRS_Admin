@@ -57,7 +57,7 @@ export default function LocationTracking() {
 
             {/* Right Sidebar - User Info */}
             <div className="w-[280px] h-full flex flex-col border-l p-6">
-                <div className="mb-6">
+                <div className="mb-10">
                     <h2 className="text-2xl font-bold">김유신</h2>
                     <p className="text-[#60697E]">
                         <span className="font-bold">가입일자</span>{" "}
@@ -65,7 +65,7 @@ export default function LocationTracking() {
                     </p>
                 </div>
 
-                <div className="space-y-4 text-sm">
+                <div className="space-y-2 text-sm">
                     <InfoItem label="광역시/도" value="충청남도" />
                     <InfoItem label="담당지역" value="아산시" />
                     <InfoItem label="상태" value="설치 진행중" />
@@ -122,7 +122,7 @@ function UserListItem({ name, status, date, isActive }) {
 function InfoItem({ label, value }) {
     return (
         <div className="flex justify-between">
-            <span className="text-gray-500">{label}</span>
+            <span className="text-[#21262B] font-bold">{label}</span>
             <span className="font-medium">{value}</span>
         </div>
     )
