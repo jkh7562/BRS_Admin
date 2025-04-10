@@ -14,8 +14,8 @@ export default function LocationTracking() {
                             placeholder="수거자 이름 검색"
                             className="w-full py-2 pl-4 rounded-2xl border border-black/20 text-sm focus:outline-none"
                         />
-                        <div className="absolute right-7 top-5 text-gray-400">
-                            <img src={SearchIcon || "/placeholder.svg"} alt="검색" width={20} height={20} />
+                        <div className="absolute right-8 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
+                            <img src={SearchIcon || "/placeholder.svg"} alt="검색"/>
                         </div>
                     </div>
                 </div>
@@ -34,9 +34,10 @@ export default function LocationTracking() {
                 {/* Map title overlay */}
                 <div className="p-10 bg-white">
                     <h2 className="text-2xl font-bold">[설치 진행중] 선문대학교 인문관 1층 수거함</h2>
-                    <p className="text-sm text-gray-600">
-                        설치 좌표 36.8082 / 127.009
-                        <span className="float-right">알림 일자 2025.03.16</span>
+                    <p className="text-[#60697E]">
+                        <span className="font-bold">설치 좌표</span>{" "}
+                        <span className="font-normal">36.8082 / 127.009</span>
+                        <span className="float-right text-sm">알림 일자 2025.03.16</span>
                     </p>
                 </div>
 
