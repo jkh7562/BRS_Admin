@@ -26,6 +26,9 @@ export default function LocationTracking() {
                     <UserListItem name="김유신" status="설치 진행중" date="2025.03.16" isActive={true} />
                     <UserListItem name="이순신" status="설치 완료" date="2025.03.13" isActive={false} />
                     <UserListItem name="공자철" status="설치 확인" date="2025.03.09" isActive={false} />
+                    <UserListItem name="공자철" status="설치 확인" date="2025.03.09" isActive={false} />
+                    <UserListItem name="공자철" status="설치 확인" date="2025.03.09" isActive={false} />
+                    <UserListItem name="공자철" status="설치 확인" date="2025.03.09" isActive={false} />
                 </div>
             </div>
 
@@ -55,8 +58,11 @@ export default function LocationTracking() {
             {/* Right Sidebar - User Info */}
             <div className="w-[280px] h-full flex flex-col border-l p-6">
                 <div className="mb-6">
-                    <h2 className="text-xl font-bold">김유신</h2>
-                    <p className="text-sm text-gray-500">가입일자 2025.02.03</p>
+                    <h2 className="text-2xl font-bold">김유신</h2>
+                    <p className="text-[#60697E]">
+                        <span className="font-bold">가입일자</span>{" "}
+                        <span className="font-normal">2025.02.03</span>
+                    </p>
                 </div>
 
                 <div className="space-y-4 text-sm">
@@ -66,8 +72,8 @@ export default function LocationTracking() {
                     <InfoItem label="알림일자" value="2025.03.16" />
                 </div>
 
-                <div className="mt-auto">
-                    <button className="w-full py-3 bg-gray-900 text-white rounded-md font-medium">수거자 상세정보 보기</button>
+                <div className="mt-6">
+                    <button className="w-full py-2 bg-gray-900 text-white rounded-2xl font-medium">수거자 상세정보 보기</button>
                 </div>
             </div>
 
