@@ -3,7 +3,8 @@ import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import MapWithSidebar from "../../component/MapWithSidebar"
 import DownIcon from "../../assets/Down.png"
-import LocationTracking from "../../component/LocationTracking"
+import InstallationStatus from "../../component/InstallationStatus"
+import RemoveStatus from "../../component/RemoveStatus"
 
 const N_boxAddRemovePage = () => {
     const [activeTab, setActiveTab] = useState("전체")
@@ -42,7 +43,7 @@ const N_boxAddRemovePage = () => {
 
     // 필터 상태
     const [filters, setFilters] = useState({
-        type: "현황",
+        type: "설치",
         region: "광역시/도",
         city: "시/군/구",
     })
@@ -132,7 +133,8 @@ const N_boxAddRemovePage = () => {
                             <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
                         </div>
                     </div>
-                    <LocationTracking/>
+                    <InstallationStatus/>
+                    <RemoveStatus/>
                     <div className="pb-32"/>
                 </main>
             </div>

@@ -2,7 +2,7 @@ import { Map } from "react-kakao-maps-sdk"
 import SearchIcon from "../assets/검색.png"
 import CopyIcon from "../assets/copy.png"
 
-export default function LocationTracking() {
+export default function RemoveStatus() {
     return (
         <div className="flex h-[525px] bg-white rounded-2xl shadow-md overflow-hidden">
             {/* Left Sidebar - User List */}
@@ -22,13 +22,13 @@ export default function LocationTracking() {
 
                 {/* User list with scrollbar */}
                 <div className="overflow-auto flex-1 custom-scrollbar mx-4">
-                    <UserListItem name="홍길동" status="설치 완료" date="2025.03.17" isActive={false}/>
-                    <UserListItem name="김유신" status="설치 진행중" date="2025.03.16" isActive={true}/>
-                    <UserListItem name="이순신" status="설치 완료" date="2025.03.13" isActive={false}/>
-                    <UserListItem name="공자철" status="설치 확인" date="2025.03.09" isActive={false}/>
-                    <UserListItem name="공자철" status="설치 확인" date="2025.03.09" isActive={false}/>
-                    <UserListItem name="공자철" status="설치 확인" date="2025.03.09" isActive={false}/>
-                    <UserListItem name="공자철" status="설치 확인" date="2025.03.09" isActive={false}/>
+                    <UserListItem name="홍길동" status="제거 완료" date="2025.03.17" isActive={false}/>
+                    <UserListItem name="김유신" status="제거 진행중" date="2025.03.16" isActive={true}/>
+                    <UserListItem name="이순신" status="제거 완료" date="2025.03.13" isActive={false}/>
+                    <UserListItem name="공자철" status="제거 확인" date="2025.03.09" isActive={false}/>
+                    <UserListItem name="공자철" status="제거 확인" date="2025.03.09" isActive={false}/>
+                    <UserListItem name="공자철" status="제거 확인" date="2025.03.09" isActive={false}/>
+                    <UserListItem name="공자철" status="제거 확인" date="2025.03.09" isActive={false}/>
                 </div>
             </div>
 
@@ -36,9 +36,9 @@ export default function LocationTracking() {
             <div className="flex-1 relative flex flex-col">
                 {/* Map title overlay */}
                 <div className="p-10 pb-9 bg-white">
-                    <h2 className="text-2xl font-bold mb-1">[설치 진행중] 선문대학교 인문관 1층 수거함</h2>
+                    <h2 className="text-2xl font-bold mb-1">[제거 진행중] 선문대학교 인문관 1층 수거함</h2>
                     <p className="text-[#60697E]">
-                        <span className="font-bold">설치 좌표</span>{" "}
+                        <span className="font-bold">제거 좌표</span>{" "}
                         <span className="font-normal">36.8082 / 127.009</span>
                         <span className="float-right text-sm">알림 일자 2025.03.16</span>
                     </p>
@@ -76,7 +76,7 @@ export default function LocationTracking() {
                     </div>
                     <div className="flex items-center">
                         <span className="font-bold w-[70px]">상태</span>
-                        <span className="font-nomal">설치 진행중</span>
+                        <span className="font-nomal">제거 진행중</span>
                     </div>
                     <div className="flex items-center">
                         <span className="font-bold w-[70px]">알림일자</span>
