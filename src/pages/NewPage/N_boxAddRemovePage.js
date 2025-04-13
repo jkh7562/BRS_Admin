@@ -92,12 +92,14 @@ const N_boxAddRemovePage = () => {
 
     // 드롭다운 열림/닫힘 상태
     const [openDropdown, setOpenDropdown] = useState({
+        type: false,
         region: false,
         city: false,
     })
 
     // 호버 상태 관리
     const [hoveredItem, setHoveredItem] = useState({
+        type: null,
         region: null,
         city: null,
     })
@@ -130,14 +132,6 @@ const N_boxAddRemovePage = () => {
         }))
     }
 
-    // 타입 변경 핸들러 (설치/제거)
-    const handleTypeChange = (type) => {
-        setFilters((prev) => ({
-            ...prev,
-            type: type,
-        }))
-    }
-
     // 드롭다운 토글 핸들러 - 한 번에 하나의 드롭다운만 열리도록 수정
     const toggleDropdown = (dropdownName) => {
         // 시/군/구 드롭다운은 지역이 선택되지 않았으면 열지 않음
@@ -149,6 +143,7 @@ const N_boxAddRemovePage = () => {
         setOpenDropdown((prev) => {
             // 새로운 상태 객체 생성
             const newState = {
+                type: false,
                 region: false,
                 city: false,
             }
@@ -166,6 +161,7 @@ const N_boxAddRemovePage = () => {
             // 드롭다운 버튼이나 메뉴를 클릭한 경우가 아니라면 모든 드롭다운 닫기
             if (!event.target.closest(".dropdown-container")) {
                 setOpenDropdown({
+                    type: false,
                     region: false,
                     city: false,
                 })
@@ -231,25 +227,34 @@ const N_boxAddRemovePage = () => {
 
                         {/* 필터 UI 추가 */}
                         <div className="relative pt-2">
-                            <div className="flex flex-wrap gap-7 mt-2 pb-1 relative z-10">
-                                {/* 설치/제거 버튼 */}
-                                <div className="flex gap-3 items-center">
-                                    <button
-                                        className={`mr-4 pb-1 ${filters.type === "설치" ? "border-b-[3px] border-black font-bold" : "text-gray-400 font-normal"}`}
-                                        onClick={() => handleTypeChange("설치")}
-                                    >
-                                        설치
+                            <div className="flex flex-wrap gap-7 mt-2 pb-1 font-bold relative z-10">
+                                <div className="relative dropdown-container">
+                                    <button className="flex items-center gap-2 text-base" onClick={() => toggleDropdown("type")}>
+                                        {filters.type}
+                                        <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
                                     </button>
-                                    <button
-                                        className={`pb-1 ${filters.type === "제거" ? "border-b-[3px] border-black font-bold" : "text-gray-400 font-normal"}`}
-                                        onClick={() => handleTypeChange("제거")}
-                                    >
-                                        제거
-                                    </button>
+                                    {/* 타입 드롭다운 메뉴 */}
+                                    {openDropdown.type && (
+                                        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[120px] overflow-hidden shadow-sm">
+                                            {["설치", "제거"].map((type) => (
+                                                <div
+                                                    key={type}
+                                                    className={`px-4 py-2 cursor-pointer font-normal ${
+                                                        hoveredItem.type === type ? "bg-[#F5F5F5] rounded-lg" : ""
+                                                    }`}
+                                                    onClick={() => handleFilterChange("type", type)}
+                                                    onMouseEnter={() => handleMouseEnter("type", type)}
+                                                    onMouseLeave={() => handleMouseLeave("type")}
+                                                >
+                                                    {type}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="relative dropdown-container">
-                                    <button className="flex items-center gap-2 font-bold" onClick={() => toggleDropdown("region")}>
+                                    <button className="flex items-center gap-2" onClick={() => toggleDropdown("region")}>
                                         {filters.region}
                                         <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
                                     </button>
@@ -275,7 +280,7 @@ const N_boxAddRemovePage = () => {
 
                                 <div className="relative dropdown-container">
                                     <button
-                                        className={`flex items-center gap-2 font-bold ${isCityDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                                        className={`flex items-center gap-2 ${isCityDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
                                         onClick={() => toggleDropdown("city")}
                                         disabled={isCityDisabled}
                                     >
@@ -312,7 +317,7 @@ const N_boxAddRemovePage = () => {
                                     )}
                                 </div>
                             </div>
-                            <div className="absolute bottom-1 left-0 w-full border-b border-gray-200 z-0" />
+                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
                         </div>
                     </div>
 
