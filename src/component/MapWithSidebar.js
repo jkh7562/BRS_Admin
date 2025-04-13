@@ -34,7 +34,7 @@ const MapWithSidebar = ({ filteredBoxes }) => {
             >
                 <div className="h-full">
                     {/* 검색창 */}
-                    <div className="relative mx-2 my-4 p-3">
+                    <div className="relative mx-2 mt-4 p-3">
                         <input
                             type="text"
                             placeholder="장소, 주소, 수거함 코드 검색"
@@ -54,7 +54,7 @@ const MapWithSidebar = ({ filteredBoxes }) => {
                         {displayedBoxes.map((box) => (
                             <div
                                 key={box.id}
-                                className={`border-t border-gray-100 p-3 cursor-pointer ${selectedBoxId === box.id ? "bg-blue-50" : "hover:bg-gray-50"}`}
+                                className={`border-b border-gray-100 p-3 cursor-pointer ${selectedBoxId === box.id ? "bg-blue-50" : "hover:bg-gray-50"}`}
                                 onClick={() => setSelectedBoxId(box.id)}
                             >
                                 <div className="flex justify-between items-start">

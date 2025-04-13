@@ -229,7 +229,7 @@ function BoxListItem({ name, location, date, isActive, onClick }) {
         >
             <div className="flex items-start">
                 <div>
-                    <h3 className="text-base font-bold">{name}</h3>
+                    <h3 className="text-base font-bold pb-2">{name}</h3>
                     <p className="text-sm font-normal text-gray-500">설치좌표 {location}</p>
                     <p className="text-sm font-normal text-gray-500">설치일자 {date}</p>
                 </div>
