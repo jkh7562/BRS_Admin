@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
@@ -42,7 +44,19 @@ const N_boxAddRemovePage = () => {
     const regionData = {
         "광역시/도": [], // 전체 선택 옵션
         서울특별시: ["강남구", "서초구", "송파구", "강동구", "마포구", "용산구", "종로구", "중구", "성동구", "광진구"],
-        부산광역시: ["해운대구", "수영구", "남구", "동구", "서구", "북구", "사상구", "사하구", "연제구", "영도구"],
+        부산광역시: [
+            "해운대구",
+            "수영구",
+            "남구",
+            "동구",
+            "서구",
+            "북구",
+            "사상구",
+            "사하구",
+            "사하구",
+            "연제구",
+            "영도구",
+        ],
         인천광역시: ["중구", "동구", "미추홀구", "연수구", "남동구", "부평구", "계양구", "서구", "강화군", "옹진군"],
         대구광역시: ["중구", "동구", "서구", "남구", "북구", "수성구", "달서구", "달성군"],
         광주광역시: ["동구", "서구", "남구", "북구", "광산구"],
@@ -81,6 +95,13 @@ const N_boxAddRemovePage = () => {
         type: false,
         region: false,
         city: false,
+    })
+
+    // 호버 상태 관리
+    const [hoveredItem, setHoveredItem] = useState({
+        type: null,
+        region: null,
+        city: null,
     })
 
     // 선택된 지역에 따라 도시 옵션 업데이트
@@ -156,6 +177,22 @@ const N_boxAddRemovePage = () => {
     // 도시 드롭다운 비활성화 여부
     const isCityDisabled = filters.region === "광역시/도"
 
+    // 호버 상태 설정 핸들러
+    const handleMouseEnter = (dropdownType, item) => {
+        setHoveredItem((prev) => ({
+            ...prev,
+            [dropdownType]: item,
+        }))
+    }
+
+    // 호버 상태 해제 핸들러
+    const handleMouseLeave = (dropdownType) => {
+        setHoveredItem((prev) => ({
+            ...prev,
+            [dropdownType]: null,
+        }))
+    }
+
     return (
         <div className="flex min-h-screen w-screen bg-[#F3F3F5]">
             <Sidebar />
@@ -198,19 +235,20 @@ const N_boxAddRemovePage = () => {
                                     </button>
                                     {/* 타입 드롭다운 메뉴 */}
                                     {openDropdown.type && (
-                                        <div className="absolute top-full left-0 mt-1 bg-white shadow-md rounded-md py-1 z-20 min-w-[100px]">
-                                            <button
-                                                className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                                                onClick={() => handleFilterChange("type", "설치")}
-                                            >
-                                                설치
-                                            </button>
-                                            <button
-                                                className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                                                onClick={() => handleFilterChange("type", "제거")}
-                                            >
-                                                제거
-                                            </button>
+                                        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[120px] overflow-hidden shadow-sm">
+                                            {["설치", "제거"].map((type) => (
+                                                <div
+                                                    key={type}
+                                                    className={`px-4 py-2 cursor-pointer font-normal ${
+                                                        hoveredItem.type === type ? "bg-[#F5F5F5] rounded-lg" : ""
+                                                    }`}
+                                                    onClick={() => handleFilterChange("type", type)}
+                                                    onMouseEnter={() => handleMouseEnter("type", type)}
+                                                    onMouseLeave={() => handleMouseLeave("type")}
+                                                >
+                                                    {type}
+                                                </div>
+                                            ))}
                                         </div>
                                     )}
                                 </div>
@@ -222,15 +260,19 @@ const N_boxAddRemovePage = () => {
                                     </button>
                                     {/* 지역 드롭다운 메뉴 */}
                                     {openDropdown.region && (
-                                        <div className="absolute top-full left-0 mt-1 bg-white shadow-md rounded-md py-1 z-20 min-w-[150px] max-h-[300px] overflow-y-auto">
+                                        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[180px] max-h-[200px] overflow-y-auto shadow-sm">
                                             {allRegions.map((region) => (
-                                                <button
+                                                <div
                                                     key={region}
-                                                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                                                    className={`px-4 py-2 cursor-pointer font-normal ${
+                                                        hoveredItem.region === region ? "bg-[#F5F5F5] rounded-lg" : ""
+                                                    }`}
                                                     onClick={() => handleFilterChange("region", region)}
+                                                    onMouseEnter={() => handleMouseEnter("region", region)}
+                                                    onMouseLeave={() => handleMouseLeave("region")}
                                                 >
                                                     {region}
-                                                </button>
+                                                </div>
                                             ))}
                                         </div>
                                     )}
@@ -247,21 +289,29 @@ const N_boxAddRemovePage = () => {
                                     </button>
                                     {/* 도시 드롭다운 메뉴 */}
                                     {openDropdown.city && !isCityDisabled && (
-                                        <div className="absolute top-full left-0 mt-1 bg-white shadow-md rounded-md py-1 z-20 min-w-[150px] max-h-[300px] overflow-y-auto">
-                                            <button
-                                                className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                                        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[120px] max-h-[200px] overflow-y-auto shadow-sm">
+                                            <div
+                                                className={`px-4 py-2 cursor-pointer font-normal ${
+                                                    hoveredItem.city === "시/군/구" ? "bg-[#F5F5F5] rounded-lg" : ""
+                                                }`}
                                                 onClick={() => handleFilterChange("city", "시/군/구")}
+                                                onMouseEnter={() => handleMouseEnter("city", "시/군/구")}
+                                                onMouseLeave={() => handleMouseLeave("city")}
                                             >
                                                 시/군/구
-                                            </button>
+                                            </div>
                                             {cityOptions.map((city) => (
-                                                <button
+                                                <div
                                                     key={city}
-                                                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                                                    className={`px-4 py-2 cursor-pointer font-normal ${
+                                                        hoveredItem.city === city ? "bg-[#F5F5F5] rounded-lg" : ""
+                                                    } ${filters.city === city ? "bg-[#F5F5F5]" : ""}`}
                                                     onClick={() => handleFilterChange("city", city)}
+                                                    onMouseEnter={() => handleMouseEnter("city", city)}
+                                                    onMouseLeave={() => handleMouseLeave("city")}
                                                 >
                                                     {city}
-                                                </button>
+                                                </div>
                                             ))}
                                         </div>
                                     )}
@@ -277,6 +327,32 @@ const N_boxAddRemovePage = () => {
                     <div className="pb-32" />
                 </main>
             </div>
+
+            {/* Add custom styles for scrollbar */}
+            <style jsx global>{`
+                .dropdown-container div {
+                    padding-right: 4px; /* 스크롤바 오른쪽 간격 */
+                }
+
+                .dropdown-container div::-webkit-scrollbar {
+                    width: 4px;
+                }
+
+                .dropdown-container div::-webkit-scrollbar-track {
+                    background: transparent;
+                    margin-left: 4px; /* 스크롤바 왼쪽 간격 */
+                }
+
+                .dropdown-container div::-webkit-scrollbar-thumb {
+                    background: #d1d1d1;
+                    border-radius: 10px;
+                    margin-right: 4px; /* 스크롤바 오른쪽 간격 추가 */
+                }
+
+                .dropdown-container div::-webkit-scrollbar-thumb:hover {
+                    background: #b1b1b1;
+                }
+            `}</style>
         </div>
     )
 }
