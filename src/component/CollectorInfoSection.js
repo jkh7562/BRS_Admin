@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import SearchIcon from "../assets/검색.png"
 import CopyIcon from "../assets/copy.png"
@@ -73,15 +71,15 @@ export default function CollectorInfoSection() {
 
                         {/* Stats Cards */}
                         <div className="flex items-center mt-6 mb-6">
-                            <StatCard title="총 수거량" value="3,200g"/>
+                            <StatCard title="총 수거량" value="3,200g" />
                             <div className="h-12 flex items-center">
-                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11"/>
+                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
                             </div>
-                            <StatCard title="광역시/도" value="충청남도"/>
+                            <StatCard title="광역시/도" value="충청남도" />
                             <div className="h-12 flex items-center">
-                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11"/>
+                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
                             </div>
-                            <StatCard title="시/군/구" value="아산시"/>
+                            <StatCard title="시/군/구" value="아산시" />
                             <div className="h-12 flex items-center ml-[100px]">
                                 <button
                                     className="bg-[#E8F1F7] text-[#21262B] px-9 py-2 rounded-2xl hover:bg-gray-200 transition-colors"
@@ -187,7 +185,8 @@ export default function CollectorInfoSection() {
                 <div className="w-full md:w-[300px] h-full flex flex-col shadow-lg pl-7 pt-9">
                     <div className="flex justify-between items-center mr-6 pb-7">
                         <h2 className="font-bold text-xl">알림 내역</h2>
-                        <h2 className="font-medium text-gray-500 text-sm">자세히보기
+                        <h2 className="font-medium text-gray-500 text-sm">
+                            자세히보기
                             <img
                                 src={VectorIcon || "/placeholder.svg"}
                                 alt="Vector Icon"
@@ -314,7 +313,13 @@ function CollectionItem({ status, date, time, location, amount }) {
     return (
         <div>
             <div>
-                <span className="inline-block px-2 py-0.5 bg-[#21262B] text-white text-sm rounded-md font-nomal">{status}</span>
+        <span
+            className={`inline-block px-2 py-0.5 text-white text-sm rounded-md font-nomal ${
+                status === "수거함 설치 진행 중" || status === "수거함 제거 진행 중" ? "bg-[#00A060]" : "bg-[#21262B]"
+            }`}
+        >
+          {status}
+        </span>
             </div>
             <table className="w-full text-sm border-collapse mt-4 mb-8">
                 <tbody>
