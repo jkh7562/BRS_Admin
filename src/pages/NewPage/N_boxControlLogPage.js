@@ -10,7 +10,6 @@ import CopyIcon from "../../assets/copy.png"
 const N_boxControlLogPage = () => {
     const [selectedBox, setSelectedBox] = useState({
         name: "선문대학교 동문 앞 수거함",
-        status: "정상",
         location: "36.8082 / 127.009",
         date: "2025/03/16",
     })
@@ -20,7 +19,6 @@ const N_boxControlLogPage = () => {
         {
             id: 1,
             name: "선문대학교 동문 앞 수거함",
-            status: "정상",
             location: "36.8082 / 127.009",
             date: "2025/03/16",
             isActive: true,
@@ -28,7 +26,6 @@ const N_boxControlLogPage = () => {
         {
             id: 2,
             name: "선문대학교 서문 앞 수거함",
-            status: "점검 필요",
             location: "36.8082 / 127.009",
             date: "2025/03/17",
             isActive: false,
@@ -36,7 +33,6 @@ const N_boxControlLogPage = () => {
         {
             id: 3,
             name: "선문대학교 상봉마을 수거함",
-            status: "정상",
             location: "36.8082 / 127.009",
             date: "2025/03/13",
             isActive: false,
@@ -44,7 +40,6 @@ const N_boxControlLogPage = () => {
         {
             id: 4,
             name: "선문대학교 인문관 1층 수거함",
-            status: "점검 필요",
             location: "36.8082 / 127.009",
             date: "2025/03/09",
             isActive: false,
@@ -52,7 +47,6 @@ const N_boxControlLogPage = () => {
         {
             id: 5,
             name: "선문대학교 도서관 앞 수거함",
-            status: "정상",
             location: "36.8082 / 127.009",
             date: "2025/03/05",
             isActive: false,
@@ -82,7 +76,7 @@ const N_boxControlLogPage = () => {
                                 <div className="relative mx-2 my-4 p-3">
                                     <input
                                         type="text"
-                                        placeholder="함, 주소, 수거함 코드 입력"
+                                        placeholder="장소, 주소, 수거함 코드 검색"
                                         className="w-full py-2 pl-4 rounded-2xl border border-black/20 text-sm focus:outline-none"
                                     />
                                     <div className="absolute right-8 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
@@ -97,7 +91,7 @@ const N_boxControlLogPage = () => {
                                     <BoxListItem
                                         key={box.id}
                                         name={box.name}
-                                        status={box.status}
+                                        location={box.location}
                                         date={box.date}
                                         isActive={box.id === 1}
                                         onClick={() => setSelectedBox(box)}
@@ -130,48 +124,72 @@ const N_boxControlLogPage = () => {
                         </div>
 
                         {/* Right Sidebar - Box Info */}
-                        <div className="w-[290px] h-full flex flex-col border-l p-8">
-                            <div className="mb-10">
-                                <h2 className="text-2xl font-bold pb-1">수거함 정보</h2>
-                                <p className="text-[#60697E]">
-                                    <span className="font-bold">설치일자</span>
-                                    <span className="ml-3 font-normal">{selectedBox.date}</span>
-                                </p>
-                            </div>
+                        <div className="w-[290px] h-full flex flex-col border-l">
+                            <div className="flex flex-col h-full p-6">
+                                <div className="space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="text-sm text-gray-500">건전지</div>
+                                            <div className="text-xl font-bold">{statsData.totalBoxes}개</div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="text-sm">개방</div>
+                                            <div className="relative inline-flex items-center">
+                                                <div className="w-10 h-5 bg-green-400 rounded-full"></div>
+                                                <div className="absolute right-1 w-4 h-4 bg-white rounded-full"></div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                            <div className="space-y-2 text-sm text-[#60697E]">
-                                <div className="flex items-center">
-                                    <span className="font-bold w-[70px]">건전지</span>
-                                    <span className="font-normal">{statsData.totalBoxes}개</span>
-                                    <span className="ml-auto">
-                    <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                  </span>
-                                </div>
-                                <div className="flex items-center">
-                                    <span className="font-bold w-[70px]">방전 배터리</span>
-                                    <span className="font-normal">{statsData.batteryCount}개</span>
-                                    <span className="ml-auto">
-                    <div className="h-3 w-3 rounded-full bg-red-500"></div>
-                  </span>
-                                </div>
-                                <div className="flex items-center">
-                                    <span className="font-bold w-[70px]">잔여 용량 배터리</span>
-                                    <span className="font-normal">{statsData.activeBatteries}개</span>
-                                    <span className="ml-auto">
-                    <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                  </span>
-                                </div>
-                                <div className="flex items-center">
-                                    <span className="font-bold w-[70px]">수거자 입구</span>
-                                    <span className="font-normal">개폐 제어</span>
-                                    <span className="ml-auto">
-                    <div className="h-3 w-3 rounded-full bg-red-500"></div>
-                  </span>
-                                </div>
-                            </div>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="text-sm text-gray-500">방전 배터리</div>
+                                            <div className="text-xl font-bold">{statsData.batteryCount}개</div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="text-sm">폐쇄</div>
+                                            <div className="relative inline-flex items-center">
+                                                <div className="w-10 h-5 bg-red-400 rounded-full"></div>
+                                                <div className="absolute left-1 w-4 h-4 bg-white rounded-full"></div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                            <div className="mt-auto">
-                                <button className="w-full py-2 bg-[#21262B] text-white rounded-2xl font-medium">수거함 차단</button>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="text-sm text-gray-500">잔여 용량 배터리</div>
+                                            <div className="text-xl font-bold">{statsData.activeBatteries}개</div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="text-sm">개방</div>
+                                            <div className="relative inline-flex items-center">
+                                                <div className="w-10 h-5 bg-green-400 rounded-full"></div>
+                                                <div className="absolute right-1 w-4 h-4 bg-white rounded-full"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="text-sm text-gray-500">수거자 입구</div>
+                                            <div className="text-xl font-bold">개폐 제어</div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="text-sm">폐쇄</div>
+                                            <div className="relative inline-flex items-center">
+                                                <div className="w-10 h-5 bg-red-400 rounded-full"></div>
+                                                <div className="absolute left-1 w-4 h-4 bg-white rounded-full"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-auto">
+                                    <button className="w-full py-3 bg-[#21262B] text-white rounded-xl font-medium flex items-center justify-center">
+                                        <div className="w-3 h-3 rounded-full border-2 border-white mr-2"></div>
+                                        수거함 차단
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -203,7 +221,7 @@ const N_boxControlLogPage = () => {
     )
 }
 
-function BoxListItem({ name, status, date, isActive, onClick }) {
+function BoxListItem({ name, location, date, isActive, onClick }) {
     return (
         <div
             className={`p-4 border-b flex justify-between cursor-pointer ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}
@@ -212,8 +230,8 @@ function BoxListItem({ name, status, date, isActive, onClick }) {
             <div className="flex items-start">
                 <div>
                     <h3 className="text-base font-bold">{name}</h3>
-                    <p className="text-sm font-normal text-gray-500">{status}</p>
-                    <p className="text-sm font-normal text-gray-500">{date}</p>
+                    <p className="text-sm font-normal text-gray-500">설치좌표 {location}</p>
+                    <p className="text-sm font-normal text-gray-500">설치일자 {date}</p>
                 </div>
             </div>
             <button className="text-gray-400 self-start">
