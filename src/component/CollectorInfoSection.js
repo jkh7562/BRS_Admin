@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from "react"
 import SearchIcon from "../assets/검색.png"
 import CopyIcon from "../assets/copy.png"
@@ -71,23 +73,23 @@ export default function CollectorInfoSection() {
 
                         {/* Stats Cards */}
                         <div className="flex items-center mt-6 mb-6">
-                            <StatCard title="담당 구역" value="충청남도 아산시"/>
-                            <div className="h-12 flex items-center">
-                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11"/>
-                            </div>
                             <StatCard title="총 수거량" value="3,200g"/>
                             <div className="h-12 flex items-center">
                                 <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11"/>
                             </div>
-                            <StatCard title="수거함 설치" value="16회"/>
+                            <StatCard title="광역시/도" value="충청남도"/>
                             <div className="h-12 flex items-center">
                                 <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11"/>
                             </div>
-                            <StatCard title="수거함 제거" value="3회"/>
-                            <div className="h-12 flex items-center">
-                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11"/>
+                            <StatCard title="시/군/구" value="아산시"/>
+                            <div className="h-12 flex items-center ml-[100px]">
+                                <button
+                                    className="bg-[#E8F1F7] text-[#21262B] px-9 py-2 rounded-2xl hover:bg-gray-200 transition-colors"
+                                    onClick={() => console.log("담당지역 변경 clicked")}
+                                >
+                                    담당지역 변경
+                                </button>
                             </div>
-                            <StatCard title="화재 후 재가동" value="2회"/>
                         </div>
 
                         {/* Chart Section */}
@@ -180,6 +182,61 @@ export default function CollectorInfoSection() {
                         </div>
                     </div>
                 </div>
+
+                {/* Right Sidebar - Collection Log */}
+                <div className="w-full md:w-[300px] h-full flex flex-col shadow-lg pl-7 pt-9">
+                    <div className="flex justify-between items-center mr-6 pb-7">
+                        <h2 className="font-bold text-xl">알림 내역</h2>
+                        <h2 className="font-medium text-gray-500 text-sm">자세히보기
+                            <img
+                                src={VectorIcon || "/placeholder.svg"}
+                                alt="Vector Icon"
+                                className="ml-1 inline-block w-2 h-3 mb-1"
+                            />
+                        </h2>
+                    </div>
+
+                    {/* 수거 내역 영역에만 스크롤바 적용 */}
+                    <div className="overflow-auto flex-1 custom-scrollbar">
+                        <CollectionItem
+                            status="수거함 설치 진행 중"
+                            date="2025.03.01"
+                            time="오전 10:31"
+                            location="아산시 온양동"
+                            amount="36.123123 / 127.34567"
+                        />
+
+                        <CollectionItem
+                            status="수거함 제거 완료"
+                            date="2025.02.19"
+                            time="오후 2:17"
+                            location="아산시 배방읍"
+                            amount="36.123123 / 127.34567"
+                        />
+
+                        <CollectionItem
+                            status="화재 후 재가동 완료"
+                            date="2025.02.11"
+                            time="오전 11:23"
+                            location="아산시 탕정면"
+                            amount="36.123123 / 127.34567"
+                        />
+                        <CollectionItem
+                            status="수거함 설치 완료"
+                            date="2025.02.05"
+                            time="오후 3:45"
+                            location="아산시 온양동"
+                            amount="36.123123 / 127.34567"
+                        />
+                        <CollectionItem
+                            status="수거함 제거 진행 중"
+                            date="2025.02.05"
+                            time="오후 3:45"
+                            location="아산시 온양동"
+                            amount="36.123123 / 127.34567"
+                        />
+                    </div>
+                </div>
             </div>
 
             {/* 스크롤바 스타일 */}
@@ -223,19 +280,6 @@ function UserListItem({ name, points, date, isActive }) {
     )
 }
 
-// Component for point cards
-function PointCard({ title, value, icon }) {
-    return (
-        <div className="p-3 rounded-md shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-500">{title}</span>
-                <span className="text-xs bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center">{icon}</span>
-            </div>
-            <div className="text-xl font-medium">{value}</div>
-        </div>
-    )
-}
-
 // Component for chart bars
 function ChartBar({ height, date }) {
     const barHeight = `${height}%`
@@ -261,6 +305,35 @@ function StatCard({ title, value, number }) {
         </span>
             </div>
             <div className="text-[22px] font-bold">{value}</div>
+        </div>
+    )
+}
+
+// Component for collection items in the right sidebar
+function CollectionItem({ status, date, time, location, amount }) {
+    return (
+        <div>
+            <div>
+                <span className="inline-block px-2 py-0.5 bg-[#21262B] text-white text-sm rounded-md font-nomal">{status}</span>
+            </div>
+            <table className="w-full text-sm border-collapse mt-4 mb-8">
+                <tbody>
+                <tr>
+                    <td className="w-16 text-gray-500">알림일자</td>
+                    <td>
+                        {date} {time}
+                    </td>
+                </tr>
+                <tr>
+                    <td className="w-16 text-gray-500">알림지역</td>
+                    <td>{location}</td>
+                </tr>
+                <tr>
+                    <td className="w-16 text-gray-500">알림 좌표</td>
+                    <td>{amount}</td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     )
 }
