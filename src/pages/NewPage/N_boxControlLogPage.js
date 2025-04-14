@@ -137,11 +137,11 @@ const N_boxControlLogPage = () => {
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
-                                            <div className="text-xs">개방</div>
+                                            <div className="font-nomal text-[#7A7F8A]">개방</div>
                                             <RadioButton selected={true}/>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className="text-xs">폐쇄</div>
+                                            <div className="font-nomal text-[#7A7F8A]">폐쇄</div>
                                             <RadioButton selected={false}/>
                                         </div>
                                     </div>
@@ -157,11 +157,11 @@ const N_boxControlLogPage = () => {
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
-                                            <div className="text-xs">개방</div>
+                                            <div className="font-nomal text-[#7A7F8A]">개방</div>
                                             <RadioButton selected={false}/>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className="text-xs">폐쇄</div>
+                                            <div className="font-nomal text-[#7A7F8A]">폐쇄</div>
                                             <RadioButton selected={true} color="red"/>
                                         </div>
                                     </div>
@@ -177,11 +177,11 @@ const N_boxControlLogPage = () => {
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
-                                            <div className="text-xs">개방</div>
+                                            <div className="font-nomal text-[#7A7F8A]">개방</div>
                                             <RadioButton selected={true}/>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className="text-xs">폐쇄</div>
+                                            <div className="font-nomal text-[#7A7F8A]">폐쇄</div>
                                             <RadioButton selected={false}/>
                                         </div>
                                     </div>
@@ -197,11 +197,11 @@ const N_boxControlLogPage = () => {
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
-                                            <div className="text-xs">개방</div>
+                                            <div className="font-nomal text-[#7A7F8A]">개방</div>
                                             <RadioButton selected={false}/>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className="text-xs">폐쇄</div>
+                                            <div className="font-nomal text-[#7A7F8A]">폐쇄</div>
                                             <RadioButton selected={true} color="red"/>
                                         </div>
                                     </div>
@@ -210,9 +210,10 @@ const N_boxControlLogPage = () => {
 
                             {/* 수거함 차단 Button (Collection Box Block) */}
                             <button
-                                className="w-full py-5 bg-[#21262B] text-white rounded-2xl font-medium flex items-center justify-center">
+                                className="w-full py-5 bg-[#21262B] text-white rounded-2xl font-medium flex items-center justify-start pl-6">
                                 수거함 차단
-                                <div className="w-3 h-3 rounded-full border-2 border-white ml-2"></div>
+                                <div className="pl-[90px]">차단</div>
+                                <div className="w-4 h-4 rounded-full border-2 border-white ml-2"></div>
                             </button>
                         </div>
                     </div>
