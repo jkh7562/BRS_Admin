@@ -270,7 +270,9 @@ function RadioButton({ selected, color = "green" }: { selected: boolean; color?:
     return (
         <div className="relative w-5 h-5 rounded-full">
             {selected ? (
-                <div className={`w-full h-full rounded-full bg-${color}-400 border-2 border-white`}></div>
+                <div className="w-full h-full rounded-full border-2 border-gray-300 flex items-center justify-center">
+                    <div className={`w-[14px] h-[14px] rounded-full bg-${color}-400`}></div>
+                </div>
             ) : (
                 <div className="w-full h-full rounded-full border-2 border-gray-300"></div>
             )}
