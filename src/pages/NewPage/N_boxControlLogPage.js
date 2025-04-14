@@ -84,10 +84,9 @@ const N_boxControlLogPage = () => {
                 <Topbar />
                 <div className="pt-24 px-24 pb-6 space-y-4">
                     <p className="font-bold text-xl">수거함 제어</p>
-
                     <div className="flex">
                         {/* Collection Box Control Interface - Left and Center sections */}
-                        <div className="flex w-[1100px] h-[520px] bg-white rounded-2xl shadow-md overflow-hidden">
+                        <div className="flex w-[1100px] h-[525px] bg-white rounded-2xl shadow-md overflow-hidden">
                             {/* Left Sidebar - Box List */}
                             <div className="w-[350px] h-full flex flex-col border-r">
                                 <div>
@@ -146,8 +145,7 @@ const N_boxControlLogPage = () => {
                         {/* Right Sidebar - Box Info - Now as a separate element */}
                         <div className="w-[280px] space-y-4 pl-6">
                             {/* 건전지 (Battery Boxes) */}
-                            <div
-                                className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
+                            <div className={`bg-white rounded-2xl p-6 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">건전지</div>
@@ -190,8 +188,7 @@ const N_boxControlLogPage = () => {
                             </div>
 
                             {/* 방전 배터리 (Discharged Batteries) */}
-                            <div
-                                className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
+                            <div className={`bg-white rounded-2xl p-6 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">방전 배터리</div>
@@ -234,8 +231,7 @@ const N_boxControlLogPage = () => {
                             </div>
 
                             {/* 잔여 용량 배터리 (Remaining Capacity Batteries) */}
-                            <div
-                                className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
+                            <div className={`bg-white rounded-2xl p-6 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">잔여 용량 배터리</div>
@@ -278,8 +274,7 @@ const N_boxControlLogPage = () => {
                             </div>
 
                             {/* 수거자 입구 (Collector Entrance) */}
-                            <div
-                                className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
+                            <div className={`bg-white rounded-2xl p-6 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">수거자 입구</div>
@@ -324,13 +319,57 @@ const N_boxControlLogPage = () => {
                             {/* 수거함 차단 Button (Collection Box Block) */}
                             <button
                                 onClick={() => setIsBoxBlocked(!isBoxBlocked)}
-                                className={`w-full py-6 ${isBoxBlocked ? "bg-red-600" : "bg-[#21262B]"} text-white rounded-2xl font-medium flex items-center justify-start pl-6 hover:${isBoxBlocked ? "bg-red-700" : "bg-[#1a1f23]"} transition-colors`}
+                                className={`w-full py-5 ${isBoxBlocked ? "bg-red-600" : "bg-[#21262B]"} text-white rounded-2xl font-medium flex items-center justify-start pl-6 hover:${isBoxBlocked ? "bg-red-700" : "bg-[#1a1f23]"} transition-colors`}
                             >
                                 수거함 차단
                                 <div className="pl-[90px]">{isBoxBlocked ? "차단됨" : "차단"}</div>
                                 <div
                                     className={`w-4 h-4 rounded-full ml-2 ${isBoxBlocked ? "bg-white" : "border-2 border-white"}`}
                                 ></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <p className="font-bold text-xl pt-10">수거함 로그</p>
+
+                    {/* 로그 필터 */}
+                    <div>
+                        <div className="flex items-center border-b border-gray-200">
+                            {/* Log Type Tabs */}
+                            <div className="flex">
+                                <button
+                                    className="px-6 py-3 font-medium text-base relative text-black font-bold border-b-2 border-black"
+                                    onClick={() => {
+                                    }}
+                                >
+                                    배출로그
+                                </button>
+                                <button className="px-6 py-3 font-medium text-base relative text-gray-500"
+                                        onClick={() => {
+                                        }}>
+                                    수거로그
+                                </button>
+                            </div>
+
+                            {/* Date Selector */}
+                            <button className="flex items-center gap-1 text-gray-600 py-3 ml-6">
+                                2025/03/06
+                                <svg
+                                    width="12"
+                                    height="6"
+                                    viewBox="0 0 12 6"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="ml-1"
+                                >
+                                    <path
+                                        d="M1 1L6 5L11 1"
+                                        stroke="currentColor"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                </svg>
                             </button>
                         </div>
                     </div>
@@ -356,15 +395,13 @@ const N_boxControlLogPage = () => {
                             background: #a1a1a1;
                         }
                     `}</style>
-
-                    <p className="font-bold text-xl pt-10">수거함 로그</p>
                 </div>
             </div>
         </div>
     )
 }
 
-function BoxListItem({ name, location, date, isActive, onClick }) {
+function BoxListItem({name, location, date, isActive, onClick}) {
     return (
         <div
             className={`p-4 border-b flex justify-between cursor-pointer ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}
@@ -378,14 +415,14 @@ function BoxListItem({ name, location, date, isActive, onClick }) {
                 </div>
             </div>
             <button className="text-gray-400 self-start">
-                <img src={CopyIcon || "/placeholder.svg?height=16&width=16"} alt="복사" width={16} height={16} />
+                <img src={CopyIcon || "/placeholder.svg?height=16&width=16"} alt="복사" width={16} height={16}/>
             </button>
         </div>
     )
 }
 
 // Radio button component
-function RadioButton({ selected, color = "green", onClick, disabled = false }) {
+function RadioButton({selected, color = "green", onClick, disabled = false}) {
     return (
         <div
             className={`relative w-5 h-5 rounded-full ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
