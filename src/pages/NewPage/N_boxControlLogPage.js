@@ -6,8 +6,10 @@ import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import SearchIcon from "../../assets/검색.png"
 import CopyIcon from "../../assets/copy.png"
+import DownIcon from "../../assets/Down.png"
 
 const N_boxControlLogPage = () => {
+    const [logType, setLogType] = useState("discharge")
     const [selectedBox, setSelectedBox] = useState({
         name: "선문대학교 동문 앞 수거함",
         location: "36.8082 / 127.009",
@@ -76,7 +78,6 @@ const N_boxControlLogPage = () => {
     })
 
     const [isBoxBlocked, setIsBoxBlocked] = useState(false)
-    const [logType, setLogType] = useState("discharge")
 
     return (
         <div className="flex min-h-screen w-screen bg-[#F3F3F5]">
@@ -97,8 +98,9 @@ const N_boxControlLogPage = () => {
                                             placeholder="장소, 주소, 수거함 코드 검색"
                                             className="w-full py-2 pl-4 rounded-2xl border border-black/20 text-sm focus:outline-none"
                                         />
-                                        <div className="absolute right-8 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
-                                            <img src={SearchIcon || "/placeholder.svg?height=20&width=20"} alt="검색" />
+                                        <div
+                                            className="absolute right-8 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
+                                            <img src={SearchIcon || "/placeholder.svg?height=20&width=20"} alt="검색"/>
                                         </div>
                                     </div>
                                 </div>
@@ -133,8 +135,8 @@ const N_boxControlLogPage = () => {
                                 {/* Map */}
                                 <div className="flex-1 w-full px-10 pb-10">
                                     <Map
-                                        center={{ lat: 36.8082, lng: 127.009 }}
-                                        style={{ width: "100%", height: "100%" }}
+                                        center={{lat: 36.8082, lng: 127.009}}
+                                        style={{width: "100%", height: "100%"}}
                                         level={3}
                                         className={"border rounded-2xl"}
                                     />
@@ -145,7 +147,8 @@ const N_boxControlLogPage = () => {
                         {/* Right Sidebar - Box Info - Now as a separate element */}
                         <div className="w-[280px] space-y-4 pl-6">
                             {/* 건전지 (Battery Boxes) */}
-                            <div className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
+                            <div
+                                className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">건전지</div>
@@ -153,27 +156,31 @@ const N_boxControlLogPage = () => {
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
-                                            <div className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>개방</div>
+                                            <div
+                                                className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>개방
+                                            </div>
                                             <RadioButton
                                                 selected={controlStates.battery.isOpen}
                                                 onClick={() =>
                                                     setControlStates({
                                                         ...controlStates,
-                                                        battery: { isOpen: true },
+                                                        battery: {isOpen: true},
                                                     })
                                                 }
                                                 disabled={isBoxBlocked}
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>폐쇄</div>
+                                            <div
+                                                className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>폐쇄
+                                            </div>
                                             <RadioButton
                                                 selected={!controlStates.battery.isOpen}
                                                 color="red"
                                                 onClick={() =>
                                                     setControlStates({
                                                         ...controlStates,
-                                                        battery: { isOpen: false },
+                                                        battery: {isOpen: false},
                                                     })
                                                 }
                                                 disabled={isBoxBlocked}
@@ -184,7 +191,8 @@ const N_boxControlLogPage = () => {
                             </div>
 
                             {/* 방전 배터리 (Discharged Batteries) */}
-                            <div className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
+                            <div
+                                className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">방전 배터리</div>
@@ -192,27 +200,31 @@ const N_boxControlLogPage = () => {
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
-                                            <div className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>개방</div>
+                                            <div
+                                                className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>개방
+                                            </div>
                                             <RadioButton
                                                 selected={controlStates.dischargedBattery.isOpen}
                                                 onClick={() =>
                                                     setControlStates({
                                                         ...controlStates,
-                                                        dischargedBattery: { isOpen: true },
+                                                        dischargedBattery: {isOpen: true},
                                                     })
                                                 }
                                                 disabled={isBoxBlocked}
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>폐쇄</div>
+                                            <div
+                                                className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>폐쇄
+                                            </div>
                                             <RadioButton
                                                 selected={!controlStates.dischargedBattery.isOpen}
                                                 color="red"
                                                 onClick={() =>
                                                     setControlStates({
                                                         ...controlStates,
-                                                        dischargedBattery: { isOpen: false },
+                                                        dischargedBattery: {isOpen: false},
                                                     })
                                                 }
                                                 disabled={isBoxBlocked}
@@ -223,7 +235,8 @@ const N_boxControlLogPage = () => {
                             </div>
 
                             {/* 잔여 용량 배터리 (Remaining Capacity Batteries) */}
-                            <div className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
+                            <div
+                                className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">잔여 용량 배터리</div>
@@ -231,27 +244,31 @@ const N_boxControlLogPage = () => {
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
-                                            <div className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>개방</div>
+                                            <div
+                                                className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>개방
+                                            </div>
                                             <RadioButton
                                                 selected={controlStates.remainingCapacityBattery.isOpen}
                                                 onClick={() =>
                                                     setControlStates({
                                                         ...controlStates,
-                                                        remainingCapacityBattery: { isOpen: true },
+                                                        remainingCapacityBattery: {isOpen: true},
                                                     })
                                                 }
                                                 disabled={isBoxBlocked}
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>폐쇄</div>
+                                            <div
+                                                className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>폐쇄
+                                            </div>
                                             <RadioButton
                                                 selected={!controlStates.remainingCapacityBattery.isOpen}
                                                 color="red"
                                                 onClick={() =>
                                                     setControlStates({
                                                         ...controlStates,
-                                                        remainingCapacityBattery: { isOpen: false },
+                                                        remainingCapacityBattery: {isOpen: false},
                                                     })
                                                 }
                                                 disabled={isBoxBlocked}
@@ -262,7 +279,8 @@ const N_boxControlLogPage = () => {
                             </div>
 
                             {/* 수거자 입구 (Collector Entrance) */}
-                            <div className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
+                            <div
+                                className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">수거자 입구</div>
@@ -270,27 +288,31 @@ const N_boxControlLogPage = () => {
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
-                                            <div className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>개방</div>
+                                            <div
+                                                className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>개방
+                                            </div>
                                             <RadioButton
                                                 selected={controlStates.collectorEntrance.isOpen}
                                                 onClick={() =>
                                                     setControlStates({
                                                         ...controlStates,
-                                                        collectorEntrance: { isOpen: true },
+                                                        collectorEntrance: {isOpen: true},
                                                     })
                                                 }
                                                 disabled={isBoxBlocked}
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>폐쇄</div>
+                                            <div
+                                                className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>폐쇄
+                                            </div>
                                             <RadioButton
                                                 selected={!controlStates.collectorEntrance.isOpen}
                                                 color="red"
                                                 onClick={() =>
                                                     setControlStates({
                                                         ...controlStates,
-                                                        collectorEntrance: { isOpen: false },
+                                                        collectorEntrance: {isOpen: false},
                                                     })
                                                 }
                                                 disabled={isBoxBlocked}
@@ -313,56 +335,38 @@ const N_boxControlLogPage = () => {
                             </button>
                         </div>
                     </div>
-
-                    <p className="font-bold text-xl pt-10">수거함 로그</p>
-
-                    {/* 로그 필터 */}
                     <div>
+                        <p className="font-bold text-xl pt-10 pb-1">수거함 로그</p>
+
+                        {/* 로그 필터 */}
                         <div className="flex items-center border-b border-gray-200">
                             {/* Log Type Dropdown */}
                             <div className="flex">
                                 <div className="relative">
                                     <select
-                                        className="appearance-none px-6 py-3 font-medium text-base text-black focus:outline-none"
+                                        className={`appearance-none py-3 pr-8 text-base text-black focus:outline-none bg-transparent ${logType === "discharge" ? "font-bold" : "font-medium"}`}
                                         value={logType}
                                         onChange={(e) => setLogType(e.target.value)}
                                     >
-                                        <option value="discharge">배출로그</option>
-                                        <option value="collection">수거로그</option>
+                                        <option value="discharge" className="font-medium">
+                                            배출로그
+                                        </option>
+                                        <option value="collection" className="font-medium">
+                                            수거로그
+                                        </option>
                                     </select>
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
-                                        <svg width="12" height="6" viewBox="0 0 12 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path
-                                                d="M1 1L6 5L11 1"
-                                                stroke="currentColor"
-                                                strokeWidth="1.5"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                            />
-                                        </svg>
+                                    <div
+                                        className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
+                                        <img src={DownIcon || "/placeholder.svg"} alt="아래화살표" className="w-3 h-2"/>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Date Selector */}
-                            <button className="flex items-center gap-1 text-gray-600 py-3 ml-6">
+                            <button
+                                className="flex items-center gap-1 text-gray-600 py-3 ml-6 bg-transparent font-bold">
                                 2025/03/06
-                                <svg
-                                    width="12"
-                                    height="6"
-                                    viewBox="0 0 12 6"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="ml-1"
-                                >
-                                    <path
-                                        d="M1 1L6 5L11 1"
-                                        stroke="currentColor"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                </svg>
+                                <img src={DownIcon || "/placeholder.svg"} alt="아래화살표" className="w-3 h-2 ml-1"/>
                             </button>
                         </div>
                     </div>
@@ -394,7 +398,7 @@ const N_boxControlLogPage = () => {
     )
 }
 
-function BoxListItem({ name, location, date, isActive, onClick }) {
+function BoxListItem({name, location, date, isActive, onClick}) {
     return (
         <div
             className={`p-4 border-b flex justify-between cursor-pointer ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}
@@ -408,14 +412,14 @@ function BoxListItem({ name, location, date, isActive, onClick }) {
                 </div>
             </div>
             <button className="text-gray-400 self-start">
-                <img src={CopyIcon || "/placeholder.svg?height=16&width=16"} alt="복사" width={16} height={16} />
+                <img src={CopyIcon || "/placeholder.svg?height=16&width=16"} alt="복사" width={16} height={16}/>
             </button>
         </div>
     )
 }
 
 // Radio button component
-function RadioButton({ selected, color = "green", onClick, disabled = false }) {
+function RadioButton({selected, color = "green", onClick, disabled = false}) {
     return (
         <div
             className={`relative w-5 h-5 rounded-full ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
@@ -423,7 +427,7 @@ function RadioButton({ selected, color = "green", onClick, disabled = false }) {
         >
             {selected ? (
                 <div className="w-full h-full rounded-full border-2 border-gray-300 flex items-center justify-center">
-                    <div className={`w-[14px] h-[14px] rounded-full bg-${color}-400`}></div>
+                <div className={`w-[14px] h-[14px] rounded-full bg-${color}-400`}></div>
                 </div>
             ) : (
                 <div className="w-full h-full rounded-full border-2 border-gray-300"></div>
