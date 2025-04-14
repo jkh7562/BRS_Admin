@@ -145,7 +145,7 @@ const N_boxControlLogPage = () => {
                         {/* Right Sidebar - Box Info - Now as a separate element */}
                         <div className="w-[290px] space-y-4 pl-6">
                             {/* 건전지 (Battery Boxes) */}
-                            <div className="bg-white rounded-2xl p-6 shadow-sm">
+                            <div className={`bg-white rounded-2xl p-6 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">건전지</div>
@@ -153,7 +153,7 @@ const N_boxControlLogPage = () => {
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
-                                            <div className="font-nomal text-[#7A7F8A]">개방</div>
+                                            <div className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>개방</div>
                                             <RadioButton
                                                 selected={controlStates.battery.isOpen}
                                                 onClick={() =>
@@ -162,10 +162,11 @@ const N_boxControlLogPage = () => {
                                                         battery: { isOpen: true },
                                                     })
                                                 }
+                                                disabled={isBoxBlocked}
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className="font-nomal text-[#7A7F8A]">폐쇄</div>
+                                            <div className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>폐쇄</div>
                                             <RadioButton
                                                 selected={!controlStates.battery.isOpen}
                                                 color="red"
@@ -175,6 +176,7 @@ const N_boxControlLogPage = () => {
                                                         battery: { isOpen: false },
                                                     })
                                                 }
+                                                disabled={isBoxBlocked}
                                             />
                                         </div>
                                     </div>
@@ -182,7 +184,7 @@ const N_boxControlLogPage = () => {
                             </div>
 
                             {/* 방전 배터리 (Discharged Batteries) */}
-                            <div className="bg-white rounded-2xl p-6 shadow-sm">
+                            <div className={`bg-white rounded-2xl p-6 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">방전 배터리</div>
@@ -190,7 +192,7 @@ const N_boxControlLogPage = () => {
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
-                                            <div className="font-nomal text-[#7A7F8A]">개방</div>
+                                            <div className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>개방</div>
                                             <RadioButton
                                                 selected={controlStates.dischargedBattery.isOpen}
                                                 onClick={() =>
@@ -199,10 +201,11 @@ const N_boxControlLogPage = () => {
                                                         dischargedBattery: { isOpen: true },
                                                     })
                                                 }
+                                                disabled={isBoxBlocked}
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className="font-nomal text-[#7A7F8A]">폐쇄</div>
+                                            <div className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>폐쇄</div>
                                             <RadioButton
                                                 selected={!controlStates.dischargedBattery.isOpen}
                                                 color="red"
@@ -212,6 +215,7 @@ const N_boxControlLogPage = () => {
                                                         dischargedBattery: { isOpen: false },
                                                     })
                                                 }
+                                                disabled={isBoxBlocked}
                                             />
                                         </div>
                                     </div>
@@ -219,7 +223,7 @@ const N_boxControlLogPage = () => {
                             </div>
 
                             {/* 잔여 용량 배터리 (Remaining Capacity Batteries) */}
-                            <div className="bg-white rounded-2xl p-6 shadow-sm">
+                            <div className={`bg-white rounded-2xl p-6 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">잔여 용량 배터리</div>
@@ -227,7 +231,7 @@ const N_boxControlLogPage = () => {
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
-                                            <div className="font-nomal text-[#7A7F8A]">개방</div>
+                                            <div className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>개방</div>
                                             <RadioButton
                                                 selected={controlStates.remainingCapacityBattery.isOpen}
                                                 onClick={() =>
@@ -236,10 +240,11 @@ const N_boxControlLogPage = () => {
                                                         remainingCapacityBattery: { isOpen: true },
                                                     })
                                                 }
+                                                disabled={isBoxBlocked}
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className="font-nomal text-[#7A7F8A]">폐쇄</div>
+                                            <div className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>폐쇄</div>
                                             <RadioButton
                                                 selected={!controlStates.remainingCapacityBattery.isOpen}
                                                 color="red"
@@ -249,6 +254,7 @@ const N_boxControlLogPage = () => {
                                                         remainingCapacityBattery: { isOpen: false },
                                                     })
                                                 }
+                                                disabled={isBoxBlocked}
                                             />
                                         </div>
                                     </div>
@@ -256,7 +262,7 @@ const N_boxControlLogPage = () => {
                             </div>
 
                             {/* 수거자 입구 (Collector Entrance) */}
-                            <div className="bg-white rounded-2xl p-6 shadow-sm">
+                            <div className={`bg-white rounded-2xl p-6 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">수거자 입구</div>
@@ -264,7 +270,7 @@ const N_boxControlLogPage = () => {
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
-                                            <div className="font-nomal text-[#7A7F8A]">개방</div>
+                                            <div className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>개방</div>
                                             <RadioButton
                                                 selected={controlStates.collectorEntrance.isOpen}
                                                 onClick={() =>
@@ -273,10 +279,11 @@ const N_boxControlLogPage = () => {
                                                         collectorEntrance: { isOpen: true },
                                                     })
                                                 }
+                                                disabled={isBoxBlocked}
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className="font-nomal text-[#7A7F8A]">폐쇄</div>
+                                            <div className={`font-nomal text-[#7A7F8A] ${isBoxBlocked ? "opacity-50" : ""}`}>폐쇄</div>
                                             <RadioButton
                                                 selected={!controlStates.collectorEntrance.isOpen}
                                                 color="red"
@@ -286,6 +293,7 @@ const N_boxControlLogPage = () => {
                                                         collectorEntrance: { isOpen: false },
                                                     })
                                                 }
+                                                disabled={isBoxBlocked}
                                             />
                                         </div>
                                     </div>
@@ -295,10 +303,10 @@ const N_boxControlLogPage = () => {
                             {/* 수거함 차단 Button (Collection Box Block) */}
                             <button
                                 onClick={() => setIsBoxBlocked(!isBoxBlocked)}
-                                className="w-full py-5 bg-[#21262B] text-white rounded-2xl font-medium flex items-center justify-start pl-6 hover:bg-[#1a1f23] transition-colors"
+                                className={`w-full py-5 ${isBoxBlocked ? "bg-red-600" : "bg-[#21262B]"} text-white rounded-2xl font-medium flex items-center justify-start pl-6 hover:${isBoxBlocked ? "bg-red-700" : "bg-[#1a1f23]"} transition-colors`}
                             >
                                 수거함 차단
-                                <div className="pl-[90px]">차단</div>
+                                <div className="pl-[90px]">{isBoxBlocked ? "차단됨" : "차단"}</div>
                                 <div
                                     className={`w-4 h-4 rounded-full ml-2 ${isBoxBlocked ? "bg-white" : "border-2 border-white"}`}
                                 ></div>
@@ -354,9 +362,12 @@ function BoxListItem({ name, location, date, isActive, onClick }) {
 }
 
 // Radio button component
-function RadioButton({ selected, color = "green", onClick }) {
+function RadioButton({ selected, color = "green", onClick, disabled = false }) {
     return (
-        <div className="relative w-5 h-5 rounded-full cursor-pointer" onClick={onClick}>
+        <div
+            className={`relative w-5 h-5 rounded-full ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+            onClick={disabled ? undefined : onClick}
+        >
             {selected ? (
                 <div className="w-full h-full rounded-full border-2 border-gray-300 flex items-center justify-center">
                     <div className={`w-[14px] h-[14px] rounded-full bg-${color}-400`}></div>
