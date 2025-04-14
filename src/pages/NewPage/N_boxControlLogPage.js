@@ -60,6 +60,23 @@ const N_boxControlLogPage = () => {
         activeBatteries: 32,
     }
 
+    const [controlStates, setControlStates] = useState({
+        battery: {
+            isOpen: false,
+        },
+        dischargedBattery: {
+            isOpen: false,
+        },
+        remainingCapacityBattery: {
+            isOpen: false,
+        },
+        collectorEntrance: {
+            isOpen: false,
+        },
+    })
+
+    const [isBoxBlocked, setIsBoxBlocked] = useState(false)
+
     return (
         <div className="flex min-h-screen w-screen bg-[#F3F3F5]">
             <Sidebar />
@@ -80,9 +97,8 @@ const N_boxControlLogPage = () => {
                                             placeholder="장소, 주소, 수거함 코드 검색"
                                             className="w-full py-2 pl-4 rounded-2xl border border-black/20 text-sm focus:outline-none"
                                         />
-                                        <div
-                                            className="absolute right-8 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
-                                            <img src={SearchIcon || "/placeholder.svg?height=20&width=20"} alt="검색"/>
+                                        <div className="absolute right-8 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
+                                            <img src={SearchIcon || "/placeholder.svg?height=20&width=20"} alt="검색" />
                                         </div>
                                     </div>
                                 </div>
@@ -117,8 +133,8 @@ const N_boxControlLogPage = () => {
                                 {/* Map */}
                                 <div className="flex-1 w-full px-10 pb-10">
                                     <Map
-                                        center={{lat: 36.8082, lng: 127.009}}
-                                        style={{width: "100%", height: "100%"}}
+                                        center={{ lat: 36.8082, lng: 127.009 }}
+                                        style={{ width: "100%", height: "100%" }}
                                         level={3}
                                         className={"border rounded-2xl"}
                                     />
@@ -138,11 +154,28 @@ const N_boxControlLogPage = () => {
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
                                             <div className="font-nomal text-[#7A7F8A]">개방</div>
-                                            <RadioButton selected={true}/>
+                                            <RadioButton
+                                                selected={controlStates.battery.isOpen}
+                                                onClick={() =>
+                                                    setControlStates({
+                                                        ...controlStates,
+                                                        battery: { isOpen: true },
+                                                    })
+                                                }
+                                            />
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <div className="font-nomal text-[#7A7F8A]">폐쇄</div>
-                                            <RadioButton selected={false}/>
+                                            <RadioButton
+                                                selected={!controlStates.battery.isOpen}
+                                                color="red"
+                                                onClick={() =>
+                                                    setControlStates({
+                                                        ...controlStates,
+                                                        battery: { isOpen: false },
+                                                    })
+                                                }
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -158,11 +191,28 @@ const N_boxControlLogPage = () => {
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
                                             <div className="font-nomal text-[#7A7F8A]">개방</div>
-                                            <RadioButton selected={false}/>
+                                            <RadioButton
+                                                selected={controlStates.dischargedBattery.isOpen}
+                                                onClick={() =>
+                                                    setControlStates({
+                                                        ...controlStates,
+                                                        dischargedBattery: { isOpen: true },
+                                                    })
+                                                }
+                                            />
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <div className="font-nomal text-[#7A7F8A]">폐쇄</div>
-                                            <RadioButton selected={true} color="red"/>
+                                            <RadioButton
+                                                selected={!controlStates.dischargedBattery.isOpen}
+                                                color="red"
+                                                onClick={() =>
+                                                    setControlStates({
+                                                        ...controlStates,
+                                                        dischargedBattery: { isOpen: false },
+                                                    })
+                                                }
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -178,11 +228,28 @@ const N_boxControlLogPage = () => {
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
                                             <div className="font-nomal text-[#7A7F8A]">개방</div>
-                                            <RadioButton selected={true}/>
+                                            <RadioButton
+                                                selected={controlStates.remainingCapacityBattery.isOpen}
+                                                onClick={() =>
+                                                    setControlStates({
+                                                        ...controlStates,
+                                                        remainingCapacityBattery: { isOpen: true },
+                                                    })
+                                                }
+                                            />
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <div className="font-nomal text-[#7A7F8A]">폐쇄</div>
-                                            <RadioButton selected={false}/>
+                                            <RadioButton
+                                                selected={!controlStates.remainingCapacityBattery.isOpen}
+                                                color="red"
+                                                onClick={() =>
+                                                    setControlStates({
+                                                        ...controlStates,
+                                                        remainingCapacityBattery: { isOpen: false },
+                                                    })
+                                                }
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -198,11 +265,28 @@ const N_boxControlLogPage = () => {
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
                                             <div className="font-nomal text-[#7A7F8A]">개방</div>
-                                            <RadioButton selected={false}/>
+                                            <RadioButton
+                                                selected={controlStates.collectorEntrance.isOpen}
+                                                onClick={() =>
+                                                    setControlStates({
+                                                        ...controlStates,
+                                                        collectorEntrance: { isOpen: true },
+                                                    })
+                                                }
+                                            />
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <div className="font-nomal text-[#7A7F8A]">폐쇄</div>
-                                            <RadioButton selected={true} color="red"/>
+                                            <RadioButton
+                                                selected={!controlStates.collectorEntrance.isOpen}
+                                                color="red"
+                                                onClick={() =>
+                                                    setControlStates({
+                                                        ...controlStates,
+                                                        collectorEntrance: { isOpen: false },
+                                                    })
+                                                }
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -210,10 +294,14 @@ const N_boxControlLogPage = () => {
 
                             {/* 수거함 차단 Button (Collection Box Block) */}
                             <button
-                                className="w-full py-5 bg-[#21262B] text-white rounded-2xl font-medium flex items-center justify-start pl-6">
+                                onClick={() => setIsBoxBlocked(!isBoxBlocked)}
+                                className="w-full py-5 bg-[#21262B] text-white rounded-2xl font-medium flex items-center justify-start pl-6 hover:bg-[#1a1f23] transition-colors"
+                            >
                                 수거함 차단
                                 <div className="pl-[90px]">차단</div>
-                                <div className="w-4 h-4 rounded-full border-2 border-white ml-2"></div>
+                                <div
+                                    className={`w-4 h-4 rounded-full ml-2 ${isBoxBlocked ? "bg-white" : "border-2 border-white"}`}
+                                ></div>
                             </button>
                         </div>
                     </div>
@@ -245,7 +333,7 @@ const N_boxControlLogPage = () => {
     )
 }
 
-function BoxListItem({name, location, date, isActive, onClick}) {
+function BoxListItem({ name, location, date, isActive, onClick }) {
     return (
         <div
             className={`p-4 border-b flex justify-between cursor-pointer ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}
@@ -259,16 +347,16 @@ function BoxListItem({name, location, date, isActive, onClick}) {
                 </div>
             </div>
             <button className="text-gray-400 self-start">
-                <img src={CopyIcon || "/placeholder.svg?height=16&width=16"} alt="복사" width={16} height={16}/>
+                <img src={CopyIcon || "/placeholder.svg?height=16&width=16"} alt="복사" width={16} height={16} />
             </button>
         </div>
     )
 }
 
 // Radio button component
-function RadioButton({ selected, color = "green" }: { selected: boolean; color?: "green" | "red" }) {
+function RadioButton({ selected, color = "green", onClick }) {
     return (
-        <div className="relative w-5 h-5 rounded-full">
+        <div className="relative w-5 h-5 rounded-full cursor-pointer" onClick={onClick}>
             {selected ? (
                 <div className="w-full h-full rounded-full border-2 border-gray-300 flex items-center justify-center">
                     <div className={`w-[14px] h-[14px] rounded-full bg-${color}-400`}></div>
