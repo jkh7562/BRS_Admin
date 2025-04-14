@@ -135,14 +135,15 @@ const N_boxControlLogPage = () => {
                                         <div className="text-[#60697E]">건전지</div>
                                         <div className="text-xl font-bold">{statsData.totalBoxes}개</div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="text-xs text-green-500 font-medium">개방</div>
-                                        <div className="relative inline-flex items-center">
-                                            <div className="w-10 h-5 bg-green-400 rounded-full"></div>
-                                            <div
-                                                className="absolute right-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                                    <div className="flex flex-col items-end gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <div className="text-xs">개방</div>
+                                            <RadioButton selected={true}/>
                                         </div>
-                                        <div className="text-xs text-gray-400">폐쇄</div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="text-xs">폐쇄</div>
+                                            <RadioButton selected={false}/>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -154,14 +155,15 @@ const N_boxControlLogPage = () => {
                                         <div className="text-[#60697E]">방전 배터리</div>
                                         <div className="text-xl font-bold">{statsData.batteryCount}개</div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="text-xs text-gray-400">개방</div>
-                                        <div className="relative inline-flex items-center">
-                                            <div className="w-10 h-5 bg-red-400 rounded-full"></div>
-                                            <div
-                                                className="absolute left-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                                    <div className="flex flex-col items-end gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <div className="text-xs">개방</div>
+                                            <RadioButton selected={false}/>
                                         </div>
-                                        <div className="text-xs text-red-500 font-medium">폐쇄</div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="text-xs">폐쇄</div>
+                                            <RadioButton selected={true} color="red"/>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -173,14 +175,15 @@ const N_boxControlLogPage = () => {
                                         <div className="text-[#60697E]">잔여 용량 배터리</div>
                                         <div className="text-xl font-bold">{statsData.activeBatteries}개</div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="text-xs text-green-500 font-medium">개방</div>
-                                        <div className="relative inline-flex items-center">
-                                            <div className="w-10 h-5 bg-green-400 rounded-full"></div>
-                                            <div
-                                                className="absolute right-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                                    <div className="flex flex-col items-end gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <div className="text-xs">개방</div>
+                                            <RadioButton selected={true}/>
                                         </div>
-                                        <div className="text-xs text-gray-400">폐쇄</div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="text-xs">폐쇄</div>
+                                            <RadioButton selected={false}/>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -192,21 +195,22 @@ const N_boxControlLogPage = () => {
                                         <div className="text-[#60697E]">수거자 입구</div>
                                         <div className="text-[#60697E]">개폐 제어</div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="text-xs text-gray-400">개방</div>
-                                        <div className="relative inline-flex items-center">
-                                            <div className="w-10 h-5 bg-red-400 rounded-full"></div>
-                                            <div
-                                                className="absolute left-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                                    <div className="flex flex-col items-end gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <div className="text-xs">개방</div>
+                                            <RadioButton selected={false}/>
                                         </div>
-                                        <div className="text-xs text-red-500 font-medium">폐쇄</div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="text-xs">폐쇄</div>
+                                            <RadioButton selected={true} color="red"/>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             {/* 수거함 차단 Button (Collection Box Block) */}
                             <button
-                                className="w-full py-6 bg-[#21262B] text-white rounded-2xl font-medium flex items-center justify-center">
+                                className="w-full py-5 bg-[#21262B] text-white rounded-2xl font-medium flex items-center justify-center">
                                 수거함 차단
                                 <div className="w-3 h-3 rounded-full border-2 border-white ml-2"></div>
                             </button>
@@ -256,6 +260,19 @@ function BoxListItem({name, location, date, isActive, onClick}) {
             <button className="text-gray-400 self-start">
                 <img src={CopyIcon || "/placeholder.svg?height=16&width=16"} alt="복사" width={16} height={16}/>
             </button>
+        </div>
+    )
+}
+
+// Radio button component
+function RadioButton({ selected, color = "green" }: { selected: boolean; color?: "green" | "red" }) {
+    return (
+        <div className="relative w-5 h-5 rounded-full">
+            {selected ? (
+                <div className={`w-full h-full rounded-full bg-${color}-400 border-2 border-white`}></div>
+            ) : (
+                <div className="w-full h-full rounded-full border-2 border-gray-300"></div>
+            )}
         </div>
     )
 }
