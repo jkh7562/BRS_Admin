@@ -87,7 +87,7 @@ const N_boxControlLogPage = () => {
 
                     <div className="flex">
                         {/* Collection Box Control Interface - Left and Center sections */}
-                        <div className="flex w-[1150px] h-[525px] bg-white rounded-2xl shadow-md overflow-hidden">
+                        <div className="flex w-[1150px] h-[520px] bg-white rounded-2xl shadow-md overflow-hidden">
                             {/* Left Sidebar - Box List */}
                             <div className="w-[350px] h-full flex flex-col border-r">
                                 <div>
@@ -145,7 +145,7 @@ const N_boxControlLogPage = () => {
                         {/* Right Sidebar - Box Info - Now as a separate element */}
                         <div className="w-[290px] space-y-4 pl-6">
                             {/* 건전지 (Battery Boxes) */}
-                            <div className={`bg-white rounded-2xl p-6 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
+                            <div className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">건전지</div>
@@ -184,7 +184,7 @@ const N_boxControlLogPage = () => {
                             </div>
 
                             {/* 방전 배터리 (Discharged Batteries) */}
-                            <div className={`bg-white rounded-2xl p-6 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
+                            <div className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">방전 배터리</div>
@@ -223,7 +223,7 @@ const N_boxControlLogPage = () => {
                             </div>
 
                             {/* 잔여 용량 배터리 (Remaining Capacity Batteries) */}
-                            <div className={`bg-white rounded-2xl p-6 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
+                            <div className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">잔여 용량 배터리</div>
@@ -262,7 +262,7 @@ const N_boxControlLogPage = () => {
                             </div>
 
                             {/* 수거자 입구 (Collector Entrance) */}
-                            <div className={`bg-white rounded-2xl p-6 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
+                            <div className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">수거자 입구</div>
@@ -303,7 +303,7 @@ const N_boxControlLogPage = () => {
                             {/* 수거함 차단 Button (Collection Box Block) */}
                             <button
                                 onClick={() => setIsBoxBlocked(!isBoxBlocked)}
-                                className={`w-full py-5 ${isBoxBlocked ? "bg-red-600" : "bg-[#21262B]"} text-white rounded-2xl font-medium flex items-center justify-start pl-6 hover:${isBoxBlocked ? "bg-red-700" : "bg-[#1a1f23]"} transition-colors`}
+                                className={`w-full py-6 ${isBoxBlocked ? "bg-red-600" : "bg-[#21262B]"} text-white rounded-2xl font-medium flex items-center justify-start pl-6 hover:${isBoxBlocked ? "bg-red-700" : "bg-[#1a1f23]"} transition-colors`}
                             >
                                 수거함 차단
                                 <div className="pl-[90px]">{isBoxBlocked ? "차단됨" : "차단"}</div>
