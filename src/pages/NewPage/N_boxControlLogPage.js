@@ -8,6 +8,7 @@ import SearchIcon from "../../assets/검색.png"
 import CopyIcon from "../../assets/copy.png"
 import DownIcon from "../../assets/Down.png"
 
+
 const N_boxControlLogPage = () => {
     // Replace the year, month, day state definitions with these:
     const [year, setYear] = useState("")
@@ -113,6 +114,66 @@ const N_boxControlLogPage = () => {
             location: "36.8082 / 127.009",
             date: "2025/03/05",
             isActive: false,
+        },
+    ]
+
+    // Add this dummy data array after the boxList array (around line 75)
+    const logData = [
+        {
+            id: 1,
+            userName: "홍길동",
+            date: "2025/03/06",
+            boxName: "선문대학교 동문 앞 수거함",
+            dischargeInfo: "건전지 1개, 방전 배터리 3개",
+        },
+        {
+            id: 2,
+            userName: "정몽식",
+            date: "2025/03/06",
+            boxName: "선문대학교 동문 앞 수거함",
+            dischargeInfo: "건전지 11개, 방전 배터리 5개, 잔여 용량 배터리 7개",
+        },
+        {
+            id: 3,
+            userName: "공지철",
+            date: "2025/03/06",
+            boxName: "선문대학교 동문 앞 수거함",
+            dischargeInfo: "방전 배터리 8개",
+        },
+        {
+            id: 4,
+            userName: "김유신",
+            date: "2025/03/06",
+            boxName: "선문대학교 동문 앞 수거함",
+            dischargeInfo: "건전지 2개, 잔여 용량 배터리 1개",
+        },
+        {
+            id: 5,
+            userName: "이순신",
+            date: "2025/03/05",
+            boxName: "선문대학교 서문 앞 수거함",
+            dischargeInfo: "건전지 5개, 방전 배터리 2개",
+        },
+        {
+            id: 6,
+            userName: "강감찬",
+            date: "2025/03/05",
+            boxName: "선문대학교 서문 앞 수거함",
+            dischargeInfo: "잔여 용량 배터리 4개",
+        },
+        {
+            id: 7,
+            userName: "장영실",
+            date: "2025/03/04",
+            boxName: "선문대학교 상봉마을 수거함",
+            dischargeInfo: "건전지 3개, 방전 배터리 1개",
+        },
+        {
+            id: 8,
+            userName: "세종대왕",
+            date: "2025/03/04",
+            boxName: "선문대학교 상봉마을 수거함",
+            dischargeInfo: "건전지 7개, 방전 배터리 6개, 잔여 용량 배터리 2개",
         },
     ]
 
@@ -477,125 +538,84 @@ const N_boxControlLogPage = () => {
                         </div>
 
                         {/* 밑줄 추가 - 간격 좁힘 */}
-                        <div className="relative -mt-2 mb-10">
+                        <div className="relative -mt-2 mb-8">
                             <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
                         </div>
                     </div>
 
                     {/* 로그 테이블 */}
-                    <div className="mt-4 bg-white rounded-2xl shadow-sm overflow-hidden">
-                        <table className="w-full">
-                            <thead className="bg-gray-50 text-left">
-                            <tr>
-                                <th className="py-4 px-6 text-sm font-medium text-gray-500">사용자 이름</th>
-                                <th className="py-4 px-6 text-sm font-medium text-gray-500">배출일자</th>
-                                <th className="py-4 px-6 text-sm font-medium text-gray-500">수거함 이름</th>
-                                <th className="py-4 px-6 text-sm font-medium text-gray-500">배출정보</th>
-                                <th className="py-4 px-6 text-sm font-medium text-gray-500 text-right">사용자 상세정보</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr className="border-t border-gray-200 hover:bg-gray-50">
-                                <td className="py-4 px-6">홍길동</td>
-                                <td className="py-4 px-6">2025/03/06</td>
-                                <td className="py-4 px-6">선문대학교 동문 앞 수거함</td>
-                                <td className="py-4 px-6">건전지 1개, 방전 배터리 3개</td>
-                                <td className="py-4 px-6 text-right">
-                                    <button className="text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
-                                        사용자 상세정보 보기 <span className="text-lg">›</span>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr className="border-t border-gray-200 bg-gray-50">
-                                <td className="py-4 px-6">정몽식</td>
-                                <td className="py-4 px-6">2025/03/06</td>
-                                <td className="py-4 px-6">선문대학교 동문 앞 수거함</td>
-                                <td className="py-4 px-6">건전지 11개, 방전 배터리 5개, 잔여 용량 배터리 7개</td>
-                                <td className="py-4 px-6 text-right">
-                                    <button className="text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
-                                        사용자 상세정보 보기 <span className="text-lg">›</span>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr className="border-t border-gray-200">
-                                <td className="py-4 px-6">공지철</td>
-                                <td className="py-4 px-6">2025/03/06</td>
-                                <td className="py-4 px-6">선문대학교 동문 앞 수거함</td>
-                                <td className="py-4 px-6">방전 배터리 8개</td>
-                                <td className="py-4 px-6 text-right">
-                                    <button className="text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
-                                        사용자 상세정보 보기 <span className="text-lg">›</span>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr className="border-t border-gray-200 hover:bg-gray-50">
-                                <td className="py-4 px-6">김유신</td>
-                                <td className="py-4 px-6">2025/03/06</td>
-                                <td className="py-4 px-6">선문대학교 동문 앞 수거함</td>
-                                <td className="py-4 px-6">건전지 2개, 잔여 용량 배터리 1개</td>
-                                <td className="py-4 px-6 text-right">
-                                    <button className="text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
-                                        사용자 상세정보 보기 <span className="text-lg">›</span>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr className="border-t border-gray-200">
-                                <td className="py-4 px-6">홍길동</td>
-                                <td className="py-4 px-6">2025/03/06</td>
-                                <td className="py-4 px-6">선문대학교 동문 앞 수거함</td>
-                                <td className="py-4 px-6">건전지 1개, 방전 배터리 3개</td>
-                                <td className="py-4 px-6 text-right">
-                                    <button className="text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
-                                        사용자 상세정보 보기 <span className="text-lg">›</span>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr className="border-t border-gray-200 bg-gray-50">
-                                <td className="py-4 px-6">정몽식</td>
-                                <td className="py-4 px-6">2025/03/06</td>
-                                <td className="py-4 px-6">선문대학교 동문 앞 수거함</td>
-                                <td className="py-4 px-6">건전지 11개, 방전 배터리 5개, 잔여 용량 배터리 7개</td>
-                                <td className="py-4 px-6 text-right">
-                                    <button className="text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
-                                        사용자 상세정보 보기 <span className="text-lg">›</span>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr className="border-t border-gray-200">
-                                <td className="py-4 px-6">공지철</td>
-                                <td className="py-4 px-6">2025/03/06</td>
-                                <td className="py-4 px-6">선문대학교 동문 앞 수거함</td>
-                                <td className="py-4 px-6">방전 배터리 8개</td>
-                                <td className="py-4 px-6 text-right">
-                                    <button className="text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
-                                        사용자 상세정보 보기 <span className="text-lg">›</span>
-                                    </button>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+                    <div className="mt-4 px-6 py-4 bg-white rounded-2xl shadow-sm overflow-hidden">
+                        <div className="w-full">
+                            {/* 고정된 헤더 테이블 */}
+                            <table className="w-full table-fixed border-b border-gray-200">
+                                <colgroup>
+                                    <col style={{ width: "10%" }} />
+                                    <col style={{ width: "10%" }} />
+                                    <col style={{ width: "15%" }} />
+                                    <col style={{ width: "30%" }} />
+                                    <col style={{ width: "15%" }} />
+                                </colgroup>
+                                <thead className="text-left bg-white">
+                                <tr className="w-full">
+                                    <th className="py-4 px-6 text-sm font-bold text-gray-500">사용자 이름</th>
+                                    <th className="py-4 px-6 text-sm font-bold text-gray-500">배출일자</th>
+                                    <th className="py-4 px-6 text-sm font-bold text-gray-500">수거함 이름</th>
+                                    <th className="py-4 px-6 text-sm font-bold text-gray-500">배출정보</th>
+                                    <th className="py-4 px-6 text-sm font-bold text-gray-500"></th>
+                                </tr>
+                                </thead>
+                            </table>
+                        </div>
+
+                        {/* 스크롤 가능한 본문 테이블 */}
+                        <div className="h-[300px] max-h-[300px] overflow-auto scrollbar-container">
+                            <table className="w-full table-fixed border-collapse">
+                                <colgroup>
+                                    <col style={{ width: "10%" }} />
+                                    <col style={{ width: "10%" }} />
+                                    <col style={{ width: "15%" }} />
+                                    <col style={{ width: "30%" }} />
+                                    <col style={{ width: "15%" }} />
+                                </colgroup>
+                                <tbody>
+                                {logData.map((log) => (
+                                    <tr key={log.id} className="hover:bg-[#D1E3EE]/50">
+                                        <td className="py-4 px-6 text-sm text-gray-500">{log.userName}</td>
+                                        <td className="py-4 px-6 text-sm text-gray-500">{log.date}</td>
+                                        <td className="py-4 px-6 text-sm text-gray-500">{log.boxName}</td>
+                                        <td className="py-4 px-6 text-sm text-gray-500">{log.dischargeInfo}</td>
+                                        <td className="py-4 px-6 text-right">
+                                            <button className="pl-14 text-sm text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
+                                                사용자 상세정보 보기 <span className="text-2xl">›</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <style jsx>{`
+                            .scrollbar-container::-webkit-scrollbar {
+                                width: 6px;
+                            }
+
+                            .scrollbar-container::-webkit-scrollbar-track {
+                                background: #f1f1f1;
+                                border-radius: 10px;
+                            }
+
+                            .scrollbar-container::-webkit-scrollbar-thumb {
+                                background: #c1c1c1;
+                                border-radius: 10px;
+                                height: 50px;
+                            }
+
+                            .scrollbar-container::-webkit-scrollbar-thumb:hover {
+                                background: #a1a1a1;
+                            }
+                        `}</style>
                     </div>
-                    {/* 스크롤바 스타일 */}
-                    <style jsx>{`
-                        .custom-scrollbar::-webkit-scrollbar {
-                            width: 6px;
-                        }
-
-                        .custom-scrollbar::-webkit-scrollbar-track {
-                            background: #f1f1f1;
-                            border-radius: 10px;
-                        }
-
-                        .custom-scrollbar::-webkit-scrollbar-thumb {
-                            background: #c1c1c1;
-                            border-radius: 10px;
-                            height: 50px;
-                        }
-
-                        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                            background: #a1a1a1;
-                        }
-                    `}</style>
                 </div>
             </div>
         </div>
