@@ -5,6 +5,7 @@ import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import DownIcon from "../../assets/Down.png"
 import { Map } from "react-kakao-maps-sdk"
+import CollectorAssignment from "../../component/CollectorAssignment"
 
 const N_collectorAssignmentPage = () => {
     // 지역 및 도시 데이터
@@ -231,9 +232,12 @@ const N_collectorAssignmentPage = () => {
                         </div>
                         <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
                     </div>
+                    <div className="h-3"></div>
+
                     <div className="flex bg-white rounded-2xl shadow-md overflow-hidden h-[570px] relative">
                         <Map center={{lat: 36.8082, lng: 127.009}} style={{width: "100%", height: "100%"}} level={3}/>
                     </div>
+                    <CollectorAssignment/>
                 </main>
             </div>
 
