@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Map } from "react-kakao-maps-sdk"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
@@ -9,6 +9,67 @@ import CopyIcon from "../../assets/copy.png"
 import DownIcon from "../../assets/Down.png"
 
 const N_boxControlLogPage = () => {
+    // Replace the year, month, day state definitions with these:
+    const [year, setYear] = useState("")
+    const [month, setMonth] = useState("")
+    const [day, setDay] = useState("")
+
+    // Generate years (current year and 2 previous years)
+    const currentYear = new Date().getFullYear()
+    const years = Array.from({ length: 3 }, (_, i) => (currentYear - 2 + i).toString())
+
+    // Generate months 1-12 (padded with 0)
+    const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, "0"))
+
+    // With this function to get days based on month and year:
+    const getDaysInMonth = (year, month) => {
+        // If year or month is not selected, return empty array
+        if (!year || !month) return []
+
+        // Convert string inputs to numbers
+        const numYear = Number.parseInt(year)
+        const numMonth = Number.parseInt(month)
+
+        // Get the number of days in the selected month
+        // Month is 1-based in our UI but 0-based in Date constructor
+        const daysInMonth = new Date(numYear, numMonth, 0).getDate()
+
+        return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString().padStart(2, "0"))
+    }
+
+    // Then update the days state to be dynamic:
+    const [days, setDays] = useState(() => getDaysInMonth(year, month))
+
+    // Update the useEffect for days:
+    useEffect(() => {
+        setDays(getDaysInMonth(year, month))
+
+        // If month changes and day is no longer valid, reset day
+        if (year && month) {
+            const daysInSelectedMonth = getDaysInMonth(year, month)
+            if (day && Number.parseInt(day) > daysInSelectedMonth.length) {
+                setDay("")
+            }
+        }
+    }, [year, month, day])
+
+    // Handle year changes
+    useEffect(() => {
+        // If year is cleared, clear month and day
+        if (!year) {
+            setMonth("")
+            setDay("")
+        }
+    }, [year])
+
+    // Handle month changes
+    useEffect(() => {
+        // If month is cleared, clear day
+        if (!month) {
+            setDay("")
+        }
+    }, [month])
+
     const [logType, setLogType] = useState("discharge")
     const [selectedBox, setSelectedBox] = useState({
         name: "선문대학교 동문 앞 수거함",
@@ -78,6 +139,19 @@ const N_boxControlLogPage = () => {
     })
 
     const [isBoxBlocked, setIsBoxBlocked] = useState(false)
+
+    // Handle dropdown changes with reset capability
+    const handleYearChange = (e) => {
+        setYear(e.target.value)
+    }
+
+    const handleMonthChange = (e) => {
+        setMonth(e.target.value)
+    }
+
+    const handleDayChange = (e) => {
+        setDay(e.target.value)
+    }
 
     return (
         <div className="flex min-h-screen w-screen bg-[#F3F3F5]">
@@ -320,35 +394,86 @@ const N_boxControlLogPage = () => {
                     </div>
                     <div>
                         <p className="font-bold text-xl pt-10 pb-1">수거함 로그</p>
-
-                        {/* 로그 필터 */}
-                        <div className="flex items-center border-b border-gray-200">
-                            {/* Log Type Dropdown */}
-                            <div className="flex">
+                        {/* Log Type Dropdown */}
+                        <div className="flex">
+                            <div className="relative">
+                                <select
+                                    className={`appearance-none py-3 pr-8 text-base text-black focus:outline-none bg-transparent ${logType === "discharge" ? "font-bold" : "font-medium"}`}
+                                    value={logType}
+                                    onChange={(e) => setLogType(e.target.value)}
+                                >
+                                    <option value="discharge" className="font-medium">
+                                        배출로그
+                                    </option>
+                                    <option value="collection" className="font-medium">
+                                        수거로그
+                                    </option>
+                                </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
+                                    <img src={DownIcon || "/placeholder.svg"} alt="아래화살표" className="w-3 h-2" />
+                                </div>
+                            </div>
+                            {/* Date Selectors - Year, Month, Day */}
+                            <div className="flex items-center ml-4">
+                                {/* Year Dropdown */}
                                 <div className="relative">
                                     <select
-                                        className={`appearance-none py-3 pr-8 text-base text-black focus:outline-none bg-transparent ${logType === "discharge" ? "font-bold" : "font-medium"}`}
-                                        value={logType}
-                                        onChange={(e) => setLogType(e.target.value)}
+                                        className="appearance-none py-3 pr-6 text-base text-black focus:outline-none bg-transparent font-bold"
+                                        value={year}
+                                        onChange={handleYearChange}
                                     >
-                                        <option value="discharge" className="font-medium">
-                                            배출로그
-                                        </option>
-                                        <option value="collection" className="font-medium">
-                                            수거로그
-                                        </option>
+                                        <option value="">연도</option>
+                                        {years.map((y) => (
+                                            <option key={y} value={y}>
+                                                {y}
+                                            </option>
+                                        ))}
                                     </select>
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center">
+                                        <img src={DownIcon || "/placeholder.svg"} alt="아래화살표" className="w-3 h-2" />
+                                    </div>
+                                </div>
+
+                                {/* Month Dropdown */}
+                                <div className="relative pl-4">
+                                    <select
+                                        className={`appearance-none py-3 pr-6 text-base text-black focus:outline-none bg-transparent font-bold ${!year ? "opacity-50" : ""}`}
+                                        value={month}
+                                        onChange={handleMonthChange}
+                                        disabled={!year}
+                                    >
+                                        <option value="">월</option>
+                                        {months.map((m) => (
+                                            <option key={m} value={m}>
+                                                {m}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center">
+                                        <img src={DownIcon || "/placeholder.svg"} alt="아래화살표" className="w-3 h-2" />
+                                    </div>
+                                </div>
+
+                                {/* Day Dropdown */}
+                                <div className="relative pl-4">
+                                    <select
+                                        className={`appearance-none py-3 pr-6 text-base text-black focus:outline-none bg-transparent font-bold ${!month || !year ? "opacity-50" : ""}`}
+                                        value={day}
+                                        onChange={handleDayChange}
+                                        disabled={!month || !year}
+                                    >
+                                        <option value="">일</option>
+                                        {days.map((d) => (
+                                            <option key={d} value={d}>
+                                                {d}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center">
                                         <img src={DownIcon || "/placeholder.svg"} alt="아래화살표" className="w-3 h-2" />
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Date Selector */}
-                            <button className="flex items-center gap-1 text-gray-600 py-3 ml-6 bg-transparent font-bold">
-                                2025/03/06
-                                <img src={DownIcon || "/placeholder.svg"} alt="아래화살표" className="w-3 h-2 ml-1" />
-                            </button>
                         </div>
                     </div>
 
