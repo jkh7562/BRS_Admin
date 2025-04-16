@@ -166,11 +166,12 @@ const N_collectorAssignmentPage = () => {
                             <div className="relative dropdown-container">
                                 <button className="flex items-center gap-2" onClick={() => toggleDropdown("region")}>
                                     {filters.region}
-                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
+                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
                                 </button>
                                 {/* 지역 드롭다운 메뉴 */}
                                 {openDropdown.region && (
-                                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[200px] max-h-[200px] overflow-y-auto shadow-sm">
+                                    <div
+                                        className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[200px] max-h-[200px] overflow-y-auto shadow-sm">
                                         {allRegions.map((region) => (
                                             <div
                                                 key={region}
@@ -195,11 +196,12 @@ const N_collectorAssignmentPage = () => {
                                     disabled={isCityDisabled}
                                 >
                                     {filters.city}
-                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
+                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
                                 </button>
                                 {/* 도시 드롭다운 메뉴 */}
                                 {openDropdown.city && !isCityDisabled && (
-                                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[120px] max-h-[240px] overflow-y-auto shadow-sm">
+                                    <div
+                                        className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[120px] max-h-[240px] overflow-y-auto shadow-sm">
                                         <div
                                             className={`px-4 py-2 cursor-pointer font-normal ${
                                                 hoveredItem.city === "시/군/구" ? "bg-[#F5F5F5] rounded-lg" : ""
@@ -227,7 +229,10 @@ const N_collectorAssignmentPage = () => {
                                 )}
                             </div>
                         </div>
-                        <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
+                        <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
+                    </div>
+                    <div className="flex bg-white rounded-2xl shadow-md overflow-hidden h-[570px] relative">
+                        <Map center={{lat: 36.8082, lng: 127.009}} style={{width: "100%", height: "100%"}} level={3}/>
                     </div>
                 </main>
             </div>
