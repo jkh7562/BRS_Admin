@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Map } from "react-kakao-maps-sdk"
 import Sidebar from "../../component/Sidebar"
