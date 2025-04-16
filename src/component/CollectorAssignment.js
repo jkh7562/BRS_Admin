@@ -1,13 +1,105 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import SearchIcon from "../assets/검색.png"
 import CopyIcon from "../assets/copy.png"
 import InfoIcon from "../assets/추가정보2.png"
 import VectorIcon from "../assets/Vector.png"
+import DownIcon from "../assets/Down.png"
+
+function CustomDropdown({ options, value, onChange, width = "200px" }) {
+    const [isOpen, setIsOpen] = useState(false)
+    const [selectedValue, setSelectedValue] = useState(value)
+    const dropdownRef = useRef(null)
+
+    useEffect(() => {
+        setSelectedValue(value)
+    }, [value])
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false)
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+        }
+    }, [dropdownRef])
+
+    const handleSelect = (option) => {
+        setSelectedValue(option)
+        onChange(option)
+        setIsOpen(false)
+    }
+
+    return (
+        <div ref={dropdownRef} className="relative" style={{ width }}>
+            <button
+                type="button"
+                className="w-full px-3 py-2 border border-black/20 rounded-lg text-base text-left flex justify-between items-center"
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                <span>{selectedValue}</span>
+                <img src={DownIcon || "/placeholder.svg"} alt="Down" className="ml-2 w-3 h-2" />
+            </button>
+
+            {isOpen && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-black/20 rounded-lg shadow-lg max-h-[200px] overflow-y-auto custom-dropdown-scrollbar">
+                    {options.map((option) => (
+                        <div
+                            key={option}
+                            className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${option === selectedValue ? "bg-gray-100" : ""}`}
+                            onClick={() => handleSelect(option)}
+                        >
+                            {option}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+}
 
 export default function CollectorAssignment() {
     const [selectedPeriod, setSelectedPeriod] = useState("일")
+    const [selectedRegion, setSelectedRegion] = useState("충청남도")
+
+    // 지역 및 도시 데이터
+    const regionData = {
+        "광역시/도": [], // 전체 선택 옵션
+        서울특별시: ["강남구", "서초구", "송파구", "강동구", "마포구", "용산구", "종로구", "중구", "성동구", "광진구"],
+        부산광역시: [
+            "해운대구",
+            "수영구",
+            "남구",
+            "동구",
+            "서구",
+            "북구",
+            "사상구",
+            "사하구",
+            "사하구",
+            "연제구",
+            "영도구",
+        ],
+        인천광역시: ["중구", "동구", "미추홀구", "연수구", "남동구", "부평구", "계양구", "서구", "강화군", "옹진군"],
+        대구광역시: ["중구", "동구", "서구", "남구", "북구", "수성구", "달서구", "달성군"],
+        광주광역시: ["동구", "서구", "남구", "북구", "광산구"],
+        대전광역시: ["동구", "중구", "서구", "유성구", "대덕구"],
+        울산광역시: ["중구", "남구", "동구", "북구", "울주군"],
+        세종특별자치시: ["세종시"],
+        경기도: ["수원시", "성남시", "고양시", "용인시", "부천시", "안산시", "안양시", "남양주시", "화성시", "평택시"],
+        강원도: ["춘천시", "원주시", "강릉시", "동해시", "태백시", "속초시", "삼척시", "홍천군", "횡성군", "영월군"],
+        충청북도: ["청주시", "충주시", "제천시", "보은군", "옥천군", "영동군", "진천군", "괴산군", "음성군", "단양군"],
+        충청남도: ["천안시", "공주시", "보령시", "아산시", "서산시", "논산시", "계룡시", "당진시", "금산군", "부여군"],
+        전라북도: ["전주시", "군산시", "익산시", "정읍시", "남원시", "김제시", "완주군", "진안군", "무주군", "장수군"],
+        전라남도: ["목포시", "여수시", "순천시", "나주시", "광양시", "담양군", "곡성군", "구례군", "고흥군", "보성군"],
+        경상북도: ["포항시", "경주시", "김천시", "안동시", "구미시", "영주시", "영천시", "상주시", "문경시", "경산시"],
+        경상남도: ["창원시", "진주시", "통영시", "사천시", "김해시", "밀양시", "거제시", "양산시", "의령군", "함안군"],
+        제주특별자치도: ["제주시", "서귀포시"],
+    }
 
     return (
         <div className="flex flex-col md:flex-row bg-white h-[525px] rounded-2xl shadow-md overflow-hidden">
@@ -77,13 +169,13 @@ export default function CollectorAssignment() {
                     <img src={InfoIcon || "/placeholder.svg"} alt="정보" className="w-4 h-4 object-contain" />
                   </span>
                                 </div>
-                                <div>
-                                    <select className="w-[200px] px-3 py-2 border border-black/20 rounded-lg text-base">
-                                        <option>충청남도</option>
-                                        <option>서울특별시</option>
-                                        <option>경기도</option>
-                                        <option>인천광역시</option>
-                                    </select>
+                                <div className="dropdown-container">
+                                    <CustomDropdown
+                                        options={Object.keys(regionData)}
+                                        value={selectedRegion}
+                                        onChange={(value) => setSelectedRegion(value)}
+                                        width="200px"
+                                    />
                                 </div>
                             </div>
 
@@ -97,13 +189,13 @@ export default function CollectorAssignment() {
                     <img src={InfoIcon || "/placeholder.svg"} alt="정보" className="w-4 h-4 object-contain" />
                   </span>
                                 </div>
-                                <div>
-                                    <select className="w-[200px] px-3 py-2 border border-black/20 rounded-lg text-base">
-                                        <option>아산시</option>
-                                        <option>천안시</option>
-                                        <option>공주시</option>
-                                        <option>보령시</option>
-                                    </select>
+                                <div className="dropdown-container">
+                                    <CustomDropdown
+                                        options={regionData[selectedRegion] || []}
+                                        value={regionData[selectedRegion]?.[0] || ""}
+                                        onChange={(value) => console.log("Selected city:", value)}
+                                        width="200px"
+                                    />
                                 </div>
                             </div>
 
@@ -260,6 +352,77 @@ export default function CollectorAssignment() {
                 
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
                     background: #a1a1a1;
+                }
+            `}</style>
+
+            {/* Custom styles for dropdown scrollbar */}
+            <style jsx global>{`
+                .dropdown-container select {
+                    max-height: 38px; /* Height of a single option */
+                }
+
+                /* This targets the dropdown options when open */
+                .dropdown-container select option {
+                    padding: 8px 12px;
+                }
+
+                /* These styles will be applied by the browser for the dropdown menu */
+                @media screen and (-webkit-min-device-pixel-ratio:0) {
+                    select {
+                        height: 38px;
+                    }
+                    
+                    select:focus {
+                        overflow: -moz-scrollbars-vertical;
+                        overflow-y: auto;
+                    }
+                }
+
+                /* For Firefox */
+                @-moz-document url-prefix() {
+                    select {
+                        scrollbar-width: thin;
+                        scrollbar-color: #d1d1d1 transparent;
+                    }
+                    
+                    select:focus {
+                        overflow: auto;
+                    }
+                }
+
+                /* For Webkit browsers */
+                select::-webkit-scrollbar {
+                    width: 6px;
+                }
+
+                select::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+
+                select::-webkit-scrollbar-thumb {
+                    background: #d1d1d1;
+                    border-radius: 10px;
+                }
+
+                select::-webkit-scrollbar-thumb:hover {
+                    background: #b1b1b1;
+                }
+
+                .custom-dropdown-scrollbar::-webkit-scrollbar {
+                  width: 6px;
+                }
+
+                .custom-dropdown-scrollbar::-webkit-scrollbar-track {
+                  background: transparent;
+                }
+
+                .custom-dropdown-scrollbar::-webkit-scrollbar-thumb {
+                  background: #d1d1d1;
+                  border-radius: 10px;
+                }
+
+                .custom-dropdown-scrollbar::-webkit-scrollbar-thumb:hover {
+                  background: #b1b1b1;
                 }
             `}</style>
         </div>
