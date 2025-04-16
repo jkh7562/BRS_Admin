@@ -7,7 +7,7 @@ import Topbar from "../../component/Topbar"
 import SearchIcon from "../../assets/검색.png"
 import CopyIcon from "../../assets/copy.png"
 import DownIcon from "../../assets/Down.png"
-
+import RightIcon from "../../assets/Vector-right.png"
 
 const N_boxControlLogPage = () => {
     // Replace the year, month, day state definitions with these:
@@ -586,7 +586,8 @@ const N_boxControlLogPage = () => {
                                         <td className="py-4 px-6 text-sm text-gray-500">{log.dischargeInfo}</td>
                                         <td className="py-4 px-6 text-right">
                                             <button className="pl-14 text-sm text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
-                                                사용자 상세정보 보기 <span className="text-2xl">›</span>
+                                                사용자 상세정보 보기{" "}
+                                                <img src={RightIcon || "/placeholder.svg"} alt="오른쪽 화살표" className="w-2 h-3 ml-1" />
                                             </button>
                                         </td>
                                     </tr>
