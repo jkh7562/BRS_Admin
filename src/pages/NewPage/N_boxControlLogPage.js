@@ -475,6 +475,11 @@ const N_boxControlLogPage = () => {
                                 </div>
                             </div>
                         </div>
+
+                        {/* 밑줄 추가 - 간격 좁힘 */}
+                        <div className="relative -mt-2">
+                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
+                        </div>
                     </div>
 
                     {/* 스크롤바 스타일 */}
