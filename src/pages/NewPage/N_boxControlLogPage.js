@@ -311,7 +311,7 @@ const N_boxControlLogPage = () => {
                                 className={`w-full py-6 ${isBoxBlocked ? "bg-red-600" : "bg-[#21262B]"} text-white rounded-2xl font-medium flex items-center justify-start pl-6 hover:${isBoxBlocked ? "bg-red-700" : "bg-[#1a1f23]"} transition-colors`}
                             >
                                 수거함 차단
-                                <div className="pl-[90px]">{isBoxBlocked ? "차단됨" : "차단"}</div>
+                                <div className="pl-[80px]">{isBoxBlocked ? "차단됨" : "차단"}</div>
                                 <div
                                     className={`w-4 h-4 rounded-full ml-2 ${isBoxBlocked ? "bg-white" : "border-2 border-white"}`}
                                 ></div>
