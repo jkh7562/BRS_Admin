@@ -66,6 +66,7 @@ const Sidebar = () => {
             label: "수거자 배치",
             icon: assignIcon,
             iconOn: assignIcon_on,
+            route: "/n_collectorAssignmentPage",
         },
         {
             key: "monitor",
