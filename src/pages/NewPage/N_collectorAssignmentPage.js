@@ -235,7 +235,7 @@ const N_collectorAssignmentPage = () => {
                     <div className="h-1"></div>
 
                     <div className="flex bg-white rounded-2xl shadow-md overflow-hidden h-[570px] relative">
-                        <Map center={{lat: 36.8082, lng: 127.009}} style={{width: "100%", height: "100%"}} level={3}/>
+                        <Map center={{lat: 36.8082, lng: 127.009}} style={{width: "100%", height: "100%"}} level={10}/>
                     </div>
                     <CollectorAssignment/>
                 </main>
