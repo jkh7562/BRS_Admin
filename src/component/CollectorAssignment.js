@@ -4,7 +4,6 @@ import { useState } from "react"
 import SearchIcon from "../assets/검색.png"
 import CopyIcon from "../assets/copy.png"
 import InfoIcon from "../assets/추가정보2.png"
-import LineIcon from "../assets/구분선.png"
 import VectorIcon from "../assets/Vector.png"
 
 export default function CollectorAssignment() {
@@ -15,8 +14,7 @@ export default function CollectorAssignment() {
             {/* Left Sidebar - User List */}
             <div className="w-full md:w-[350px] h-full flex flex-col shadow-lg">
                 <div className="p-3">
-                    <div className="flex items-center justify-between mx-4">
-                    </div>
+                    <div className="flex items-center justify-between mx-4"></div>
                     <div className="relative mt-4">
                         <input
                             type="text"
@@ -61,8 +59,7 @@ export default function CollectorAssignment() {
                                 <h2 className="font-bold text-lg">정윤식</h2>
                                 <div className="flex">
                                     <p className="text-sm text-gray-500">
-                                        <span className="font-bold">가입일자</span> <span
-                                        className="font-normal">2025.02.03</span>
+                                        <span className="font-bold">가입일자</span> <span className="font-normal">2025.02.03</span>
                                     </p>
                                 </div>
                             </div>
@@ -77,8 +74,8 @@ export default function CollectorAssignment() {
                                 <div className="flex items-center justify-start gap-2 mb-2">
                                     <span className="text-sm font-normal text-gray-500">광역시/도</span>
                                     <span>
-            <img src={InfoIcon || "/placeholder.svg"} alt="정보" className="w-4 h-4 object-contain"/>
-          </span>
+                    <img src={InfoIcon || "/placeholder.svg"} alt="정보" className="w-4 h-4 object-contain" />
+                  </span>
                                 </div>
                                 <div>
                                     <select className="w-[200px] px-3 py-2 border border-black/20 rounded-lg text-base">
@@ -97,8 +94,8 @@ export default function CollectorAssignment() {
                                 <div className="flex items-center justify-start gap-2 mb-2">
                                     <span className="text-sm font-normal text-gray-500">시/군/구</span>
                                     <span>
-            <img src={InfoIcon || "/placeholder.svg"} alt="정보" className="w-4 h-4 object-contain"/>
-          </span>
+                    <img src={InfoIcon || "/placeholder.svg"} alt="정보" className="w-4 h-4 object-contain" />
+                  </span>
                                 </div>
                                 <div>
                                     <select className="w-[200px] px-3 py-2 border border-black/20 rounded-lg text-base">
@@ -145,7 +142,7 @@ export default function CollectorAssignment() {
                                         </button>
                                     </div>
                                     <button className="text-sm font-medium text-gray-500">
-                                    수거 로그 자세히보기{" "}
+                                        수거 로그 자세히보기{" "}
                                         <img
                                             src={VectorIcon || "/placeholder.svg"}
                                             alt="Vector Icon"
@@ -158,8 +155,7 @@ export default function CollectorAssignment() {
                                     {/* Chart with horizontal lines */}
                                     <div className="h-[200px] relative py-2 mt-2">
                                         {/* Horizontal grid lines */}
-                                        <div
-                                            className="absolute left-0 right-0 top-0 bottom-0 flex flex-col justify-between">
+                                        <div className="absolute left-0 right-0 top-0 bottom-0 flex flex-col justify-between">
                                             <div className="border-b border-gray-100 w-full h-0"></div>
                                             <div className="border-b border-gray-100 w-full h-0"></div>
                                             <div className="border-b border-gray-100 w-full h-0"></div>
@@ -171,8 +167,7 @@ export default function CollectorAssignment() {
                                         </div>
 
                                         {/* Y-axis labels */}
-                                        <div
-                                            className="absolute top-0 left-0 bottom-0 flex flex-col justify-between text-xs text-gray-500 pr-2">
+                                        <div className="absolute top-0 left-0 bottom-0 flex flex-col justify-between text-xs text-gray-500 pr-2">
                                             <div>2000</div>
                                             <div>1500</div>
                                             <div>1250</div>
@@ -184,19 +179,18 @@ export default function CollectorAssignment() {
                                         </div>
 
                                         {/* Chart bars */}
-                                        <div
-                                            className="absolute bottom-0 left-10 right-0 flex justify-between h-full items-end">
-                                            <ChartBar height={10} date="02.03"/>
-                                            <ChartBar height={8} date="02.04"/>
-                                            <ChartBar height={8} date="02.05"/>
-                                            <ChartBar height={0} date="02.06"/>
-                                            <ChartBar height={0} date="02.07"/>
-                                            <ChartBar height={20} date="02.08"/>
-                                            <ChartBar height={25} date="02.09"/>
-                                            <ChartBar height={0} date="02.10"/>
-                                            <ChartBar height={0} date="02.11"/>
-                                            <ChartBar height={30} date="02.12"/>
-                                            <ChartBar height={0} date="02.13"/>
+                                        <div className="absolute bottom-0 left-10 right-0 flex justify-between h-full items-end">
+                                            <ChartBar height={10} date="02.03" />
+                                            <ChartBar height={8} date="02.04" />
+                                            <ChartBar height={8} date="02.05" />
+                                            <ChartBar height={0} date="02.06" />
+                                            <ChartBar height={0} date="02.07" />
+                                            <ChartBar height={20} date="02.08" />
+                                            <ChartBar height={25} date="02.09" />
+                                            <ChartBar height={0} date="02.10" />
+                                            <ChartBar height={0} date="02.11" />
+                                            <ChartBar height={30} date="02.12" />
+                                            <ChartBar height={0} date="02.13" />
                                         </div>
                                     </div>
 
@@ -204,8 +198,7 @@ export default function CollectorAssignment() {
                                     <div className="flex items-center justify-center mt-4">
                                         <button className="px-2 text-sm">&lt;</button>
                                         <div className="w-64 h-2 bg-gray-200 rounded-full relative mx-2">
-                                            <div
-                                                className="absolute left-0 w-1/3 h-full bg-gray-700 rounded-full"></div>
+                                            <div className="absolute left-0 w-1/3 h-full bg-gray-700 rounded-full"></div>
                                         </div>
                                         <button className="px-2 text-sm">&gt;</button>
                                     </div>
@@ -215,59 +208,35 @@ export default function CollectorAssignment() {
                     </div>
                 </div>
 
-                {/* Right Sidebar - Collection Log */}
-                <div className="w-full md:w-[300px] h-full flex flex-col shadow-lg pl-7 pt-9">
-                    <div className="flex justify-between items-center mr-6 pb-7">
-                        <h2 className="font-bold text-xl">알림 내역</h2>
-                        <h2 className="font-medium text-gray-500 text-sm">
-                            자세히보기
-                            <img
-                                src={VectorIcon || "/placeholder.svg"}
-                                alt="Vector Icon"
-                                className="ml-1 inline-block w-2 h-3 mb-1"
-                            />
-                        </h2>
-                    </div>
+                {/* Right Sidebar - User Information Card */}
+                <div className="w-full md:w-[300px] h-full flex flex-col shadow-lg p-7">
+                    <div className="px-2 pt-2">
+                        <h2 className="text-xl font-bold mb-2">정윤식</h2>
+                        <div className="flex">
+                            <span className="font-bold text-gray-500 w-20 mb-6">전화번호</span>
+                            <span className="text-gray-500">010-2222-2222</span>
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex">
+                                <span className="text-[#21262B] text-sm font-bold w-20">광역시/도</span>
+                                <span className="text-[#21262B] text-sm">충청남도</span>
+                            </div>
 
-                    {/* 수거 내역 영역에만 스크롤바 적용 */}
-                    <div className="overflow-auto flex-1 custom-scrollbar">
-                        <CollectionItem
-                            status="수거함 설치 진행 중"
-                            date="2025.03.01"
-                            time="오전 10:31"
-                            location="아산시 온양동"
-                            amount="36.123123 / 127.34567"
-                        />
+                            <div className="flex">
+                                <span className="text-[#21262B] text-sm font-bold w-20">시/군/구</span>
+                                <span className="text-[#21262B] text-sm">아산시</span>
+                            </div>
 
-                        <CollectionItem
-                            status="수거함 제거 완료"
-                            date="2025.02.19"
-                            time="오후 2:17"
-                            location="아산시 배방읍"
-                            amount="36.123123 / 127.34567"
-                        />
+                            <div className="flex">
+                                <span className="text-[#21262B] text-sm font-bold w-20">상태</span>
+                                <span className="text-[#21262B] text-sm">설치 진행중</span>
+                            </div>
 
-                        <CollectionItem
-                            status="화재 후 재가동 완료"
-                            date="2025.02.11"
-                            time="오전 11:23"
-                            location="아산시 탕정면"
-                            amount="36.123123 / 127.34567"
-                        />
-                        <CollectionItem
-                            status="수거함 설치 완료"
-                            date="2025.02.05"
-                            time="오후 3:45"
-                            location="아산시 온양동"
-                            amount="36.123123 / 127.34567"
-                        />
-                        <CollectionItem
-                            status="수거함 제거 진행 중"
-                            date="2025.02.05"
-                            time="오후 3:45"
-                            location="아산시 온양동"
-                            amount="36.123123 / 127.34567"
-                        />
+                            <div className="flex">
+                                <span className="text-[#21262B] text-sm font-bold w-20">알림일자</span>
+                                <span className="text-[#21262B] text-sm">2025/03/16</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
