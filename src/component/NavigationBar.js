@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom"; // React Router의 Link �
 import SpringbootLogo from "../assets/Springboot.png";
 import MySQLLogo from "../assets/MySQL.png";
 import ReactLogo from "../assets/React.png";
-import { logout, checkPassword, updatePassword } from "../api/apiServices"
+import { logout, checkPassword, updatePassword, requestInstallConfirmed, requestRemoveConfirmed } from "../api/apiServices"
 import { useDispatch, useSelector } from "react-redux"; // ✅ Redux 추가
 import { fetchMyInfo } from "../slices/myInfoSlice"; // ✅ 내 정보 가져오는 Thunk 추가
 import { fetchBoxLog } from "../slices/boxLogSlice";
@@ -37,7 +37,7 @@ const NavigationBar = () => {
     }, [status, dispatch]);
 
     useEffect(() => {
-        const eventSource = new EventSource(`https://192.168.0.20:8443/SSEsubscribe`, {
+        const eventSource = new EventSource(`https://localhost:8443/SSEsubscribe`, {
             withCredentials: true,
         });
         console.log("구독 후", eventSource);
@@ -65,6 +65,36 @@ const NavigationBar = () => {
             eventSource.close();
         };
     }, []);
+
+    const handleAccept = async (alarm) => {
+        console.log("✅ 수락 클릭:", alarm);
+
+        try {
+            let response = null;
+
+            if (alarm.type === "INSTALL_COMPLETED") {
+                response = await requestInstallConfirmed(alarm.boxId);
+            } else if (alarm.type === "REMOVE_COMPLETED") {
+                response = await requestRemoveConfirmed(alarm.boxId);
+            }
+
+            if (response === "Success") {
+                alert("✅ 수락 처리 완료");
+                // TODO: 알림 리스트에서 제거하거나 상태 업데이트
+            } else {
+                alert("⚠️ 수락 처리 실패");
+            }
+        } catch (error) {
+            alert("❌ 처리 중 오류 발생");
+            console.error(error);
+        }
+    };
+
+    const handleReject = (alarm) => {
+        console.log("❌ 거절 클릭:", alarm);
+        // 예: 알람 무시하거나 resolved 상태로 업데이트
+    };
+
 
     const toggleNotificationSidebar = () => {
         setProfileSidebarOpen(false);
@@ -274,18 +304,46 @@ const NavigationBar = () => {
                     >
                         닫기
                     </button>
+
                     <div className="space-y-6">
-                        <div className="p-4 bg-gray-100 rounded shadow-md">
-                            <p className="font-bold">수거함 추가</p>
-                            <p className="text-sm text-gray-600">1월 02일</p>
-                            <p className="text-sm text-gray-800">선문대 동문 앞 수거함이 추가되었습니다.</p>
-                        </div>
-                        <div className="p-4 bg-gray-100 rounded shadow-md">
-                            <p className="font-bold">수거함 제거</p>
-                            <p className="text-sm text-gray-600">1월 01일</p>
-                            <p className="text-sm text-gray-800">선문대 서문 앞 수거함이 제거되었습니다.</p>
-                        </div>
+                        {alarms.length === 0 ? (
+                            <p className="text-sm text-gray-500">알림이 없습니다.</p>
+                        ) : (
+                            alarms.map((alarm, index) => (
+                                <div
+                                    key={index}
+                                    className="p-4 bg-gray-100 rounded shadow-md"
+                                >
+                                    <p className="font-bold">{alarm.type.replaceAll('_', ' ')}</p>
+                                    <p className="text-sm text-gray-600">
+                                        {new Date(alarm.date).toLocaleDateString('ko-KR')} {new Date(alarm.date).toLocaleTimeString('ko-KR')}
+                                    </p>
+                                    <p className="text-sm text-gray-800">
+                                        박스 {alarm.boxId}에 대한 알림입니다.
+                                    </p>
+
+                                    {/* ✅ 수락/거절 버튼 조건부 렌더링 */}
+                                    {(alarm.type === "INSTALL_COMPLETED" || alarm.type === "REMOVE_COMPLETED") && (
+                                        <div className="mt-4 flex justify-end space-x-2">
+                                            <button
+                                                className="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600"
+                                                onClick={() => handleAccept(alarm)}
+                                            >
+                                                수락
+                                            </button>
+                                            <button
+                                                className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                                                onClick={() => handleReject(alarm)}
+                                            >
+                                                거절
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ))
+                        )}
                     </div>
+
                 </div>
             </div>
 
