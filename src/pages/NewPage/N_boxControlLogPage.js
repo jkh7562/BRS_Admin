@@ -477,11 +477,104 @@ const N_boxControlLogPage = () => {
                         </div>
 
                         {/* 밑줄 추가 - 간격 좁힘 */}
-                        <div className="relative -mt-2">
+                        <div className="relative -mt-2 mb-10">
                             <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
                         </div>
                     </div>
 
+                    {/* 로그 테이블 */}
+                    <div className="mt-4 bg-white rounded-2xl shadow-sm overflow-hidden">
+                        <table className="w-full">
+                            <thead className="bg-gray-50 text-left">
+                            <tr>
+                                <th className="py-4 px-6 text-sm font-medium text-gray-500">사용자 이름</th>
+                                <th className="py-4 px-6 text-sm font-medium text-gray-500">배출일자</th>
+                                <th className="py-4 px-6 text-sm font-medium text-gray-500">수거함 이름</th>
+                                <th className="py-4 px-6 text-sm font-medium text-gray-500">배출정보</th>
+                                <th className="py-4 px-6 text-sm font-medium text-gray-500 text-right">사용자 상세정보</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr className="border-t border-gray-200 hover:bg-gray-50">
+                                <td className="py-4 px-6">홍길동</td>
+                                <td className="py-4 px-6">2025/03/06</td>
+                                <td className="py-4 px-6">선문대학교 동문 앞 수거함</td>
+                                <td className="py-4 px-6">건전지 1개, 방전 배터리 3개</td>
+                                <td className="py-4 px-6 text-right">
+                                    <button className="text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
+                                        사용자 상세정보 보기 <span className="text-lg">›</span>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr className="border-t border-gray-200 bg-gray-50">
+                                <td className="py-4 px-6">정몽식</td>
+                                <td className="py-4 px-6">2025/03/06</td>
+                                <td className="py-4 px-6">선문대학교 동문 앞 수거함</td>
+                                <td className="py-4 px-6">건전지 11개, 방전 배터리 5개, 잔여 용량 배터리 7개</td>
+                                <td className="py-4 px-6 text-right">
+                                    <button className="text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
+                                        사용자 상세정보 보기 <span className="text-lg">›</span>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr className="border-t border-gray-200">
+                                <td className="py-4 px-6">공지철</td>
+                                <td className="py-4 px-6">2025/03/06</td>
+                                <td className="py-4 px-6">선문대학교 동문 앞 수거함</td>
+                                <td className="py-4 px-6">방전 배터리 8개</td>
+                                <td className="py-4 px-6 text-right">
+                                    <button className="text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
+                                        사용자 상세정보 보기 <span className="text-lg">›</span>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr className="border-t border-gray-200 hover:bg-gray-50">
+                                <td className="py-4 px-6">김유신</td>
+                                <td className="py-4 px-6">2025/03/06</td>
+                                <td className="py-4 px-6">선문대학교 동문 앞 수거함</td>
+                                <td className="py-4 px-6">건전지 2개, 잔여 용량 배터리 1개</td>
+                                <td className="py-4 px-6 text-right">
+                                    <button className="text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
+                                        사용자 상세정보 보기 <span className="text-lg">›</span>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr className="border-t border-gray-200">
+                                <td className="py-4 px-6">홍길동</td>
+                                <td className="py-4 px-6">2025/03/06</td>
+                                <td className="py-4 px-6">선문대학교 동문 앞 수거함</td>
+                                <td className="py-4 px-6">건전지 1개, 방전 배터리 3개</td>
+                                <td className="py-4 px-6 text-right">
+                                    <button className="text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
+                                        사용자 상세정보 보기 <span className="text-lg">›</span>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr className="border-t border-gray-200 bg-gray-50">
+                                <td className="py-4 px-6">정몽식</td>
+                                <td className="py-4 px-6">2025/03/06</td>
+                                <td className="py-4 px-6">선문대학교 동문 앞 수거함</td>
+                                <td className="py-4 px-6">건전지 11개, 방전 배터리 5개, 잔여 용량 배터리 7개</td>
+                                <td className="py-4 px-6 text-right">
+                                    <button className="text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
+                                        사용자 상세정보 보기 <span className="text-lg">›</span>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr className="border-t border-gray-200">
+                                <td className="py-4 px-6">공지철</td>
+                                <td className="py-4 px-6">2025/03/06</td>
+                                <td className="py-4 px-6">선문대학교 동문 앞 수거함</td>
+                                <td className="py-4 px-6">방전 배터리 8개</td>
+                                <td className="py-4 px-6 text-right">
+                                    <button className="text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
+                                        사용자 상세정보 보기 <span className="text-lg">›</span>
+                                    </button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
                     {/* 스크롤바 스타일 */}
                     <style jsx>{`
                         .custom-scrollbar::-webkit-scrollbar {
