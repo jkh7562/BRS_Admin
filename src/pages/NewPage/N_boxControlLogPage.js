@@ -615,6 +615,7 @@ const N_boxControlLogPage = () => {
                             }
                         `}</style>
                     </div>
+                    <div className="pb-32" />
                 </div>
             </div>
         </div>

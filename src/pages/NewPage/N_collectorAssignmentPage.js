@@ -238,6 +238,7 @@ const N_collectorAssignmentPage = () => {
                         <Map center={{lat: 36.8082, lng: 127.009}} style={{width: "100%", height: "100%"}} level={10}/>
                     </div>
                     <CollectorAssignment/>
+                    <div className="pb-32" />
                 </main>
             </div>
 
