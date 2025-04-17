@@ -171,12 +171,6 @@ const Sidebar = () => {
                     {openSection.react && (
                         <>
                             <p className="ml-10 pb-2 flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-[#6DDFC0] inline-block"></span> 사용자
-                            </p>
-                            <p className="ml-10 pb-2 flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-[#6DDFC0] inline-block"></span> 수거자
-                            </p>
-                            <p className="ml-10 pb-2 flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-[#6DDFC0] inline-block"></span> 관리자
                             </p>
                         </>
