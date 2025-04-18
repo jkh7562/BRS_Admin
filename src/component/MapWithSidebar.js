@@ -59,9 +59,9 @@ const MapWithSidebar = ({ filteredBoxes }) => {
                             >
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <h3>{box.name}</h3>
-                                        <p className="text-sm text-gray-500 mt-1">충남 아산시 탕정면 선문로 221번길 70</p>
-                                        <p className="text-sm text-gray-500 mt-1">
+                                        <h3 className="font-bold text-[#21262B]">{box.name}</h3>
+                                        <p className="font-nomal text-sm text-[#60697E] mt-1">충남 아산시 탕정면 선문로 221번길 70</p>
+                                        <p className="font-nomal text-sm text-[#60697E] mt-1">
                                             {typeof box.lat === "number" ? box.lat.toFixed(8) : box.lat} /{" "}
                                             {typeof box.lng === "number" ? box.lng.toFixed(8) : box.lng}
                                         </p>
