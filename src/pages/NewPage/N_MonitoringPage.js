@@ -2,10 +2,10 @@ import { useState, useEffect } from "react"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import DownIcon from "../../assets/Down.png"
-import InstallationMonitoring from "../../component/monitoring/InstallationMonitoring"
-import RemoveMonitoring from "../../component/monitoring/RemoveMonitoring"
-import CollectMonitoring from "../../component/monitoring/CollectMonitoring"
-import FireMonitoring from "../../component/monitoring/FireMonitoring"
+import InstallationMonitoring from "../../component/Monitoring/InstallationMonitoring"
+import RemoveMonitoring from "../../component/Monitoring/RemoveMonitoring"
+import CollectMonitoring from "../../component/Monitoring/CollectMonitoring"
+import FireMonitoring from "../../component/Monitoring/FireMonitoring"
 
 const N_MonitoringPage = () => {
     // 지역 및 도시 데이터
