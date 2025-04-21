@@ -1,6 +1,7 @@
 import { Map } from "react-kakao-maps-sdk"
 import SearchIcon from "../assets/검색.png"
 import CopyIcon from "../assets/copy.png"
+import Sample from "../assets"
 
 export default function InstallationMonitoring() {
     return (
