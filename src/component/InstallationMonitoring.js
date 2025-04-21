@@ -4,6 +4,7 @@ import SearchIcon from "../assets/검색.png"
 import CopyIcon from "../assets/copy.png"
 import Sample from "../assets/Sample.png"
 import DownIcon from "../assets/Down.png"
+import Expansion from "../assets/Expansion.png"
 
 export default function InstallationMonitoring() {
     const [selectedOption, setSelectedOption] = useState("전체")
@@ -125,8 +126,22 @@ export default function InstallationMonitoring() {
                         <span className="font-nomal">2025.03.16</span>
                     </div>
                 </div>
-                <img src={Sample || "/placeholder.svg"} alt="Picture" width="234px" height="189px"
-                     className="rounded-2xl mt-7"/>
+                <div className="relative inline-block">
+                    <img
+                        src={Sample || "/placeholder.svg"}
+                        alt="사진"
+                        width="234px"
+                        height="189px"
+                        className="rounded-2xl mt-7"
+                    />
+                    <img
+                        src={Expansion || "/placeholder.svg"}
+                        alt="확대"
+                        width="20px"
+                        height="20px"
+                        className="absolute bottom-4 right-4"
+                    />
+                </div>
                 <span className="mt-2 flex gap-2">
                     <button className="bg-[#21262B] text-white rounded-2xl py-2 px-14">
                     수락
