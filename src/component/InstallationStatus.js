@@ -83,10 +83,6 @@ export default function InstallationStatus() {
                         <span className="font-nomal">2025.03.16</span>
                     </div>
                 </div>
-
-                <div className="mt-7">
-                    <button className="w-full py-2 bg-[#21262B] text-white rounded-2xl font-medium">수거자 상세정보 보기</button>
-                </div>
             </div>
 
             {/* 스크롤바 스타일 */}

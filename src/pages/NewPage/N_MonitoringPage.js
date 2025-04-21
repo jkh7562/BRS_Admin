@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import DownIcon from "../../assets/Down.png"
+import InstallationMonitoring from "../../component/InstallationMonitoring"
 
 const N_MonitoringPage = () => {
     // 지역 및 도시 데이터
@@ -257,7 +258,7 @@ const N_MonitoringPage = () => {
                         <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
                     </div>
 
-                    {/* 여기에 모니터링 컨텐츠를 추가하세요 */}
+                    <InstallationMonitoring/>
                     <div className="pb-32" />
                 </main>
             </div>
