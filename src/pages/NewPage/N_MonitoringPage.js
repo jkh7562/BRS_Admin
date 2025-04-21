@@ -1,10 +1,11 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import DownIcon from "../../assets/Down.png"
 import InstallationMonitoring from "../../component/InstallationMonitoring"
+import RemoveMonitoring from "../../component/RemoveMonitoring"
+import CollectMonitoring from "../../component/CollectMonitoring"
+import FireMonitoring from "../../component/FireMonitoring"
 
 const N_MonitoringPage = () => {
     // 지역 및 도시 데이터
@@ -174,7 +175,7 @@ const N_MonitoringPage = () => {
                                 {/* 타입 드롭다운 메뉴 */}
                                 {openDropdown.type && (
                                     <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[160px] overflow-hidden shadow-sm">
-                                        {["설치", "제거", "수거예약", "화재 후 재가동"].map((type) => (
+                                        {["설치 현황", "제거 현황", "수거 현황", "화재 후 재가동"].map((type) => (
                                             <div
                                                 key={type}
                                                 className={`px-4 py-2 cursor-pointer font-normal ${
@@ -259,6 +260,9 @@ const N_MonitoringPage = () => {
                     </div>
 
                     <InstallationMonitoring/>
+                    <RemoveMonitoring/>
+                    <CollectMonitoring/>
+                    <FireMonitoring/>
                     <div className="pb-32" />
                 </main>
             </div>

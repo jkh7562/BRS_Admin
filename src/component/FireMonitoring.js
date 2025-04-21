@@ -6,11 +6,11 @@ import Sample from "../assets/Sample.png"
 import DownIcon from "../assets/Down.png"
 import Expansion from "../assets/Expansion.png"
 
-export default function InstallationMonitoring() {
+export default function FireMonitoring() {
     const [selectedOption, setSelectedOption] = useState("전체")
     const [isOpen, setIsOpen] = useState(false)
 
-    const options = ["전체", "설치요청", "설치 진행중", "설치 완료", "설치 확정"]
+    const options = ["전체", "재가동 진행중", "재가동 완료", "재가동 확정"]
 
     const toggleDropdown = () => setIsOpen(!isOpen)
 
@@ -28,7 +28,7 @@ export default function InstallationMonitoring() {
                     <div className="relative flex-1">
                         <input
                             type="text"
-                            placeholder="수거자 이름 검색"
+                            placeholder="재가동자 이름 검색"
                             className="w-full py-2 px-5 rounded-2xl border border-gray-300 text-sm focus:outline-none"
                         />
                         <div className="absolute right-5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
@@ -65,13 +65,13 @@ export default function InstallationMonitoring() {
 
                 {/* User list with scrollbar */}
                 <div className="overflow-auto flex-1 custom-scrollbar ml-4">
-                    <UserListItem name="홍길동" status="설치 완료" date="2025.03.17" isActive={false}/>
-                    <UserListItem name="김유신" status="설치 진행중" date="2025.03.16" isActive={true}/>
-                    <UserListItem name="이순신" status="설치 완료" date="2025.03.13" isActive={false}/>
-                    <UserListItem name="공자철" status="설치 확정" date="2025.03.09" isActive={false}/>
-                    <UserListItem name="공자철" status="설치 확정" date="2025.03.09" isActive={false}/>
-                    <UserListItem name="공자철" status="설치 확정" date="2025.03.09" isActive={false}/>
-                    <UserListItem name="공자철" status="설치 확정" date="2025.03.09" isActive={false}/>
+                    <UserListItem name="홍길동" status="재가동 완료" date="2025.03.17" isActive={false}/>
+                    <UserListItem name="김유신" status="재가동 진행중" date="2025.03.16" isActive={true}/>
+                    <UserListItem name="이순신" status="재가동 완료" date="2025.03.13" isActive={false}/>
+                    <UserListItem name="공자철" status="재가동 확정" date="2025.03.09" isActive={false}/>
+                    <UserListItem name="공자철" status="재가동 확정" date="2025.03.09" isActive={false}/>
+                    <UserListItem name="공자철" status="재가동 확정" date="2025.03.09" isActive={false}/>
+                    <UserListItem name="공자철" status="재가동 확정" date="2025.03.09" isActive={false}/>
                 </div>
             </div>
 
@@ -79,9 +79,9 @@ export default function InstallationMonitoring() {
             <div className="flex-1 relative flex flex-col">
                 {/* Map title overlay */}
                 <div className="p-10 pb-9 bg-white">
-                    <h2 className="text-2xl font-bold mb-1">[설치 진행중] 선문대학교 인문관 1층 수거함</h2>
+                    <h2 className="text-2xl font-bold mb-1">[재가동 진행중] 선문대학교 인문관 1층 재가동함</h2>
                     <p className="text-[#60697E]">
-                        <span className="font-bold">설치 좌표</span>{" "}
+                        <span className="font-bold">재가동 좌표</span>{" "}
                         <span className="font-normal">36.8082 / 127.009</span>
                         <span className="float-right text-sm">알림 일자 2025.03.16</span>
                     </p>
@@ -119,7 +119,7 @@ export default function InstallationMonitoring() {
                     </div>
                     <div className="flex items-center">
                         <span className="font-bold w-[70px]">상태</span>
-                        <span className="font-nomal">설치 진행중</span>
+                        <span className="font-nomal">재가동 진행중</span>
                     </div>
                     <div className="flex items-center">
                         <span className="font-bold w-[70px]">알림일자</span>
