@@ -1,9 +1,9 @@
 import { useState } from "react"
-import SearchIcon from "../assets/검색.png"
-import CopyIcon from "../assets/copy.png"
-import InfoIcon from "../assets/추가정보2.png"
-import LineIcon from "../assets/구분선.png"
-import VectorIcon from "../assets/Vector.png"
+import SearchIcon from "../../assets/검색.png"
+import CopyIcon from "../../assets/copy.png"
+import InfoIcon from "../../assets/추가정보2.png"
+import LineIcon from "../../assets/구분선.png"
+import VectorIcon from "../../assets/Vector.png"
 
 export default function CollectorInfoSection() {
     const [selectedPeriod, setSelectedPeriod] = useState("일")

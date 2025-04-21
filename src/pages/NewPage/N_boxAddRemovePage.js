@@ -3,8 +3,8 @@ import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import MapWithSidebar from "../../component/MapWithSidebar"
 import DownIcon from "../../assets/Down.png"
-import InstallationStatus from "../../component/InstallationStatus"
-import RemoveStatus from "../../component/RemoveStatus"
+import InstallationStatus from "../../component/Status/InstallationStatus"
+import RemoveStatus from "../../component/Status/RemoveStatus"
 
 const N_boxAddRemovePage = () => {
     const [activeTab, setActiveTab] = useState("전체")

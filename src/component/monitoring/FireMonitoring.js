@@ -1,17 +1,17 @@
 import { useState } from "react"
 import { Map } from "react-kakao-maps-sdk"
-import SearchIcon from "../assets/검색.png"
-import CopyIcon from "../assets/copy.png"
-import Sample from "../assets/Sample.png"
-import DownIcon from "../assets/Down.png"
-import Expansion from "../assets/Expansion.png"
+import SearchIcon from "../../assets/검색.png"
+import CopyIcon from "../../assets/copy.png"
+import Sample from "../../assets/Sample.png"
+import DownIcon from "../../assets/Down.png"
+import Expansion from "../../assets/Expansion.png"
 
 export default function CollectMonitoring() {
     const [selectedOption, setSelectedOption] = useState("전체")
     const [isOpen, setIsOpen] = useState(false)
     const [showModal, setShowModal] = useState(false)
 
-    const options = ["전체", "수거예약", "수거 진행중", "수거 완료", "수거 확정"]
+    const options = ["전체", "재가동 진행중", "재가동 완료", "재가동 확정"]
 
     const toggleDropdown = () => setIsOpen(!isOpen)
 
@@ -69,13 +69,13 @@ export default function CollectMonitoring() {
 
                 {/* User list with scrollbar */}
                 <div className="overflow-auto flex-1 custom-scrollbar ml-4">
-                    <UserListItem name="홍길동" status="수거 완료" date="2025.03.17" isActive={false} />
-                    <UserListItem name="김유신" status="수거 진행중" date="2025.03.16" isActive={true} />
-                    <UserListItem name="이순신" status="수거 완료" date="2025.03.13" isActive={false} />
-                    <UserListItem name="공자철" status="수거 확정" date="2025.03.09" isActive={false} />
-                    <UserListItem name="공자철" status="수거 확정" date="2025.03.09" isActive={false} />
-                    <UserListItem name="공자철" status="수거 확정" date="2025.03.09" isActive={false} />
-                    <UserListItem name="공자철" status="수거 확정" date="2025.03.09" isActive={false} />
+                    <UserListItem name="홍길동" status="재가동 완료" date="2025.03.17" isActive={false} />
+                    <UserListItem name="김유신" status="재가동 진행중" date="2025.03.16" isActive={true} />
+                    <UserListItem name="이순신" status="재가동 완료" date="2025.03.13" isActive={false} />
+                    <UserListItem name="공자철" status="재가동 확정" date="2025.03.09" isActive={false} />
+                    <UserListItem name="공자철" status="재가동 확정" date="2025.03.09" isActive={false} />
+                    <UserListItem name="공자철" status="재가동 확정" date="2025.03.09" isActive={false} />
+                    <UserListItem name="공자철" status="재가동 확정" date="2025.03.09" isActive={false} />
                 </div>
             </div>
 
@@ -83,9 +83,9 @@ export default function CollectMonitoring() {
             <div className="flex-1 relative flex flex-col">
                 {/* Map title overlay */}
                 <div className="p-10 pb-9 bg-white">
-                    <h2 className="text-2xl font-bold mb-1">[수거 진행중] 선문대학교 인문관 1층 수거함</h2>
+                    <h2 className="text-2xl font-bold mb-1">[재가동 진행중] 선문대학교 인문관 1층 재가동함</h2>
                     <p className="text-[#60697E]">
-                        <span className="font-bold">수거 좌표</span> <span className="font-normal">36.8082 / 127.009</span>
+                        <span className="font-bold">재가동 좌표</span> <span className="font-normal">36.8082 / 127.009</span>
                         <span className="float-right text-sm">알림 일자 2025.03.16</span>
                     </p>
                 </div>
@@ -122,7 +122,7 @@ export default function CollectMonitoring() {
                     </div>
                     <div className="flex items-center">
                         <span className="font-bold w-[70px]">상태</span>
-                        <span className="font-nomal">수거 진행중</span>
+                        <span className="font-nomal">재가동 진행중</span>
                     </div>
                     <div className="flex items-center">
                         <span className="font-bold w-[70px]">알림일자</span>

@@ -2,11 +2,11 @@
 
 import { useState } from "react"
 import { Map } from "react-kakao-maps-sdk"
-import SearchIcon from "../assets/검색.png"
-import CopyIcon from "../assets/copy.png"
-import Sample from "../assets/Sample.png"
-import DownIcon from "../assets/Down.png"
-import Expansion from "../assets/Expansion.png"
+import SearchIcon from "../../assets/검색.png"
+import CopyIcon from "../../assets/copy.png"
+import Sample from "../../assets/Sample.png"
+import DownIcon from "../../assets/Down.png"
+import Expansion from "../../assets/Expansion.png"
 
 export default function InstallationMonitoring() {
     const [selectedOption, setSelectedOption] = useState("전체")

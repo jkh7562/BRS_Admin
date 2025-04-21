@@ -2,10 +2,10 @@ import { useState, useEffect } from "react"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import DownIcon from "../../assets/Down.png"
-import InstallationMonitoring from "../../component/InstallationMonitoring"
-import RemoveMonitoring from "../../component/RemoveMonitoring"
-import CollectMonitoring from "../../component/CollectMonitoring"
-import FireMonitoring from "../../component/FireMonitoring"
+import InstallationMonitoring from "../../component/monitoring/InstallationMonitoring"
+import RemoveMonitoring from "../../component/monitoring/RemoveMonitoring"
+import CollectMonitoring from "../../component/monitoring/CollectMonitoring"
+import FireMonitoring from "../../component/monitoring/FireMonitoring"
 
 const N_MonitoringPage = () => {
     // 지역 및 도시 데이터
@@ -47,7 +47,7 @@ const N_MonitoringPage = () => {
 
     // 필터 상태
     const [filters, setFilters] = useState({
-        type: "설치",
+        type: "설치 현황",
         region: "광역시/도",
         city: "시/군/구",
     })
@@ -259,10 +259,10 @@ const N_MonitoringPage = () => {
                         <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
                     </div>
 
-                    <InstallationMonitoring/>
-                    <RemoveMonitoring/>
-                    <CollectMonitoring/>
-                    <FireMonitoring/>
+                    {filters.type === "설치 현황" && <InstallationMonitoring />}
+                    {filters.type === "제거 현황" && <RemoveMonitoring />}
+                    {filters.type === "수거 현황" && <CollectMonitoring />}
+                    {filters.type === "화재 후 재가동" && <FireMonitoring />}
                     <div className="pb-32" />
                 </main>
             </div>
