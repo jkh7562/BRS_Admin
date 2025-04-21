@@ -74,6 +74,7 @@ const Sidebar = () => {
             icon: monitorIcon,
             iconOn: monitorIcon_on,
             className: "w-6 h-5", // 크기 조정
+            route: "/n_MonitoringPage",
         },
         {
             key: "join",

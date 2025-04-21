@@ -24,6 +24,7 @@ const N_MainPage = lazy(() => import('../pages/NewPage/N_mainPage'))
 const N_BoxAddRemovePage = lazy(() => import('../pages/NewPage/N_boxAddRemovePage'))
 const N_BoxControlLogPage = lazy(() => import('../pages/NewPage/N_boxControlLogPage'))
 const N_collectorAssignmentPage = lazy(() => import('../pages/NewPage/N_collectorAssignmentPage'))
+const N_MonitoringPage = lazy(() => import('../pages/NewPage/N_MonitoringPage'))
 
 const root = createBrowserRouter([
     {
@@ -105,6 +106,10 @@ const root = createBrowserRouter([
     {
         path:"n_collectorAssignmentPage",
         element:<Suspense fallback={Loading}><N_collectorAssignmentPage/></Suspense>
+    },
+    {
+        path:"n_MonitoringPage",
+        element:<Suspense fallback={Loading}><N_MonitoringPage/></Suspense>
     }
 ]);
 export default root;
