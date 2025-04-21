@@ -81,12 +81,14 @@ const Sidebar = () => {
             label: "가입관리",
             icon: joinIcon,
             iconOn: joinIcon_on,
+            route: "/n_UserApprovalPage"
         },
         {
             key: "order",
             label: "주문내역",
             icon: orderIcon,
             iconOn: orderIcon_on,
+            route: "/n_OrderHistoryPage"
         },
     ]
 
