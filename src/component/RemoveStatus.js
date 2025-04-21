@@ -21,7 +21,7 @@ export default function RemoveStatus() {
                 </div>
 
                 {/* User list with scrollbar */}
-                <div className="overflow-auto flex-1 custom-scrollbar mx-4">
+                <div className="overflow-auto flex-1 custom-scrollbar ml-4">
                     <UserListItem name="홍길동" status="제거 완료" date="2025.03.17" isActive={false}/>
                     <UserListItem name="김유신" status="제거 진행중" date="2025.03.16" isActive={true}/>
                     <UserListItem name="이순신" status="제거 완료" date="2025.03.13" isActive={false}/>

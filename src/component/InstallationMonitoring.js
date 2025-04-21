@@ -1,28 +1,69 @@
+import { useState } from "react"
 import { Map } from "react-kakao-maps-sdk"
 import SearchIcon from "../assets/검색.png"
 import CopyIcon from "../assets/copy.png"
-import Sample from "../assets"
+import Sample from "../assets/Sample.png"
+import DownIcon from "../assets/Down.png"
 
 export default function InstallationMonitoring() {
+    const [selectedOption, setSelectedOption] = useState("전체")
+    const [isOpen, setIsOpen] = useState(false)
+
+    const options = ["전체", "설치요청", "설치 진행 중", "설치 완료", "설치 확정"]
+
+    const toggleDropdown = () => setIsOpen(!isOpen)
+
+    const selectOption = (option) => {
+        setSelectedOption(option)
+        setIsOpen(false)
+    }
+
     return (
-        <div className="flex h-[525px] bg-white rounded-2xl shadow-md overflow-hidden">
+        <div className="flex h-[555px] bg-white rounded-2xl shadow-md overflow-hidden">
             {/* Left Sidebar - User List */}
-            <div className="w-[350px] h-full flex flex-col border-r">
-                <div>
-                    <div className="relative mx-2 my-4 p-3">
+            <div className="w-[386px] h-full flex flex-col border-r">
+                <div className="flex items-center gap-2 mx-2 my-4 pl-3">
+                    {/* 검색 입력 필드 */}
+                    <div className="relative flex-1">
                         <input
                             type="text"
                             placeholder="수거자 이름 검색"
-                            className="w-full py-2 pl-4 rounded-2xl border border-black/20 text-sm focus:outline-none"
+                            className="w-full py-2 px-5 rounded-2xl border border-gray-300 text-sm focus:outline-none"
                         />
-                        <div className="absolute right-8 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
+                        <div className="absolute right-5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
                             <img src={SearchIcon || "/placeholder.svg"} alt="검색"/>
                         </div>
+                    </div>
+
+                    {/* 드롭다운 */}
+                    <div className="relative min-w-[140px] pr-3">
+                        <button
+                            onClick={toggleDropdown}
+                            className="flex items-center justify-between w-full py-2 px-5 rounded-2xl border border-[#7A7F8A] text-sm"
+                        >
+                            <span>{selectedOption}</span>
+                            <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2 ml-2"/>
+                        </button>
+
+                        {isOpen && (
+                            <div
+                                className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg">
+                                {options.map((option) => (
+                                    <div
+                                        key={option}
+                                        className="px-4 py-1.5 hover:bg-gray-100 cursor-pointer text-sm"
+                                        onClick={() => selectOption(option)}
+                                    >
+                                        {option}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 {/* User list with scrollbar */}
-                <div className="overflow-auto flex-1 custom-scrollbar mx-4">
+                <div className="overflow-auto flex-1 custom-scrollbar ml-4">
                     <UserListItem name="홍길동" status="설치 완료" date="2025.03.17" isActive={false}/>
                     <UserListItem name="김유신" status="설치 진행중" date="2025.03.16" isActive={true}/>
                     <UserListItem name="이순신" status="설치 완료" date="2025.03.13" isActive={false}/>
@@ -46,7 +87,7 @@ export default function InstallationMonitoring() {
                 </div>
 
                 {/* Map */}
-                <div className="flex-1 w-full px-10 pb-10">
+                <div className="flex-1 w-full px-10 pb-14">
                     <Map
                         center={{lat: 36.8082, lng: 127.009}}
                         style={{width: "100%", height: "100%"}}
@@ -84,6 +125,16 @@ export default function InstallationMonitoring() {
                         <span className="font-nomal">2025.03.16</span>
                     </div>
                 </div>
+                <img src={Sample || "/placeholder.svg"} alt="Picture" width="234px" height="189px"
+                     className="rounded-2xl mt-7"/>
+                <span className="mt-2 flex gap-2">
+                    <button className="bg-[#21262B] text-white rounded-2xl py-2 px-14">
+                    수락
+                    </button>
+                    <button className="bg-[#FF7571] text-white rounded-2xl py-2 px-6">
+                        거절
+                    </button>
+                </span>
             </div>
 
             {/* 스크롤바 스타일 */}

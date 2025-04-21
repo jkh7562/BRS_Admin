@@ -238,7 +238,7 @@ const N_boxControlLogPage = () => {
                                 </div>
 
                                 {/* Box list with scrollbar */}
-                                <div className="overflow-auto flex-1 custom-scrollbar mx-4">
+                                <div className="overflow-auto flex-1 custom-scrollbar ml-4">
                                     {boxList.map((box) => (
                                         <BoxListItem
                                             key={box.id}
@@ -594,23 +594,24 @@ const N_boxControlLogPage = () => {
                             </table>
                         </div>
 
+                        {/* 스크롤바 스타일 */}
                         <style jsx>{`
-                            .scrollbar-container::-webkit-scrollbar {
+                            .custom-scrollbar::-webkit-scrollbar {
                                 width: 6px;
                             }
 
-                            .scrollbar-container::-webkit-scrollbar-track {
+                            .custom-scrollbar::-webkit-scrollbar-track {
                                 background: #f1f1f1;
                                 border-radius: 10px;
                             }
 
-                            .scrollbar-container::-webkit-scrollbar-thumb {
+                            .custom-scrollbar::-webkit-scrollbar-thumb {
                                 background: #c1c1c1;
                                 border-radius: 10px;
                                 height: 50px;
                             }
 
-                            .scrollbar-container::-webkit-scrollbar-thumb:hover {
+                            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
                                 background: #a1a1a1;
                             }
                         `}</style>
