@@ -1,3 +1,5 @@
+"use client"
+
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import { useState } from "react"
@@ -61,9 +63,18 @@ const N_UserApprovalPage = () => {
         },
     ])
 
+    // 정렬 상태 추가 (true: 최신순, false: 오래된순)
+    const [isNewest, setIsNewest] = useState(true)
+
     const handleApprove = (id: number) => {
         // 승인 처리 로직
         console.log(`사용자 ${id} 승인됨`)
+    }
+
+    // 정렬 방식 변경 함수
+    const toggleSortOrder = (newest: boolean) => {
+        setIsNewest(newest)
+        // 여기에 실제 정렬 로직을 추가할 수 있습니다
     }
 
     return (
@@ -77,8 +88,7 @@ const N_UserApprovalPage = () => {
                     <div>
                         <div className="bg-white shadow rounded-2xl flex items-center mb-3 px-8 py-1">
                             <div className="flex items-center font-nomal text-[#7A7F8A] mr-auto">
-                                <img src={BellIcon || "/placeholder.svg"} alt="Bell"
-                                     className="w-[13.49px] h-[15.65px] mr-2"/>
+                                <img src={BellIcon || "/placeholder.svg"} alt="Bell" className="w-[13.49px] h-[15.65px] mr-2" />
                                 <span>총 {registrations.length}건의 새로운 가입신청이 있습니다</span>
                             </div>
                             <div className="relative">
@@ -94,13 +104,18 @@ const N_UserApprovalPage = () => {
                                 />
                             </div>
                             <div className="flex ml-8">
-                                <button className="px-2 py-1 mr-2 flex items-center">
-                                    <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
-                                    오래된순
+                                <button className="px-2 py-1 mr-2 flex items-center"
+                                        onClick={() => toggleSortOrder(false)}>
+                                    <span
+                                        className={`w-2 h-2 ${!isNewest ? "bg-gray-900" : "bg-gray-400"} rounded-full mr-2`}></span>
+                                    <span
+                                        className={!isNewest ? "text-gray-900 font-medium" : "text-gray-500"}>오래된순</span>
                                 </button>
-                                <button className="px-2 py-1 flex items-center">
-                                    <span className="w-2 h-2 bg-gray-900 rounded-full mr-2"></span>
-                                    최신순
+                                <button className="px-2 py-1 flex items-center" onClick={() => toggleSortOrder(true)}>
+                                    <span
+                                        className={`w-2 h-2 ${isNewest ? "bg-gray-900" : "bg-gray-400"} rounded-full mr-2`}></span>
+                                    <span
+                                        className={isNewest ? "text-gray-900 font-medium" : "text-gray-500"}>최신순</span>
                                 </button>
                             </div>
                         </div>
@@ -154,24 +169,25 @@ const N_UserApprovalPage = () => {
                                         </div>
                                     </div>
 
-                                    <div
-                                        className="px-6 py-3 bg-white border-t flex justify-between items-center font-nomal text-[#7A7F8A]">
+                                    <div className="w-full bg-white px-6">
+                                        <img src={BottomLine || "/placeholder.svg"} alt="Bottom Line" className="w-full h-[1px]" />
+                                    </div>
+
+                                    <div className="px-6 py-6 bg-white flex justify-between items-center font-nomal text-[#7A7F8A]">
                                         <div className="flex items-center">
-                                            <img src={HomeIcon || "/placeholder.svg"} alt="Home"
-                                                 className="w-[17px] h-[15px] mr-2"/>
+                                            <img src={HomeIcon || "/placeholder.svg"} alt="Home" className="w-[17px] h-[15px] mr-2" />
                                             <span>{reg.address}</span>
                                         </div>
-                                        <button className="flex items-center text-[#60697E] hover:text-gray-700">
+                                        <button className="flex items-center text-[#60697E] hover:text-gray-700 pr-3">
                                             <span>가입신청 반려하기</span>
-                                            <img src={DownIcon || "/placeholder.svg"} alt="Down"
-                                                 className="w-3 h-2 ml-1"/>
+                                            <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2 ml-2" />
                                         </button>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
-                    <div className="pb-32"/>
+                    <div className="pb-32" />
                 </main>
             </div>
         </div>
