@@ -1,5 +1,3 @@
-"use client"
-
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import { useState } from "react"
@@ -7,6 +5,7 @@ import BellIcon from "../../assets/가입알림.png"
 import HomeIcon from "../../assets/Home.png"
 import SearchIcon from "../../assets/검색.png"
 import DownIcon from "../../assets/Down.png"
+import BottomLine from "../../assets/Line_Bottom.png"
 
 const N_UserApprovalPage = () => {
     const [registrations, setRegistrations] = useState([
@@ -78,7 +77,8 @@ const N_UserApprovalPage = () => {
                     <div>
                         <div className="bg-white shadow rounded-2xl flex items-center mb-3 px-8 py-1">
                             <div className="flex items-center font-nomal text-[#7A7F8A] mr-auto">
-                                <img src={BellIcon || "/placeholder.svg"} alt="Bell" className="w-[13.49px] h-[15.65px] mr-2"/>
+                                <img src={BellIcon || "/placeholder.svg"} alt="Bell"
+                                     className="w-[13.49px] h-[15.65px] mr-2"/>
                                 <span>총 {registrations.length}건의 새로운 가입신청이 있습니다</span>
                             </div>
                             <div className="relative">
@@ -108,30 +108,30 @@ const N_UserApprovalPage = () => {
                         <div className="space-y-1.5">
                             {registrations.map((reg) => (
                                 <div key={reg.id} className="shadow rounded-2xl overflow-hidden">
-                                    <div className="grid grid-cols-3 pt-10 pb-4 bg-white px-8">
-                                        <div className="space-y-1">
-                                            <div className="flex gap-1">
-                                                <span className="text-[#7A7F8A] w-16">이름</span>
-                                                <span className="text-[#21262B] font-bold">{reg.name}</span>
+                                    <div className="flex justify-between pt-10 pb-4 bg-white px-8">
+                                        <div className="flex space-x-28">
+                                            <div className="space-y-1">
+                                                <div className="flex gap-1">
+                                                    <span className="text-[#7A7F8A] w-16">이름</span>
+                                                    <span className="text-[#21262B] font-bold">{reg.name}</span>
+                                                </div>
+                                                <div className="flex gap-1">
+                                                    <span className="text-gray-500 w-16">전화번호</span>
+                                                    <span className="text-[#21262B] font-bold">{reg.phone}</span>
+                                                </div>
                                             </div>
-                                            <div className="flex gap-1">
-                                                <span className="text-gray-500 w-16">전화번호</span>
-                                                <span className="text-[#21262B] font-bold">{reg.phone}</span>
-                                            </div>
-                                        </div>
 
-                                        <div className="space-y-1">
-                                            <div className="flex gap-1">
-                                                <span className="text-[#7A7F8A] w-24">가입신청 일자</span>
-                                                <span className="text-[#21262B] font-bold">{reg.date}</span>
+                                            <div className="space-y-1">
+                                                <div className="flex gap-1">
+                                                    <span className="text-[#7A7F8A] w-24">가입신청 일자</span>
+                                                    <span className="text-[#21262B] font-bold">{reg.date}</span>
+                                                </div>
+                                                <div className="flex gap-1">
+                                                    <span className="text-[#7A7F8A] w-24"></span>
+                                                    <span className="text-[#21262B] font-bold">{reg.time}</span>
+                                                </div>
                                             </div>
-                                            <div className="flex gap-1">
-                                                <span className="text-[#7A7F8A] w-24"></span>
-                                                <span className="text-[#21262B] font-bold">{reg.time}</span>
-                                            </div>
-                                        </div>
 
-                                        <div className="flex justify-between">
                                             <div className="space-y-1">
                                                 <div className="flex gap-1">
                                                     <span className="text-[#7A7F8A] w-16">아이디</span>
@@ -142,15 +142,15 @@ const N_UserApprovalPage = () => {
                                                     <span className="text-[#21262B] font-bold">{reg.password}</span>
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <div className="flex items-center">
-                                                <button
-                                                    onClick={() => handleApprove(reg.id)}
-                                                    className="px-6 py-2 bg-[#E8F1F7] text-[#21262B] rounded-lg hover:bg-[#D8E3FA] transition-colors"
-                                                >
-                                                    승인
-                                                </button>
-                                            </div>
+                                        <div className="flex items-center">
+                                            <button
+                                                onClick={() => handleApprove(reg.id)}
+                                                className="px-6 py-2 bg-[#E8F1F7] text-[#21262B] rounded-lg hover:bg-[#D8E3FA] transition-colors"
+                                            >
+                                                승인
+                                            </button>
                                         </div>
                                     </div>
 
