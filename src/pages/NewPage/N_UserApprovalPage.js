@@ -171,7 +171,7 @@ const N_UserApprovalPage = () => {
                                         <img src={BottomLine || "/placeholder.svg"} alt="Bottom Line" className="w-full h-[1px]" />
                                     </div>
 
-                                    <div className="px-6 py-6 bg-white flex justify-between items-center font-nomal text-[#7A7F8A]">
+                                    <div className="p-6 bg-white flex justify-between items-center font-nomal text-[#7A7F8A]">
                                         <div className="flex items-center">
                                             <img src={HomeIcon || "/placeholder.svg"} alt="Home" className="w-[17px] h-[15px] mr-2" />
                                             <span>{reg.address}</span>
