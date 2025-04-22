@@ -1,5 +1,3 @@
-"use client"
-
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import { useState } from "react"

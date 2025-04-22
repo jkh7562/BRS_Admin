@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { Map } from "react-kakao-maps-sdk"
 import SearchIcon from "../../assets/검색.png"
