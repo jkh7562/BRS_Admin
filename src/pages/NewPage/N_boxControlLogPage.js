@@ -218,7 +218,7 @@ const N_boxControlLogPage = () => {
             <div className="flex-1 relative">
                 <Topbar />
                 <div className="pt-24 px-24 pb-6 space-y-4">
-                    <p className="font-bold text-xl">수거함 제어</p>
+                    <p className="font-bold text-[#272F42] text-xl">수거함 제어</p>
                     <div className="flex">
                         {/* Collection Box Control Interface - Left and Center sections */}
                         <div className="flex w-[1100px] h-[520px] bg-white rounded-2xl shadow-md overflow-hidden">
@@ -256,7 +256,7 @@ const N_boxControlLogPage = () => {
                             <div className="flex-1 relative flex flex-col">
                                 {/* Map title overlay */}
                                 <div className="p-10 pb-9 bg-white">
-                                    <h2 className="text-2xl font-bold mb-1">{selectedBox.name}</h2>
+                                    <h2 className="text-2xl text-[#21262B] font-bold mb-1">{selectedBox.name}</h2>
                                     <p className="text-[#60697E]">
                                         <span className="font-bold">좌표정보</span>{" "}
                                         <span className="font-normal">{selectedBox.location}</span>
@@ -283,7 +283,7 @@ const N_boxControlLogPage = () => {
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">건전지</div>
-                                        <div className="text-xl font-bold">{statsData.totalBoxes}개</div>
+                                        <div className="text-xl text-[#21262B] font-bold">{statsData.totalBoxes}개</div>
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
@@ -323,7 +323,7 @@ const N_boxControlLogPage = () => {
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">방전 배터리</div>
-                                        <div className="text-xl font-bold">{statsData.batteryCount}개</div>
+                                        <div className="text-xl text-[#21262B] font-bold">{statsData.batteryCount}개</div>
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
@@ -363,7 +363,7 @@ const N_boxControlLogPage = () => {
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-[#60697E]">잔여 용량 배터리</div>
-                                        <div className="text-xl font-bold">{statsData.activeBatteries}개</div>
+                                        <div className="text-xl text-[#21262B] font-bold">{statsData.activeBatteries}개</div>
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
@@ -452,12 +452,12 @@ const N_boxControlLogPage = () => {
                         </div>
                     </div>
                     <div>
-                        <p className="font-bold text-xl pt-10 pb-1">수거함 로그</p>
+                        <p className="font-bold text-[#272F42] text-xl pt-10 pb-1">수거함 로그</p>
                         {/* Log Type Dropdown */}
                         <div className="flex">
                             <div className="relative">
                                 <select
-                                    className={`appearance-none py-3 pr-8 text-base text-black focus:outline-none bg-transparent ${logType === "discharge" ? "font-bold" : "font-medium"}`}
+                                    className={`appearance-none py-3 pr-8 text-base text-[#21262B] focus:outline-none bg-transparent ${logType === "discharge" ? "font-bold" : "font-medium"}`}
                                     value={logType}
                                     onChange={(e) => setLogType(e.target.value)}
                                 >
@@ -477,7 +477,7 @@ const N_boxControlLogPage = () => {
                                 {/* Year Dropdown */}
                                 <div className="relative">
                                     <select
-                                        className="appearance-none py-3 pr-6 text-base text-black focus:outline-none bg-transparent font-bold"
+                                        className="appearance-none py-3 pr-6 text-base text-[#21262B] focus:outline-none bg-transparent font-bold"
                                         value={year}
                                         onChange={handleYearChange}
                                     >
@@ -496,7 +496,7 @@ const N_boxControlLogPage = () => {
                                 {/* Month Dropdown */}
                                 <div className="relative pl-4">
                                     <select
-                                        className={`appearance-none py-3 pr-6 text-base text-black focus:outline-none bg-transparent font-bold ${!year ? "opacity-50" : ""}`}
+                                        className={`appearance-none py-3 pr-6 text-base text-[#21262B] focus:outline-none bg-transparent font-bold ${!year ? "opacity-50" : ""}`}
                                         value={month}
                                         onChange={handleMonthChange}
                                         disabled={!year}
@@ -516,7 +516,7 @@ const N_boxControlLogPage = () => {
                                 {/* Day Dropdown */}
                                 <div className="relative pl-4">
                                     <select
-                                        className={`appearance-none py-3 pr-6 text-base text-black focus:outline-none bg-transparent font-bold ${!month || !year ? "opacity-50" : ""}`}
+                                        className={`appearance-none py-3 pr-6 text-base text-[#21262B] focus:outline-none bg-transparent font-bold ${!month || !year ? "opacity-50" : ""}`}
                                         value={day}
                                         onChange={handleDayChange}
                                         disabled={!month || !year}
@@ -631,9 +631,9 @@ function BoxListItem({ name, location, date, isActive, onClick }) {
         >
             <div className="flex items-start">
                 <div>
-                    <h3 className="text-base font-bold pb-2">{name}</h3>
-                    <p className="text-sm font-normal text-gray-500">설치좌표 {location}</p>
-                    <p className="text-sm font-normal text-gray-500">설치일자 {date}</p>
+                    <h3 className="text-base text-[#21262B] font-bold pb-2">{name}</h3>
+                    <p className="text-sm font-normal text-[#60697E]">설치좌표 {location}</p>
+                    <p className="text-sm font-normal text-[#60697E]">설치일자 {date}</p>
                 </div>
             </div>
             <button className="text-gray-400 self-start">

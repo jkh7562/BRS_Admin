@@ -197,7 +197,7 @@ const N_boxAddRemovePage = () => {
             <div className="flex-1 relative">
                 <Topbar />
                 <main className="pt-24 px-24 pb-6 space-y-4">
-                    <p className="font-bold text-xl">설치/제거 수거함 현황</p>
+                    <p className="font-bold text-[#272F42] text-xl">설치/제거 수거함 현황</p>
                     <div>
                         <div className="relative mb-6">
                             <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
@@ -207,7 +207,7 @@ const N_boxAddRemovePage = () => {
                                         key={tab}
                                         onClick={() => setActiveTab(tab)}
                                         className={`pb-1 bg-transparent ${
-                                            activeTab === tab ? "border-b-[3px] border-black text-black font-bold" : "text-gray-500"
+                                            activeTab === tab ? "border-b-[3px] border-black text-[#21262B] font-bold" : "text-[#60697E]"
                                         }`}
                                     >
                                         {tab}
@@ -221,13 +221,13 @@ const N_boxAddRemovePage = () => {
                     <MapWithSidebar filteredBoxes={filteredBoxes} />
 
                     <div className="pt-14 pb-3">
-                        <p className="font-bold text-xl">설치/제거 수거함 목록</p>
+                        <p className="font-bold text-[#272F42] text-xl">설치/제거 수거함 목록</p>
 
                         {/* 필터 UI 추가 */}
                         <div className="relative pt-2">
                             <div className="flex flex-wrap gap-7 mt-2 pb-1 font-bold relative z-10">
                                 <div className="relative dropdown-container">
-                                    <button className="flex items-center gap-2 text-base" onClick={() => toggleDropdown("type")}>
+                                    <button className="flex items-center gap-2 text-base text-[#21262B]" onClick={() => toggleDropdown("type")}>
                                         {filters.type}
                                         <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
                                     </button>
@@ -252,7 +252,7 @@ const N_boxAddRemovePage = () => {
                                 </div>
 
                                 <div className="relative dropdown-container">
-                                    <button className="flex items-center gap-2" onClick={() => toggleDropdown("region")}>
+                                    <button className="flex items-center gap-2 text-[#21262B]" onClick={() => toggleDropdown("region")}>
                                         {filters.region}
                                         <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
                                     </button>
@@ -278,7 +278,7 @@ const N_boxAddRemovePage = () => {
 
                                 <div className="relative dropdown-container">
                                     <button
-                                        className={`flex items-center gap-2 ${isCityDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                                        className={`flex items-center gap-2 text-[#21262B] ${isCityDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
                                         onClick={() => toggleDropdown("city")}
                                         disabled={isCityDisabled}
                                     >

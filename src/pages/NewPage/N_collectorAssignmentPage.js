@@ -157,13 +157,13 @@ const N_collectorAssignmentPage = () => {
             <div className="flex-1 relative">
                 <Topbar />
                 <main className="pt-24 px-24 pb-6 space-y-4">
-                    <p className="font-bold text-xl">수거자 배치 현황</p>
+                    <p className="font-bold text-[#272F42] text-xl">수거자 배치 현황</p>
 
                     {/* 필터 UI 추가 */}
                     <div className="relative">
                         <div className="flex flex-wrap gap-7 mt-2 pb-1 font-bold relative z-10">
                             <div className="relative dropdown-container">
-                                <button className="flex items-center gap-2" onClick={() => toggleDropdown("region")}>
+                                <button className="flex items-center gap-2 text-[#21262B]" onClick={() => toggleDropdown("region")}>
                                     {filters.region}
                                     <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
                                 </button>
@@ -190,7 +190,7 @@ const N_collectorAssignmentPage = () => {
 
                             <div className="relative dropdown-container">
                                 <button
-                                    className={`flex items-center gap-2 ${isCityDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                                    className={`flex items-center gap-2 text-[#21262B] ${isCityDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
                                     onClick={() => toggleDropdown("city")}
                                     disabled={isCityDisabled}
                                 >

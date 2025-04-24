@@ -101,7 +101,7 @@ const N_OrderHistoryPage = () => {
             <div className="flex-1 relative">
                 <Topbar />
                 <main className="pt-24 px-24 pb-6 space-y-6">
-                    <p className="font-bold text-xl">주문내역</p>
+                    <p className="font-bold text-[#272F42] text-xl">주문내역</p>
                     <div>
                         <div className="bg-white shadow rounded-2xl flex items-center mb-3 px-8 py-1">
                             <div className="flex items-center font-nomal text-[#7A7F8A] mr-auto">
@@ -125,15 +125,15 @@ const N_OrderHistoryPage = () => {
                                 <button className="px-2 py-1 mr-2 flex items-center"
                                         onClick={() => toggleSortOrder(false)}>
                                         <span
-                                            className={`w-2 h-2 ${!isNewest ? "bg-gray-900" : "bg-gray-400"} rounded-full mr-2`}></span>
+                                            className={`w-2 h-2 ${!isNewest ? "bg-[#21262B]" : "bg-gray-400"} rounded-full mr-2`}></span>
                                     <span
-                                        className={!isNewest ? "text-gray-900 font-medium" : "text-gray-500"}>오래된순</span>
+                                        className={!isNewest ? "text-[#21262B] font-medium" : "text-[#60697E]"}>오래된순</span>
                                 </button>
                                 <button className="px-2 py-1 flex items-center" onClick={() => toggleSortOrder(true)}>
                                         <span
-                                            className={`w-2 h-2 ${isNewest ? "bg-gray-900" : "bg-gray-400"} rounded-full mr-2`}></span>
+                                            className={`w-2 h-2 ${isNewest ? "bg-[#21262B]" : "bg-gray-400"} rounded-full mr-2`}></span>
                                     <span
-                                        className={isNewest ? "text-gray-900 font-medium" : "text-gray-500"}>최신순</span>
+                                        className={isNewest ? "text-[#21262B] font-medium" : "text-[#60697E]"}>최신순</span>
                                 </button>
                             </div>
                         </div>

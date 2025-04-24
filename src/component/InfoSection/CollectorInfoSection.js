@@ -82,7 +82,7 @@ export default function CollectorInfoSection() {
                             <StatCard title="시/군/구" value="아산시" />
                             <div className="h-12 flex items-center ml-[100px]">
                                 <button
-                                    className="bg-[#E8F1F7] text-[#21262B] px-9 py-2 rounded-2xl hover:bg-gray-200 transition-colors"
+                                    className="bg-[#E8F1F7] text-[#21262B] px-6 py-2 rounded-2xl hover:bg-gray-200 transition-colors"
                                     onClick={() => console.log("담당지역 변경 clicked")}
                                 >
                                     담당지역 변경

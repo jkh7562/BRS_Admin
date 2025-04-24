@@ -83,7 +83,7 @@ export default function CollectMonitoring() {
             <div className="flex-1 relative flex flex-col">
                 {/* Map title overlay */}
                 <div className="p-10 pb-9 bg-white">
-                    <h2 className="text-2xl font-bold mb-1">[재가동 진행중] 선문대학교 인문관 1층 재가동함</h2>
+                    <h2 className="text-2xl text-[#21262B] font-bold mb-1">[재가동 진행중] 선문대학교 인문관 1층 재가동함</h2>
                     <p className="text-[#60697E]">
                         <span className="font-bold">재가동 좌표</span> <span className="font-normal">36.8082 / 127.009</span>
                         <span className="float-right text-sm">알림 일자 2025.03.16</span>
@@ -104,7 +104,7 @@ export default function CollectMonitoring() {
             {/* Right Sidebar - User Info */}
             <div className="w-[290px] h-full flex flex-col border-l p-8">
                 <div className="mb-10">
-                    <h2 className="text-2xl font-bold pb-1">김유신</h2>
+                    <h2 className="text-2xl text-[#21262B] font-bold pb-1">김유신</h2>
                     <p className="text-[#60697E]">
                         <span className="font-bold">가입일자</span>
                         <span className="ml-3 font-normal">2025.02.03</span>
@@ -198,9 +198,9 @@ function UserListItem({ name, status, date, isActive }) {
         <div className={`p-4 border-b flex justify-between ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}>
             <div className="flex items-start">
                 <div>
-                    <h3 className="text-base font-bold">{name}</h3>
-                    <p className="text-sm font-normal text-gray-500">{status}</p>
-                    <p className="text-sm font-normal text-gray-500">{date}</p>
+                    <h3 className="text-base text-[#21262B] font-bold">{name}</h3>
+                    <p className="text-sm font-normal text-[#60697E] mt-1">{status}</p>
+                    <p className="text-sm font-normal text-[#60697E]">{date}</p>
                 </div>
             </div>
             <button className="text-gray-400 self-start">

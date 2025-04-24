@@ -148,9 +148,9 @@ export default function CollectorAssignment() {
                                 </div>
                             </div>
                             <div>
-                                <h2 className="font-bold text-lg">정윤식</h2>
+                                <h2 className="font-bold text-[#21262B] text-lg">정윤식</h2>
                                 <div className="flex">
-                                    <p className="text-sm text-gray-500">
+                                    <p className="text-sm text-[#60697E]">
                                         <span className="font-bold">가입일자</span> <span className="font-normal">2025.02.03</span>
                                     </p>
                                 </div>
@@ -164,7 +164,7 @@ export default function CollectorAssignment() {
                         <div className="flex flex-col md:flex-row items-start md:items-center mt-6 mb-6">
                             <div className="py-4">
                                 <div className="flex items-center justify-start gap-2 mb-2">
-                                    <span className="text-sm font-normal text-gray-500">광역시/도</span>
+                                    <span className="text-sm font-normal text-[#60697E]">광역시/도</span>
                                     <span>
                     <img src={InfoIcon || "/placeholder.svg"} alt="정보" className="w-4 h-4 object-contain" />
                   </span>
@@ -184,7 +184,7 @@ export default function CollectorAssignment() {
 
                             <div className="py-4">
                                 <div className="flex items-center justify-start gap-2 mb-2">
-                                    <span className="text-sm font-normal text-gray-500">시/군/구</span>
+                                    <span className="text-sm font-normal text-[#60697E]">시/군/구</span>
                                     <span>
                     <img src={InfoIcon || "/placeholder.svg"} alt="정보" className="w-4 h-4 object-contain" />
                   </span>
@@ -201,7 +201,7 @@ export default function CollectorAssignment() {
 
                             <div className="h-12 flex items-center pt-6 md:mt-0 md:ml-[85px]">
                                 <button
-                                    className="bg-[#E8F1F7] text-[#21262B] px-9 py-2 rounded-2xl hover:bg-gray-200 transition-colors"
+                                    className="bg-[#E8F1F7] text-[#21262B] px-6 py-2 rounded-2xl hover:bg-gray-200 transition-colors"
                                     onClick={() => console.log("담당지역 변경 clicked")}
                                 >
                                     변경사항 저장
@@ -233,7 +233,7 @@ export default function CollectorAssignment() {
                                             일
                                         </button>
                                     </div>
-                                    <button className="text-sm font-medium text-gray-500">
+                                    <button className="text-sm font-medium text-[#60697E]">
                                         수거 로그 자세히보기{" "}
                                         <img
                                             src={VectorIcon || "/placeholder.svg"}
@@ -303,10 +303,10 @@ export default function CollectorAssignment() {
                 {/* Right Sidebar - User Information Card */}
                 <div className="w-full md:w-[300px] h-full flex flex-col shadow-lg p-7">
                     <div className="px-2 pt-2">
-                        <h2 className="text-xl font-bold mb-2">정윤식</h2>
+                        <h2 className="text-xl text-[#21262B] font-bold mb-2">정윤식</h2>
                         <div className="flex">
-                            <span className="font-bold text-gray-500 w-20 mb-6">전화번호</span>
-                            <span className="text-gray-500">010-2222-2222</span>
+                            <span className="font-bold text-[#60697E] w-20 mb-6">전화번호</span>
+                            <span className="text-[#60697E]">010-2222-2222</span>
                         </div>
                         <div className="space-y-2">
                             <div className="flex">
@@ -434,9 +434,9 @@ function UserListItem({ name, points, date, isActive }) {
     return (
         <div className={`p-4 border-b flex items-center justify-between hover:bg-[#D1E3EE] hover:bg-opacity-50`}>
             <div>
-                <h3 className="text-base font-bold">{name}</h3>
-                <p className="text-sm font-normal text-gray-500">총 수거량 {points}</p>
-                <p className="text-sm font-normal text-gray-500">{date}</p>
+                <h3 className="text-base text-[#21262B] font-bold">{name}</h3>
+                <p className="text-sm font-normal text-[#60697E] mt-1">총 수거량 {points}</p>
+                <p className="text-sm font-normal text-[#60697E]">{date}</p>
             </div>
             <button className="pb-10 text-gray-400">
                 <img src={CopyIcon || "/placeholder.svg"} alt="복사" className="w-4 h-5" />
