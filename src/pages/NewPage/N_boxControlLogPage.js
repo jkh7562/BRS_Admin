@@ -213,7 +213,7 @@ const N_boxControlLogPage = () => {
     }
 
     return (
-        <div className="flex min-h-screen w-screen bg-[#F3F3F5]">
+        <div className="flex min-h-screen w-full bg-[#F3F3F5]">
             <Sidebar />
             <div className="flex-1 relative">
                 <Topbar />
