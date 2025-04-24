@@ -14,7 +14,7 @@ export default function UserInfoSection() {
             <div className="w-full md:w-[350px] h-full flex flex-col shadow-lg">
                 <div className="p-3 pt-8">
                     <div className="flex items-center justify-between mx-4">
-                        <h2 className="text-2xl font-bold">총 사용자 수 17,302명</h2>
+                        <h2 className="text-2xl text-[#21262B] font-bold">총 사용자 수 17,302명</h2>
                     </div>
                     <div className="relative mt-4">
                         <input
@@ -57,9 +57,9 @@ export default function UserInfoSection() {
                                 </div>
                             </div>
                             <div>
-                                <h2 className="font-bold text-lg">정윤식</h2>
+                                <h2 className="font-bold text-[#21262B] text-lg">정윤식</h2>
                                 <div className="flex">
-                                    <p className="text-sm text-gray-500">
+                                    <p className="text-sm text-[#60697E]">
                                         <span className="font-bold">가입일자</span> <span className="font-normal">2025.02.03</span>
                                     </p>
                                 </div>
@@ -110,7 +110,7 @@ export default function UserInfoSection() {
                                             일
                                         </button>
                                     </div>
-                                    <button className="text-sm font-medium text-gray-500">
+                                    <button className="text-sm font-medium text-[#60697E]">
                                         배출 로그 자세히보기{" "}
                                         <img
                                             src={VectorIcon || "/placeholder.svg"}
@@ -180,7 +180,7 @@ export default function UserInfoSection() {
                 {/* Right Sidebar - Activity Log */}
                 <div className="w-full md:w-[300px] h-full flex flex-col shadow-lg pl-7 pt-9">
                     <div className="pb-7">
-                        <h2 className="font-bold text-xl">주문 내역</h2>
+                        <h2 className="font-bold text-[#21262B] text-xl">주문 내역</h2>
                     </div>
 
                     {/* 주문 내역 영역에만 스크롤바 적용 */}
@@ -263,9 +263,9 @@ function UserListItem({ name, points, date, isActive }) {
     return (
         <div className={`p-4 border-b flex items-center justify-between hover:bg-[#D1E3EE] hover:bg-opacity-50`}>
             <div>
-                <h3 className="text-base font-bold">{name}</h3>
-                <p className="text-sm font-normal text-gray-500">총 배출량 {points}</p>
-                <p className="text-sm font-normal text-gray-500">{date}</p>
+                <h3 className="text-base text-[#21262B] font-bold">{name}</h3>
+                <p className="text-sm text-[#60697E] font-normal text-gray-500 mt-1">총 배출량 {points}</p>
+                <p className="text-sm text-[#60697E] font-normal text-gray-500">{date}</p>
             </div>
             <button className="pb-10 text-gray-400">
                 <img src={CopyIcon || "/placeholder.svg"} alt="복사" className="w-4 h-5" />
@@ -310,18 +310,18 @@ function ActivityItem({ status, date, time, code, amount }) {
             <table className="w-full text-sm border-collapse mt-4 mb-8">
                 <tbody>
                 <tr>
-                    <td className="w-16 text-gray-500 ">주문일자</td>
-                    <td>
+                    <td className="w-16 text-[#60697E] ">주문일자</td>
+                    <td className="text-[#21262B]">
                         {date} {time}
                     </td>
                 </tr>
                 <tr>
-                    <td className="w-16 text-gray-500">주문번호</td>
-                    <td>{code}</td>
+                    <td className="w-16 text-[#60697E]">주문번호</td>
+                    <td className="text-[#21262B]">{code}</td>
                 </tr>
                 <tr>
-                    <td className="w-16 text-gray-500">상품코드</td>
-                    <td>{amount}</td>
+                    <td className="w-16 text-[#60697E]">상품코드</td>
+                    <td className="text-[#21262B]">{amount}</td>
                 </tr>
                 </tbody>
             </table>
@@ -334,12 +334,12 @@ function StatCard({ title, value, number }) {
     return (
         <div className="py-4">
             <div className="flex items-center justify-start gap-2 mb-2">
-                <span className="text-sm font-normal text-gray-500">{title}</span>
+                <span className="text-sm font-normal text-[#60697E]">{title}</span>
                 <span>
           <img src={InfoIcon || "/placeholder.svg"} alt="정보" className="w-4 h-4 object-contain" />
         </span>
             </div>
-            <div className="text-[22px] font-bold">{value}</div>
+            <div className="text-[22px] text-[#21262B] font-bold">{value}</div>
         </div>
     )
 }

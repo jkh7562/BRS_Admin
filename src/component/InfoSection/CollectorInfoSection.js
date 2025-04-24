@@ -14,7 +14,7 @@ export default function CollectorInfoSection() {
             <div className="w-full md:w-[350px] h-full flex flex-col shadow-lg">
                 <div className="p-3 pt-8">
                     <div className="flex items-center justify-between mx-4">
-                        <h2 className="text-2xl font-bold">총 수거자 수 7,302명</h2>
+                        <h2 className="text-2xl text-[#21262B] font-bold">총 수거자 수 7,302명</h2>
                     </div>
                     <div className="relative mt-4">
                         <input
@@ -57,9 +57,9 @@ export default function CollectorInfoSection() {
                                 </div>
                             </div>
                             <div>
-                                <h2 className="font-bold text-lg">정윤식</h2>
+                                <h2 className="font-bold text-[#21262B] text-lg">정윤식</h2>
                                 <div className="flex">
-                                    <p className="text-sm text-gray-500">
+                                    <p className="text-sm text-[#60697E]">
                                         <span className="font-bold">가입일자</span> <span className="font-normal">2025.02.03</span>
                                     </p>
                                 </div>
@@ -114,7 +114,7 @@ export default function CollectorInfoSection() {
                                             일
                                         </button>
                                     </div>
-                                    <button className="text-sm font-medium text-gray-500">
+                                    <button className="text-sm font-medium text-[#60697E]">
                                         수거 로그 자세히보기{" "}
                                         <img
                                             src={VectorIcon || "/placeholder.svg"}
@@ -184,7 +184,7 @@ export default function CollectorInfoSection() {
                 {/* Right Sidebar - Collection Log */}
                 <div className="w-full md:w-[300px] h-full flex flex-col shadow-lg pl-7 pt-9">
                     <div className="flex justify-between items-center mr-6 pb-7">
-                        <h2 className="font-bold text-xl">알림 내역</h2>
+                        <h2 className="font-bold text-xl text-[#21262B]">알림 내역</h2>
                         <h2 className="font-medium text-gray-500 text-sm">
                             자세히보기
                             <img
@@ -268,9 +268,9 @@ function UserListItem({ name, points, date, isActive }) {
     return (
         <div className={`p-4 border-b flex items-center justify-between hover:bg-[#D1E3EE] hover:bg-opacity-50`}>
             <div>
-                <h3 className="text-base font-bold">{name}</h3>
-                <p className="text-sm font-normal text-gray-500">총 수거량 {points}</p>
-                <p className="text-sm font-normal text-gray-500">{date}</p>
+                <h3 className="text-base text-[#21262B] font-bold">{name}</h3>
+                <p className="text-sm text-[#60697E] font-normal text-gray-500 mt-1">총 수거량 {points}</p>
+                <p className="text-sm text-[#60697E] font-normal text-gray-500">{date}</p>
             </div>
             <button className="pb-10 text-gray-400">
                 <img src={CopyIcon || "/placeholder.svg"} alt="복사" className="w-4 h-5" />
@@ -298,12 +298,12 @@ function StatCard({ title, value, number }) {
     return (
         <div className="py-4">
             <div className="flex items-center justify-start gap-2 mb-2">
-                <span className="text-sm font-normal text-gray-500">{title}</span>
+                <span className="text-sm font-normal text-[#60697E]">{title}</span>
                 <span>
           <img src={InfoIcon || "/placeholder.svg"} alt="정보" className="w-4 h-4 object-contain" />
         </span>
             </div>
-            <div className="text-[22px] font-bold">{value}</div>
+            <div className="text-[22px] text-[#21262B] font-bold">{value}</div>
         </div>
     )
 }
@@ -324,18 +324,18 @@ function CollectionItem({ status, date, time, location, amount }) {
             <table className="w-full text-sm border-collapse mt-4 mb-8">
                 <tbody>
                 <tr>
-                    <td className="w-16 text-gray-500">알림일자</td>
-                    <td>
+                    <td className="w-16 text-[#60697E]">알림일자</td>
+                    <td className="text-[#21262B]">
                         {date} {time}
                     </td>
                 </tr>
                 <tr>
-                    <td className="w-16 text-gray-500">알림지역</td>
-                    <td>{location}</td>
+                    <td className="w-16 text-[#60697E]">알림지역</td>
+                    <td className="text-[#21262B]">{location}</td>
                 </tr>
                 <tr>
-                    <td className="w-16 text-gray-500">알림 좌표</td>
-                    <td>{amount}</td>
+                    <td className="w-16 text-[#60697E]">알림 좌표</td>
+                    <td className="text-[#21262B]">{amount}</td>
                 </tr>
                 </tbody>
             </table>

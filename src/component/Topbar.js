@@ -105,7 +105,7 @@ const Topbar = () => {
                             alt="profile"
                             className="w-8 h-8 rounded-full border border-black"
                         />
-                        <span className="text-lg font-medium text-gray-700">재민</span>
+                        <span className="text-lg font-medium text-[#272F42]">재민</span>
                         <button onClick={toggleProfileDropdown}
                                 className="profile-button flex items-center justify-center">
                             <img src={DownIcon || "/placeholder.svg"} alt="드롭다운 아이콘"
@@ -122,8 +122,8 @@ const Topbar = () => {
                                         className="w-14 h-14 rounded-full border border-black"
                                     />
                                     <div>
-                                        <p className="text-xl font-medium text-gray-800">재민</p>
-                                        <p className="text-gray-500">ID: q1w2e3r4</p>
+                                        <p className="text-xl font-medium text-[#21262B]">재민</p>
+                                        <p className="text-[#60697E]">ID: q1w2e3r4</p>
                                     </div>
                                 </div>
 
@@ -216,7 +216,7 @@ const Topbar = () => {
                 }`}
             >
                 <div className="flex items-center justify-between px-5 pt-8">
-                    <h2 className="font-bold text-lg">알림 4건</h2>
+                    <h2 className="font-bold text-[#21262B] text-lg">알림 4건</h2>
                 </div>
 
                 <div className="p-5 overflow-y-auto h-[calc(100%-60px)]">
@@ -248,9 +248,9 @@ const Topbar = () => {
                                     <div className="flex items-start gap-2">
                                     <img src={BoxIcon || "/placeholder.svg"} alt="수거함 아이콘"
                                          className="w-5 h-5 object-contain"/>
-                                    <p className="font-bold text-gray-800">수거함 추가</p>
+                                    <p className="font-bold text-[#21262B]">수거함 추가</p>
                                     </div>
-                                    <p className="text-sm text-gray-500 mt-1">선문대 동문 앞 수거함이 추가되었어요</p>
+                                    <p className="text-sm text-[#60697E] mt-1">선문대 동문 앞 수거함이 추가되었어요</p>
                                 </div>
                             </div>
                         </div>
@@ -262,9 +262,9 @@ const Topbar = () => {
                                     <div className="flex items-start gap-2">
                                     <img src={BoxIcon || "/placeholder.svg"} alt="수거함 아이콘"
                                          className="w-5 h-5 object-contain"/>
-                                    <p className="font-bold text-gray-800">수거함 제거</p>
+                                    <p className="font-bold text-[#21262B]">수거함 제거</p>
                                     </div>
-                                    <p className="text-sm text-gray-500 mt-1">선문대 서문 앞 수거함이 제거되었어요</p>
+                                    <p className="text-sm text-[#60697E] mt-1">선문대 서문 앞 수거함이 제거되었어요</p>
                                 </div>
                             </div>
                         </div>
@@ -276,9 +276,9 @@ const Topbar = () => {
                                     <div className="flex items-start gap-2">
                                     <img src={PlusIcon || "/placeholder.svg"} alt="가입신청 아이콘"
                                          className="w-5 h-5 object-contain"/>
-                                    <p className="font-bold text-gray-800">신규 수거자 가입신청</p>
+                                    <p className="font-bold text-[#21262B]">신규 수거자 가입신청</p>
                                     </div>
-                                    <p className="text-sm text-gray-500 mt-1">16건의 가입신청이 들어왔어요</p>
+                                    <p className="text-sm text-[#60697E] mt-1">16건의 가입신청이 들어왔어요</p>
                                 </div>
                             </div>
                         </div>

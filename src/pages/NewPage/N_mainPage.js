@@ -64,7 +64,7 @@ const N_mainPage = () => {
             <div className="flex-1 relative">
                 <Topbar/>
                 <main className="pt-24 px-24 pb-6 space-y-4">
-                    <p className="font-bold text-xl">대시 보드</p>
+                    <p className="font-bold text-xl text-[#272F42]">대시 보드</p>
                     <div className="flex gap-4">
                         {/* 신규 수거자 가입신청 */}
                         <div className="w-[19%] bg-[#21262B] rounded-2xl p-4 shadow">
@@ -84,7 +84,7 @@ const N_mainPage = () => {
                             <div className="flex items-center justify-between mb-14">
                                 <div className="flex items-center gap-2 mt-4 ml-6 mr-4">
                                     <img src={dayIcon || "/placeholder.svg"} alt="일간 아이콘" className="w-5 h-5"/>
-                                    <h2 className="pl-1 text-xl font-bold whitespace-nowrap">일간 이용 현황</h2>
+                                    <h2 className="pl-1 text-xl text-[#21262B] font-bold whitespace-nowrap">일간 이용 현황</h2>
                                 </div>
                                 <p className="text-sm font-medium text-[#7A7F8A] whitespace-nowrap pr-3 mt-4">
                                     마지막 업데이트 2025.03.31
@@ -97,7 +97,7 @@ const N_mainPage = () => {
                                         <p className="font-normal text-gray-500">일간 배출량</p>
                                         <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="font-bold text-[22px] mt-2 text-center md:text-left">1,197g</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">1,197g</p>
                                 </div>
 
                                 {/* 구분선 */}
@@ -111,7 +111,7 @@ const N_mainPage = () => {
                                         <p className="font-normal text-gray-500">일간 수거량</p>
                                         <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="font-bold text-[22px] mt-2 text-center md:text-left">1,062g</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">1,062g</p>
                                 </div>
 
                                 {/* 구분선 */}
@@ -125,7 +125,7 @@ const N_mainPage = () => {
                                         <p className="font-normal text-gray-500">일간 이용자</p>
                                         <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="font-bold text-[22px] mt-2 text-center md:text-left">31명</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">31명</p>
                                 </div>
                             </div>
                         </div>
@@ -135,7 +135,7 @@ const N_mainPage = () => {
                             <div className="flex items-center justify-between mb-14">
                                 <div className="flex items-center gap-2 mt-4 ml-6 mr-4">
                                     <img src={customerIcon || "/placeholder.svg"} alt="고객 관리 아이콘" className="w-5 h-5"/>
-                                    <h2 className="font-bold text-xl whitespace-nowrap">고객 관리</h2>
+                                    <h2 className="font-bold text-xl text-[#21262B] whitespace-nowrap">고객 관리</h2>
                                 </div>
                                 <p className="font-medium text-sm text-[#7A7F8A] whitespace-nowrap pr-3 mt-4">
                                     마지막 업데이트 2025.03.31
@@ -148,7 +148,7 @@ const N_mainPage = () => {
                                         <p className="font-normal text-gray-500">사용자 문의</p>
                                         <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="font-bold text-[22px] mt-2 text-center md:text-left">13건</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">13건</p>
                                 </div>
 
                                 {/* 구분선 */}
@@ -162,7 +162,7 @@ const N_mainPage = () => {
                                         <p className="font-normal text-gray-500">수거자 문의</p>
                                         <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="font-bold text-[22px] mt-2 text-center md:text-left">5건</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">5건</p>
                                 </div>
 
                                 {/* 구분선 */}
@@ -176,7 +176,7 @@ const N_mainPage = () => {
                                         <p className="font-normal text-gray-500">일반 민원</p>
                                         <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="font-bold text-[22px] mt-2 text-center md:text-left">0건</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">0건</p>
                                 </div>
                             </div>
                         </div>
@@ -184,10 +184,10 @@ const N_mainPage = () => {
 
                     {/* 수거함 현황 */}
                     <div className="pt-12 mb-4">
-                        <h3 className="font-bold text-xl mb-4">수거함 현황</h3>
+                        <h3 className="font-bold text-xl text-[#272F42] mb-4">수거함 현황</h3>
                         <div className="relative mb-9">
                             <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
-                            <div className="flex items-center gap-4 relative">
+                            <div className="flex items-center gap-6 relative">
                                 {["전체 수거함", "수거 필요", "화재감지"].map((tab) => (
                                     <button
                                         key={tab}
@@ -197,11 +197,11 @@ const N_mainPage = () => {
                                                 ? `border-b-[3px] ${
                                                     tab === "화재감지"
                                                         ? "border-black text-[#940000] font-bold"
-                                                        : "border-black text-black font-bold"
+                                                        : "border-black text-[#21262B] font-bold"
                                                 }`
                                                 : tab === "화재감지"
                                                     ? "text-[#940000]"
-                                                    : "text-gray-500"
+                                                    : "text-[#60697E]"
                                         }`}
                                     >
                                         {tab}
@@ -234,8 +234,8 @@ const N_mainPage = () => {
                                             onClick={() => setSelectedEmissionTab(tab)}
                                             className={`pb-1 bg-transparent ${
                                                 selectedEmissionTab === tab
-                                                    ? "border-b-[3px] border-black text-black font-semibold"
-                                                    : "text-gray-500"
+                                                    ? "border-b-[3px] border-black text-[#21262B] font-semibold"
+                                                    : "text-[#60697E]"
                                             }`}
                                         >
                                             {tab}
@@ -257,8 +257,8 @@ const N_mainPage = () => {
                                             onClick={() => setSelectedCollectionTab(tab)}
                                             className={`pb-1 bg-transparent ${
                                                 selectedCollectionTab === tab
-                                                    ? "border-b-[3px] border-black text-black font-semibold"
-                                                    : "text-gray-500"
+                                                    ? "border-b-[3px] border-black text-[#21262B] font-semibold"
+                                                    : "text-[#60697E]"
                                             }`}
                                         >
                                             {tab}
@@ -286,7 +286,7 @@ const N_mainPage = () => {
                     </div>
 
                     <div className="pb-6">
-                        <h3 className="text-xl font-bold mb-4">회원 정보 검색</h3>
+                        <h3 className="text-xl text-[#272F42] font-bold mb-4">회원 정보 검색</h3>
 
                         <div className="relative">
                             {/* 얇은 하단 선 */}
@@ -300,8 +300,8 @@ const N_mainPage = () => {
                                         onClick={() => setMemberSelectedTab(tab)}
                                         className={`pb-1 bg-transparent ${
                                             memberselectedTab === tab
-                                                ? "border-b-[3px] border-black text-black font-semibold"
-                                                : "text-gray-500"
+                                                ? "border-b-[3px] border-black text-[#21262B] font-semibold"
+                                                : "text-[#60697E]"
                                         }`}
                                     >
                                         {tab}
