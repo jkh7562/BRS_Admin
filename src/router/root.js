@@ -21,6 +21,8 @@ const MonitoringPage = lazy(() => import('../pages/MonitoringPage'))
 
 const N_LoginPage = lazy(() => import('../pages/NewPage/N_loginPage'))
 const N_SignupPage = lazy(() => import('../pages/NewPage/N_SignupPage'))
+const N_FindIdPage = lazy(() => import('../pages/NewPage/N_FindIdPage'))
+const N_FindPasswordPage = lazy(() => import('../pages/NewPage/N_FindPasswordPage'))
 const N_MainPage = lazy(() => import('../pages/NewPage/N_mainPage'))
 const N_BoxAddRemovePage = lazy(() => import('../pages/NewPage/N_boxAddRemovePage'))
 const N_BoxControlLogPage = lazy(() => import('../pages/NewPage/N_boxControlLogPage'))
@@ -97,6 +99,14 @@ const root = createBrowserRouter([
     {
         path:"n_SignupPage",
         element:<Suspense fallback={Loading}><N_SignupPage/></Suspense>
+    },
+    {
+        path:"n_FindIdPage",
+        element:<Suspense fallback={Loading}><N_FindIdPage/></Suspense>
+    },
+    {
+        path:"n_FindPasswordPage",
+        element:<Suspense fallback={Loading}><N_FindPasswordPage/></Suspense>
     },
     {
         path:"n_MainPage",
