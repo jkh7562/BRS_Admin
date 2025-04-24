@@ -541,81 +541,136 @@ const N_boxControlLogPage = () => {
                         </div>
                     </div>
 
-                    {/* 로그 테이블 */}
-                    <div className="mt-4 px-6 py-4 bg-white rounded-2xl shadow-sm overflow-hidden">
-                        <div className="w-full">
-                            {/* 고정된 헤더 테이블 */}
-                            <table className="w-full table-fixed border-b border-gray-200">
-                                <colgroup>
-                                    <col style={{ width: "10%" }} />
-                                    <col style={{ width: "10%" }} />
-                                    <col style={{ width: "15%" }} />
-                                    <col style={{ width: "30%" }} />
-                                    <col style={{ width: "15%" }} />
-                                </colgroup>
-                                <thead className="text-left bg-white">
-                                <tr className="w-full">
-                                    <th className="py-4 px-6 text-sm font-bold text-gray-500">사용자 이름</th>
-                                    <th className="py-4 px-6 text-sm font-bold text-gray-500">배출일자</th>
-                                    <th className="py-4 px-6 text-sm font-bold text-gray-500">수거함 이름</th>
-                                    <th className="py-4 px-6 text-sm font-bold text-gray-500">배출정보</th>
-                                    <th className="py-4 px-6 text-sm font-bold text-gray-500"></th>
-                                </tr>
-                                </thead>
-                            </table>
-                        </div>
-
-                        {/* 스크롤 가능한 본문 테이블 */}
-                        <div className="h-[300px] max-h-[300px] overflow-auto scrollbar-container">
-                            <table className="w-full table-fixed border-collapse">
-                                <colgroup>
-                                    <col style={{ width: "10%" }} />
-                                    <col style={{ width: "10%" }} />
-                                    <col style={{ width: "15%" }} />
-                                    <col style={{ width: "30%" }} />
-                                    <col style={{ width: "15%" }} />
-                                </colgroup>
-                                <tbody>
-                                {logData.map((log) => (
-                                    <tr key={log.id} className="hover:bg-[#D1E3EE]/50">
-                                        <td className="py-4 px-6 text-sm text-gray-500">{log.userName}</td>
-                                        <td className="py-4 px-6 text-sm text-gray-500">{log.date}</td>
-                                        <td className="py-4 px-6 text-sm text-gray-500">{log.boxName}</td>
-                                        <td className="py-4 px-6 text-sm text-gray-500">{log.dischargeInfo}</td>
-                                        <td className="py-4 px-6 text-right">
-                                            <button className="pl-14 text-sm text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
-                                                사용자 상세정보 보기{" "}
-                                                <img src={RightIcon || "/placeholder.svg"} alt="오른쪽 화살표" className="w-2 h-3 ml-1" />
-                                            </button>
-                                        </td>
+                    {/* Log Tables - Conditionally render based on logType */}
+                    {logType === "discharge" ? (
+                        <div className="mt-4 px-6 py-4 bg-white rounded-2xl shadow-sm overflow-hidden">
+                            <div className="w-full">
+                                {/* 고정된 헤더 테이블 */}
+                                <table className="w-full table-fixed border-b border-gray-200">
+                                    <colgroup>
+                                        <col style={{ width: "10%" }} />
+                                        <col style={{ width: "10%" }} />
+                                        <col style={{ width: "15%" }} />
+                                        <col style={{ width: "30%" }} />
+                                        <col style={{ width: "15%" }} />
+                                    </colgroup>
+                                    <thead className="text-left bg-white">
+                                    <tr className="w-full">
+                                        <th className="py-4 px-6 text-sm font-bold text-gray-500">사용자 이름</th>
+                                        <th className="py-4 px-6 text-sm font-bold text-gray-500">배출일자</th>
+                                        <th className="py-4 px-6 text-sm font-bold text-gray-500">수거함 이름</th>
+                                        <th className="py-4 px-6 text-sm font-bold text-gray-500">배출정보</th>
+                                        <th className="py-4 px-6 text-sm font-bold text-gray-500"></th>
                                     </tr>
-                                ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                </table>
+                            </div>
+
+                            {/* 스크롤 가능한 본문 테이블 */}
+                            <div className="h-[300px] max-h-[300px] overflow-auto scrollbar-container">
+                                <table className="w-full table-fixed border-collapse">
+                                    <colgroup>
+                                        <col style={{ width: "10%" }} />
+                                        <col style={{ width: "10%" }} />
+                                        <col style={{ width: "15%" }} />
+                                        <col style={{ width: "30%" }} />
+                                        <col style={{ width: "15%" }} />
+                                    </colgroup>
+                                    <tbody>
+                                    {logData.map((log) => (
+                                        <tr key={log.id} className="hover:bg-[#D1E3EE]/50">
+                                            <td className="py-4 px-6 text-sm text-gray-500">{log.userName}</td>
+                                            <td className="py-4 px-6 text-sm text-gray-500">{log.date}</td>
+                                            <td className="py-4 px-6 text-sm text-gray-500">{log.boxName}</td>
+                                            <td className="py-4 px-6 text-sm text-gray-500">{log.dischargeInfo}</td>
+                                            <td className="py-4 px-6 text-right">
+                                                <button className="pl-14 text-sm text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
+                                                    사용자 상세정보 보기{" "}
+                                                    <img src={RightIcon || "/placeholder.svg"} alt="오른쪽 화살표" className="w-2 h-3 ml-1" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
+                    ) : (
+                        <div className="mt-4 px-6 py-4 bg-white rounded-2xl shadow-sm overflow-hidden">
+                            <div className="w-full">
+                                {/* 고정된 헤더 테이블 */}
+                                <table className="w-full table-fixed border-b border-gray-200">
+                                    <colgroup>
+                                        <col style={{ width: "10%" }} />
+                                        <col style={{ width: "10%" }} />
+                                        <col style={{ width: "15%" }} />
+                                        <col style={{ width: "30%" }} />
+                                        <col style={{ width: "15%" }} />
+                                    </colgroup>
+                                    <thead className="text-left bg-white">
+                                    <tr className="w-full">
+                                        <th className="py-4 px-6 text-sm font-bold text-gray-500">사용자 이름</th>
+                                        <th className="py-4 px-6 text-sm font-bold text-gray-500">수거일자</th>
+                                        <th className="py-4 px-6 text-sm font-bold text-gray-500">수거함 이름</th>
+                                        <th className="py-4 px-6 text-sm font-bold text-gray-500">수거정보</th>
+                                        <th className="py-4 px-6 text-sm font-bold text-gray-500"></th>
+                                    </tr>
+                                    </thead>
+                                </table>
+                            </div>
 
-                        {/* 스크롤바 스타일 */}
-                        <style jsx>{`
-                            .custom-scrollbar::-webkit-scrollbar {
-                                width: 6px;
-                            }
+                            {/* 스크롤 가능한 본문 테이블 */}
+                            <div className="h-[300px] max-h-[300px] overflow-auto scrollbar-container">
+                                <table className="w-full table-fixed border-collapse">
+                                    <colgroup>
+                                        <col style={{ width: "10%" }} />
+                                        <col style={{ width: "10%" }} />
+                                        <col style={{ width: "15%" }} />
+                                        <col style={{ width: "30%" }} />
+                                        <col style={{ width: "15%" }} />
+                                    </colgroup>
+                                    <tbody>
+                                    {logData.map((log) => (
+                                        <tr key={log.id} className="hover:bg-[#D1E3EE]/50">
+                                            <td className="py-4 px-6 text-sm text-gray-500">{log.userName}</td>
+                                            <td className="py-4 px-6 text-sm text-gray-500">{log.date}</td>
+                                            <td className="py-4 px-6 text-sm text-gray-500">{log.boxName}</td>
+                                            <td className="py-4 px-6 text-sm text-gray-500">{log.dischargeInfo}</td>
+                                            <td className="py-4 px-6 text-right">
+                                                <button className="pl-14 text-sm text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
+                                                    사용자 상세정보 보기{" "}
+                                                    <img src={RightIcon || "/placeholder.svg"} alt="오른쪽 화살표" className="w-2 h-3 ml-1" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
 
-                            .custom-scrollbar::-webkit-scrollbar-track {
-                                background: #f1f1f1;
-                                border-radius: 10px;
-                            }
+                    {/* 스크롤바 스타일 */}
+                    <style jsx>{`
+                        .custom-scrollbar::-webkit-scrollbar {
+                            width: 6px;
+                        }
 
-                            .custom-scrollbar::-webkit-scrollbar-thumb {
-                                background: #c1c1c1;
-                                border-radius: 10px;
-                                height: 50px;
-                            }
+                        .custom-scrollbar::-webkit-scrollbar-track {
+                            background: #f1f1f1;
+                            border-radius: 10px;
+                        }
 
-                            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                                background: #a1a1a1;
-                            }
-                        `}</style>
-                    </div>
+                        .custom-scrollbar::-webkit-scrollbar-thumb {
+                            background: #c1c1c1;
+                            border-radius: 10px;
+                            height: 50px;
+                        }
+
+                        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                            background: #a1a1a1;
+                        }
+                    `}</style>
                     <div className="pb-32" />
                 </div>
             </div>
