@@ -17,7 +17,7 @@ const MainPage = () => {
 
     const { collectors, users, status } = useSelector(state => state.users);
     const { processChartData, collectionCount, disposalCount } = useGraph();
-    const { boxes, loading: boxLoading, error: boxError } = useBoxes();
+    /*const { boxes, loading: boxLoading, error: boxError } = useBoxes();*/
     const [hoveredBox, setHoveredBox] = useState(null);
 
     const [searchCollector, setSearchCollector] = useState("");
@@ -78,7 +78,7 @@ const MainPage = () => {
                 <div className="px-0 mt-8 flex justify-center">
                     <div className="w-7/8 bg-white shadow-md p-4 mb-8">
                         <p className="font-bold text-lg mb-4 text-left ml-4">지도</p>
-                        {boxLoading ? (
+                        {/*{boxLoading ? (
                             <p>⏳ 박스 데이터를 불러오는 중...</p>
                         ) : boxError ? (
                             <p>🚨 오류 발생: {boxError.message}</p>
@@ -99,15 +99,15 @@ const MainPage = () => {
                                     />
                                 ))}
 
-                                {/*{recommendedLocations.map(location => (
+                                {recommendedLocations.map(location => (
                                     <MapMarker
                                         key={location.id}
                                         position={{ lat: location.latitude, lng: location.longitude }}
                                         onClick={() => console.log("Recommended location clicked!", location)}
                                     />
-                                ))}*/}
+                                ))}
                             </Map>
-                        )}
+                        )}*/}
                     </div>
                 </div>
 

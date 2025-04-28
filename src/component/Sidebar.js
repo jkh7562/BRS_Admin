@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
+import { logout } from "../api/apiServices"
 import logoImage from "../assets/로고.png"
 import mainIcon_on from "../assets/Main_on.png"
 import mainIcon from "../assets/Main.png"
@@ -92,8 +93,14 @@ const Sidebar = () => {
         },
     ]
 
-    const handleLogoutClick = () => {
-        navigate("/n_LoginPage");
+    const handleLogoutClick = async () => {
+        try {
+            await logout(); // ✅ logout API 호출
+            navigate("/n_LoginPage"); // ✅ 성공하면 로그인페이지로 이동
+        } catch (error) {
+            console.error("❌ 로그아웃 실패:", error);
+            alert("로그아웃에 실패했습니다. 다시 시도해주세요.");
+        }
     };
 
     return (

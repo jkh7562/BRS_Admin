@@ -170,33 +170,6 @@ export const updatePassword = async (newPassword) => {
     }
 };
 
-// ✅ 가입 코드 조회 API
-export const findCode = async () => {
-    try {
-        const response = await axiosInstance.get("/admin/findCode");
-        console.log("✅ 가입 코드 조회 성공:", response.data);
-        return response.data; // 가입 코드 반환
-    } catch (error) {
-        console.error("❌ 가입 코드 조회 실패:", error);
-        throw error;
-    }
-};
-
-// ✅ 가입 코드 수정 API
-export const updateCode = async (newCode) => {
-    try {
-        const response = await axiosInstance.patch("/admin/updateCode", {
-            code: newCode, // 요청 본문에 코드 값 전달
-        });
-
-        console.log("✅ 코드 업데이트 성공:", response.data);
-        return response.data; // "Success" 반환
-    } catch (error) {
-        console.error("❌ 코드 업데이트 실패:", error);
-        throw error;
-    }
-};
-
 // ✅ 수거자 가입 요청 목록 조회 API
 export const fetchEmployeeRequests = async () => {
     try {

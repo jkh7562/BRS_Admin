@@ -6,7 +6,8 @@ import FireInfoIcon from "../assets/FireInfo.png";
 import BoxIcon from "../assets/수거함Black.png";
 import PlusIcon from "../assets/가입신청Black.png";
 import { X } from "lucide-react";
-import { getMyInfo } from "../api/apiServices"; // ✅ 내 정보 조회 API 추가
+import { getMyInfo } from "../api/apiServices";
+import { logout } from "../api/apiServices"
 
 const Topbar = () => {
     const navigate = useNavigate();
@@ -107,8 +108,14 @@ const Topbar = () => {
         alert("비밀번호가 변경되었습니다.");
     };
 
-    const handleLogoutClick = () => {
-        navigate("/n_LoginPage");
+    const handleLogoutClick = async () => {
+        try {
+            await logout(); // ✅ logout API 호출
+            navigate("/n_LoginPage"); // ✅ 성공하면 로그인페이지로 이동
+        } catch (error) {
+            console.error("❌ 로그아웃 실패:", error);
+            alert("로그아웃에 실패했습니다. 다시 시도해주세요.");
+        }
     };
 
     return (

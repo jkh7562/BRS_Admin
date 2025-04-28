@@ -67,6 +67,7 @@ const N_SignupPage = () => {
             console.log("✅ 회원가입 성공:", response.data);
 
             alert("회원가입이 완료되었습니다.");
+            navigate("/n_LoginPage");
 
         } catch (error) {
             console.error("❌ 회원가입 실패:", error);

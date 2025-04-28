@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import MapWithSidebar from "../../component/MapWithSidebar"
@@ -10,6 +10,7 @@ import infoIcon from "../../assets/추가정보2.png"
 import customerIcon from "../../assets/고객관리.png"
 import lineIcon from "../../assets/구분선.png"
 import FireInfoIcon from "../../assets/FireInfo.png"
+import { fetchEmployeeRequests, getBoxLog } from "../../api/apiServices";
 
 // 수거함 더미 데이터
 const dummyBoxes = [
@@ -51,6 +52,69 @@ const N_mainPage = () => {
     const memberTabs = ["사용자", "수거자"]
     const [memberselectedTab, setMemberSelectedTab] = useState("사용자")
 
+    const [employeeRequestCount, setEmployeeRequestCount] = useState(0);
+
+    const [todayDischargeTotal, setTodayDischargeTotal] = useState(0);
+    const [todayCollectionTotal, setTodayCollectionTotal] = useState(0);
+    const [todayUserCount, setTodayUserCount] = useState(0);
+
+    useEffect(() => {
+        const loadEmployeeRequests = async () => {
+            try {
+                const data = await fetchEmployeeRequests();
+                setEmployeeRequestCount(data.length || 0); // ✅ 데이터 수 저장
+            } catch (error) {
+                console.error("수거자 가입 요청 목록 불러오기 실패:", error);
+                setEmployeeRequestCount(0); // 에러 시 0건 처리
+            }
+        };
+        const loadBoxLog = async () => {
+            try {
+                const boxLogData = await getBoxLog();
+                console.log("📦 수거 및 분리량 조회 결과:", boxLogData);
+
+                if (Array.isArray(boxLogData)) {
+                    const today = new Date();
+                    const todayDateStr = today.toISOString().split('T')[0]; // '2025-04-28' 형태
+
+                    let dischargeSum = 0;
+                    let collectionSum = 0;
+                    const userSet = new Set(); // ✅ userId 중복 제거용
+
+                    boxLogData.forEach((entry) => {
+                        const { boxLog } = entry;
+                        if (!boxLog) return;
+
+                        const logDate = new Date(boxLog.date);
+                        const logDateStr = logDate.toISOString().split('T')[0];
+
+                        if (logDateStr === todayDateStr) {
+                            if (boxLog.type === "분리") {
+                                dischargeSum += boxLog.value || 0;
+                            } else if (boxLog.type === "수거") {
+                                collectionSum += boxLog.value || 0;
+                            }
+                            if (boxLog.userId) {
+                                userSet.add(boxLog.userId); // ✅ 유저 ID 저장
+                            }
+                        }
+                    });
+
+                    setTodayDischargeTotal(dischargeSum);
+                    setTodayCollectionTotal(collectionSum);
+                    setTodayUserCount(userSet.size); // ✅ 중복 제거된 user 수
+                }
+            } catch (error) {
+                console.error("❌ 수거 및 분리량 조회 실패:", error);
+            }
+        };
+
+
+        loadEmployeeRequests();
+        loadBoxLog();
+    }, []);
+
+
     const filteredBoxes =
         selectedTab === "전체 수거함"
             ? dummyBoxes
@@ -69,14 +133,16 @@ const N_mainPage = () => {
                         {/* 신규 수거자 가입신청 */}
                         <div className="w-[19%] bg-[#21262B] rounded-2xl p-4 shadow">
                             <div className="flex items-center gap-2 mt-4 mb-4 ml-4 mr-4">
-                                <img src={joinIcon || "/placeholder.svg"} alt="신규 수거자 아이콘" className="w-6 h-6" />
+                                <img src={joinIcon || "/placeholder.svg"} alt="신규 수거자 아이콘" className="w-6 h-6"/>
                                 <h2 className="font-bold text-xl text-white whitespace-nowrap">신규 수거자 가입신청</h2>
                             </div>
-                            <p className="text-sm text-[#A5ACBA] ml-4 mr-4 mb-6">
+                            <p className="text-sm text-[#A5ACBA] ml-3 mr-4 mb-6">
                                 가입신청이 들어왔어요! 여기를 눌러 <span className="text-blue-400 underline cursor-pointer">확인</span>
                                 해주세요!
                             </p>
-                            <p className="font-bold text-[22px] text-white mt-3 ml-4 mr-4 mb-2">16건</p>
+                            <p className="font-bold text-[22px] text-white mt-3 ml-4 mr-4 mb-2">
+                                {employeeRequestCount}건
+                            </p>
                         </div>
 
                         {/* 일간 이용 현황 */}
@@ -97,7 +163,7 @@ const N_mainPage = () => {
                                         <p className="font-normal text-gray-500">일간 배출량</p>
                                         <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4" />
                                     </div>
-                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">1,197g</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">{todayDischargeTotal}</p>
                                 </div>
 
                                 {/* 구분선 */}
@@ -111,7 +177,7 @@ const N_mainPage = () => {
                                         <p className="font-normal text-gray-500">일간 수거량</p>
                                         <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4" />
                                     </div>
-                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">1,062g</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">{todayCollectionTotal}</p>
                                 </div>
 
                                 {/* 구분선 */}
@@ -125,7 +191,7 @@ const N_mainPage = () => {
                                         <p className="font-normal text-gray-500">일간 이용자</p>
                                         <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4" />
                                     </div>
-                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">31명</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">{todayUserCount}명</p>
                                 </div>
                             </div>
                         </div>
