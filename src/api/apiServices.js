@@ -3,13 +3,41 @@ import axiosInstance from "./axiosInstance"; // ✅ axiosInstance import 추가
 
 /*const FLASK_BASE_URL = "http://localhost:5000";*/
 
+// ✅ 전화번호로 인증번호 전송 API
+export const sendSmsAuth = async (to) => {
+    try {
+        const response = await axiosInstance.post(`/send-one/${to}`);
+        return response.data; // 서버 응답: 인증번호 발송 결과
+    } catch (error) {
+        console.error("❌ 인증번호 전송 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// ✅ 전화번호 인증번호 검증 API
+export const verifySmsCode = async (phone, code) => {
+    try {
+        const response = await axiosInstance.post("/verify-code", null, {
+            params: {
+                phone,
+                code,
+            },
+        });
+        return response.data; // 서버 응답: 인증 결과
+    } catch (error) {
+        console.error("❌ 인증번호 검증 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
 // 회원가입 API
-export const postCreateNewUser = (id, pw, name, phoneNumber) => {
+export const postCreateNewUser = (id, pw, name, phoneNumber, verificationCode) => {
     return axiosInstance.post(`/join`, {
         id,
         pw,
         name,
         phoneNumber,
+        verificationCode,
     });
 };
 

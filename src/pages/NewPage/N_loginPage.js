@@ -1,19 +1,26 @@
-import React from "react";
-import bgImage from "../../assets/Login_Background.jpg";
+"use client"
+import { useNavigate } from "react-router-dom"
+import bgImage from "../../assets/Login_Background.jpg"
 
 const N_LoginPage = () => {
+    const navigate = useNavigate()
+
+    const handleSignupClick = () => {
+        navigate("/n_SignupPage")
+    }
+
     return (
         <div
             className="min-h-screen bg-cover bg-center flex items-center justify-center"
             style={{ backgroundImage: `url(${bgImage})` }}
         >
             <div className="bg-white rounded-xl shadow-2xl p-12 w-[500px]">
-                <h2 className="text-[48px] font-bold text-center font-nexon">
-                    Let’s batter.
-                </h2>
+                <h2 className="text-[48px] font-bold text-center font-nexon">Let's batter.</h2>
 
                 <p className="text-center text-[18px] text-gray-600 mb-12 leading-relaxed font-[Pretendard]">
-                    화재걱정 없는 배터리배출의 시작<br/>배터가 함께하겠습니다
+                    화재걱정 없는 배터리배출의 시작
+                    <br />
+                    배터가 함께하겠습니다
                 </p>
 
                 <input
@@ -29,7 +36,7 @@ const N_LoginPage = () => {
 
                 <div className="flex items-center justify-between mb-6 text-[14px]">
                     <label className="flex items-center font-[Pretendard]">
-                        <input type="checkbox" className="mr-2 accent-green-600"/>
+                        <input type="checkbox" className="mr-2 accent-green-600" />
                         아이디 저장
                     </label>
                     <div className="space-x-2 text-gray-500">
@@ -39,20 +46,22 @@ const N_LoginPage = () => {
                     </div>
                 </div>
 
-                <button
-                    className="w-full bg-[#00C17B] text-white mb-14 py-2.5 rounded hover:bg-green-600 mb-6 text-[18px] font-[Pretendard]">
+                <button className="w-full bg-[#00C17B] text-white mb-14 py-2.5 rounded hover:bg-green-600 mb-6 text-[18px] font-[Pretendard]">
                     로그인
                 </button>
 
                 <div className="mt-8 text-center text-[16px] text-[#1A0A0B] font-[Pretendard]">
                     지구를 위해 배터와 함께해요{" "}
-                    <button className="ml-6 text-black text-[16px] font-semibold hover:underline font-[Pretendard]">
+                    <button
+                        onClick={handleSignupClick}
+                        className="ml-6 text-black text-[16px] font-semibold hover:underline font-[Pretendard]"
+                    >
                         회원가입
                     </button>
                 </div>
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default N_LoginPage;
+export default N_LoginPage
