@@ -1,99 +1,111 @@
-import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-import AlarmIcon from "../assets/알림.png"
-import DownIcon from "../assets/Down.png"
-import FireInfoIcon from "../assets/FireInfo.png"
-import { X } from "lucide-react"
-import BoxIcon from "../assets/수거함Black.png"
-import PlusIcon from "../assets/가입신청Black.png"
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import AlarmIcon from "../assets/알림.png";
+import DownIcon from "../assets/Down.png";
+import FireInfoIcon from "../assets/FireInfo.png";
+import BoxIcon from "../assets/수거함Black.png";
+import PlusIcon from "../assets/가입신청Black.png";
+import { X } from "lucide-react";
+import { getMyInfo } from "../api/apiServices"; // ✅ 내 정보 조회 API 추가
 
 const Topbar = () => {
-    const navigate = useNavigate()
-    const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
-    const [isNotificationSidebarOpen, setIsNotificationSidebarOpen] = useState(false)
-    const [showPasswordForm, setShowPasswordForm] = useState(false)
+    const navigate = useNavigate();
+    const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+    const [isNotificationSidebarOpen, setIsNotificationSidebarOpen] = useState(false);
+    const [showPasswordForm, setShowPasswordForm] = useState(false);
     const [passwordForm, setPasswordForm] = useState({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
-    })
+    });
+    const [userInfo, setUserInfo] = useState({ name: "", id: "" }); // ✅ 유저 정보 상태 추가
 
-    // Close dropdowns when clicking outside
+    useEffect(() => {
+        const fetchUserInfo = async () => {
+            try {
+                const data = await getMyInfo();
+                setUserInfo({
+                    name: data.name || "",
+                    id: data.id || "",
+                });
+            } catch (error) {
+                console.error("내 정보 불러오기 실패:", error);
+            }
+        };
+
+        fetchUserInfo();
+    }, []);
+
     useEffect(() => {
         const handleClickOutside = (event) => {
-            // Close notification sidebar when clicking outside
             if (
                 isNotificationSidebarOpen &&
                 !event.target.closest(".notification-sidebar") &&
                 !event.target.closest(".notification-button")
             ) {
-                setIsNotificationSidebarOpen(false)
+                setIsNotificationSidebarOpen(false);
             }
 
-            // Close profile dropdown when clicking outside
             if (
                 isProfileDropdownOpen &&
                 !event.target.closest(".profile-dropdown") &&
                 !event.target.closest(".profile-button")
             ) {
-                setIsProfileDropdownOpen(false)
+                setIsProfileDropdownOpen(false);
             }
-        }
+        };
 
-        document.addEventListener("mousedown", handleClickOutside)
+        document.addEventListener("mousedown", handleClickOutside);
         return () => {
-            document.removeEventListener("mousedown", handleClickOutside)
-        }
-    }, [isProfileDropdownOpen, isNotificationSidebarOpen])
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isProfileDropdownOpen, isNotificationSidebarOpen]);
 
     const toggleProfileDropdown = () => {
         if (!isProfileDropdownOpen) {
-            // Reset to main dropdown view when opening
-            setShowPasswordForm(false)
+            setShowPasswordForm(false);
         }
-        setIsProfileDropdownOpen(!isProfileDropdownOpen)
-    }
+        setIsProfileDropdownOpen(!isProfileDropdownOpen);
+    };
 
     const toggleNotificationSidebar = () => {
-        setIsNotificationSidebarOpen(!isNotificationSidebarOpen)
-    }
+        setIsNotificationSidebarOpen(!isNotificationSidebarOpen);
+    };
 
     const openPasswordForm = () => {
-        setShowPasswordForm(true)
-    }
+        setShowPasswordForm(true);
+    };
 
     const closePasswordForm = () => {
-        setShowPasswordForm(false)
+        setShowPasswordForm(false);
         setPasswordForm({
             currentPassword: "",
             newPassword: "",
             confirmPassword: "",
-        })
-    }
+        });
+    };
 
     const handlePasswordChange = (e) => {
-        const { name, value } = e.target
+        const { name, value } = e.target;
         setPasswordForm((prev) => ({
             ...prev,
             [name]: value,
-        }))
-    }
+        }));
+    };
 
     const handlePasswordSubmit = (e) => {
-        e.preventDefault()
-        // Here you would implement the actual password change logic
-        console.log("Password change submitted:", passwordForm)
+        e.preventDefault();
+        console.log("Password change submitted:", passwordForm);
 
-        // Close the dropdown after submission
-        setIsProfileDropdownOpen(false)
-        setShowPasswordForm(false)
+        setIsProfileDropdownOpen(false);
+        setShowPasswordForm(false);
         setPasswordForm({
             currentPassword: "",
             newPassword: "",
             confirmPassword: "",
-        })
-        alert("비밀번호가 변경되었습니다.")
-    }
+        });
+        alert("비밀번호가 변경되었습니다.");
+    };
 
     const handleLogoutClick = () => {
         navigate("/n_LoginPage");
@@ -101,9 +113,7 @@ const Topbar = () => {
 
     return (
         <>
-            <div
-                className="fixed top-0 left-0 right-0 bg-[#F3F3F5] z-40 border-b border-gray-200 h-16 flex items-center justify-end px-6">
-
+            <div className="fixed top-0 left-0 right-0 bg-[#F3F3F5] z-40 border-b border-gray-200 h-16 flex items-center justify-end px-6">
                 <div className="flex items-center gap-8">
                     <div className="relative flex items-center gap-3">
                         <img
@@ -111,16 +121,13 @@ const Topbar = () => {
                             alt="profile"
                             className="w-8 h-8 rounded-full border border-black"
                         />
-                        <span className="text-lg font-medium text-[#272F42]">재민</span>
-                        <button onClick={toggleProfileDropdown}
-                                className="profile-button flex items-center justify-center">
-                            <img src={DownIcon || "/placeholder.svg"} alt="드롭다운 아이콘"
-                                 className="w-3 h-3 object-contain"/>
+                        <span className="text-lg font-medium text-[#272F42]">{userInfo.name}</span>
+                        <button onClick={toggleProfileDropdown} className="profile-button flex items-center justify-center">
+                            <img src={DownIcon || "/placeholder.svg"} alt="드롭다운 아이콘" className="w-3 h-3 object-contain" />
                         </button>
 
                         {isProfileDropdownOpen && (
-                            <div
-                                className="profile-dropdown absolute top-full right-0 mt-2 w-80 bg-white rounded-md shadow-lg z-50 overflow-hidden">
+                            <div className="profile-dropdown absolute top-full right-0 mt-2 w-80 bg-white rounded-md shadow-lg z-50 overflow-hidden">
                                 <div className="p-4 flex items-center gap-3">
                                     <img
                                         src="https://via.placeholder.com/32"
@@ -128,13 +135,12 @@ const Topbar = () => {
                                         className="w-14 h-14 rounded-full border border-black"
                                     />
                                     <div>
-                                        <p className="text-xl font-medium text-[#21262B]">재민</p>
-                                        <p className="text-[#60697E]">ID: q1w2e3r4</p>
+                                        <p className="text-xl font-medium text-[#21262B]">{userInfo.name}</p>
+                                        <p className="text-[#60697E]">ID: {userInfo.id}</p>
                                     </div>
                                 </div>
 
                                 {!showPasswordForm ? (
-                                    // Main dropdown menu
                                     <div className="p-3 flex flex-col gap-2">
                                         <button
                                             className="w-full py-2 bg-[#7A7F8A] text-white rounded-md hover:bg-gray-500 transition-colors"
@@ -144,12 +150,12 @@ const Topbar = () => {
                                         </button>
                                         <button
                                             onClick={handleLogoutClick}
-                                            className="w-full py-2 bg-red-400 text-white rounded-md hover:bg-red-500 transition-colors">
+                                            className="w-full py-2 bg-red-400 text-white rounded-md hover:bg-red-500 transition-colors"
+                                        >
                                             로그아웃
                                         </button>
                                     </div>
                                 ) : (
-                                    // Password change form
                                     <div className="p-4">
                                         <form onSubmit={handlePasswordSubmit}>
                                             <div className="space-y-3">
@@ -203,20 +209,16 @@ const Topbar = () => {
                             </div>
                         )}
                     </div>
+
                     <div className="relative w-6 h-6 mr-4">
-                        <button
-                            onClick={toggleNotificationSidebar}
-                            className="notification-button w-full h-full flex items-center justify-center"
-                        >
-                            <img src={AlarmIcon || "/placeholder.svg"} alt="알림 아이콘"
-                                 className="w-full h-full object-contain"/>
+                        <button onClick={toggleNotificationSidebar} className="notification-button w-full h-full flex items-center justify-center">
+                            <img src={AlarmIcon || "/placeholder.svg"} alt="알림 아이콘" className="w-full h-full object-contain" />
                             <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* Notification Sidebar - positioned below the topbar */}
             <div
                 className={`notification-sidebar fixed top-16 right-0 h-[calc(100%-4rem)] w-80 bg-[#F3F3F5] shadow-lg z-30 transition-transform duration-300 ease-in-out ${
                     isNotificationSidebarOpen ? "transform-none" : "transform translate-x-full"
@@ -228,62 +230,49 @@ const Topbar = () => {
 
                 <div className="p-5 overflow-y-auto h-[calc(100%-60px)]">
                     <div className="flex flex-col gap-2">
-                        {/* 화재 알림 */}
+                        {/* 알림 카드들 */}
                         <div className="bg-gray-800 text-white py-6 px-6 rounded-2xl shadow">
                             <div className="flex items-start gap-2">
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <img
-                                            src={FireInfoIcon || "/placeholder.svg"}
-                                            alt="화재 알림 아이콘"
-                                            className="w-5 h-5 object-contain"
-                                        />
+                                        <img src={FireInfoIcon || "/placeholder.svg"} alt="화재 알림 아이콘" className="w-5 h-5 object-contain" />
                                         <p className="font-semibold text-lg">화재가 감지됐어요.</p>
                                     </div>
-                                    <p className="text-sm mt-1">
-                                        서울특별시 송파구 가락로 111 수거함에서 화재가 감지됐어요. 화재현장 수습을 위해 수거자를
-                                        배치해주세요.
-                                    </p>
+                                    <p className="text-sm mt-1">서울특별시 송파구 가락로 111 수거함에서 화재가 감지됐어요.</p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* 수거함 추가 */}
                         <div className="bg-white py-6 px-6 rounded-2xl shadow">
                             <div className="flex items-start gap-3">
                                 <div>
                                     <div className="flex items-start gap-2">
-                                    <img src={BoxIcon || "/placeholder.svg"} alt="수거함 아이콘"
-                                         className="w-5 h-5 object-contain"/>
-                                    <p className="font-bold text-[#21262B]">수거함 추가</p>
+                                        <img src={BoxIcon || "/placeholder.svg"} alt="수거함 아이콘" className="w-5 h-5 object-contain" />
+                                        <p className="font-bold text-[#21262B]">수거함 추가</p>
                                     </div>
                                     <p className="text-sm text-[#60697E] mt-1">선문대 동문 앞 수거함이 추가되었어요</p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* 수거함 제거 */}
                         <div className="bg-white py-6 px-6 rounded-2xl shadow">
                             <div className="flex items-start gap-3">
                                 <div>
                                     <div className="flex items-start gap-2">
-                                    <img src={BoxIcon || "/placeholder.svg"} alt="수거함 아이콘"
-                                         className="w-5 h-5 object-contain"/>
-                                    <p className="font-bold text-[#21262B]">수거함 제거</p>
+                                        <img src={BoxIcon || "/placeholder.svg"} alt="수거함 아이콘" className="w-5 h-5 object-contain" />
+                                        <p className="font-bold text-[#21262B]">수거함 제거</p>
                                     </div>
                                     <p className="text-sm text-[#60697E] mt-1">선문대 서문 앞 수거함이 제거되었어요</p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* 신규 수거자 가입신청 */}
                         <div className="bg-white py-6 px-6 rounded-2xl shadow-md">
                             <div className="flex items-start gap-3">
                                 <div>
                                     <div className="flex items-start gap-2">
-                                    <img src={PlusIcon || "/placeholder.svg"} alt="가입신청 아이콘"
-                                         className="w-5 h-5 object-contain"/>
-                                    <p className="font-bold text-[#21262B]">신규 수거자 가입신청</p>
+                                        <img src={PlusIcon || "/placeholder.svg"} alt="가입신청 아이콘" className="w-5 h-5 object-contain" />
+                                        <p className="font-bold text-[#21262B]">신규 수거자 가입신청</p>
                                     </div>
                                     <p className="text-sm text-[#60697E] mt-1">16건의 가입신청이 들어왔어요</p>
                                 </div>
@@ -293,7 +282,7 @@ const Topbar = () => {
                 </div>
             </div>
         </>
-    )
-}
+    );
+};
 
-export default Topbar
+export default Topbar;
