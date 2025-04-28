@@ -10,39 +10,7 @@ import infoIcon from "../../assets/추가정보2.png"
 import customerIcon from "../../assets/고객관리.png"
 import lineIcon from "../../assets/구분선.png"
 import FireInfoIcon from "../../assets/FireInfo.png"
-import { fetchEmployeeRequests, getBoxLog } from "../../api/apiServices";
-
-// 수거함 더미 데이터
-const dummyBoxes = [
-    {
-        id: 1,
-        name: "선문대학교 공학관 1층 수거함",
-        lat: 36.8082,
-        lng: 127.009,
-        status: "normal",
-    },
-    {
-        id: 2,
-        name: "선문대학교 CU 수거함",
-        lat: 36.8084,
-        lng: 127.0093,
-        status: "need-collect",
-    },
-    {
-        id: 3,
-        name: "선문대 인문관 1층 수거함",
-        lat: 36.8086,
-        lng: 127.0095,
-        status: "fire",
-    },
-]
-
-// 사용자 더미 데이터
-const dummyUsers = [
-    { id: 1, name: "정윤식", amount: 3200, date: "2025-02-03" },
-    { id: 2, name: "김민수", amount: 1500, date: "2025-01-15" },
-    { id: 3, name: "이영희", amount: 2300, date: "2025-03-10" },
-]
+import { fetchEmployeeRequests, getBoxLog, findAllBox } from "../../api/apiServices"
 
 const N_mainPage = () => {
     const tabs = ["전체 수거함", "건전지", "방전 배터리", "잔여 용량 배터리"]
@@ -51,77 +19,113 @@ const N_mainPage = () => {
     const [selectedTab, setSelectedTab] = useState("전체 수거함")
     const memberTabs = ["사용자", "수거자"]
     const [memberselectedTab, setMemberSelectedTab] = useState("사용자")
+    const [boxes, setBoxes] = useState([])
 
-    const [employeeRequestCount, setEmployeeRequestCount] = useState(0);
-
-    const [todayDischargeTotal, setTodayDischargeTotal] = useState(0);
-    const [todayCollectionTotal, setTodayCollectionTotal] = useState(0);
-    const [todayUserCount, setTodayUserCount] = useState(0);
+    const [employeeRequestCount, setEmployeeRequestCount] = useState(0)
+    const [todayDischargeTotal, setTodayDischargeTotal] = useState(0)
+    const [todayCollectionTotal, setTodayCollectionTotal] = useState(0)
+    const [todayUserCount, setTodayUserCount] = useState(0)
 
     useEffect(() => {
         const loadEmployeeRequests = async () => {
             try {
-                const data = await fetchEmployeeRequests();
-                setEmployeeRequestCount(data.length || 0); // ✅ 데이터 수 저장
+                const data = await fetchEmployeeRequests()
+                setEmployeeRequestCount(data.length || 0)
             } catch (error) {
-                console.error("수거자 가입 요청 목록 불러오기 실패:", error);
-                setEmployeeRequestCount(0); // 에러 시 0건 처리
+                console.error("수거자 가입 요청 목록 불러오기 실패:", error)
+                setEmployeeRequestCount(0)
             }
-        };
+        }
+
         const loadBoxLog = async () => {
             try {
-                const boxLogData = await getBoxLog();
-                console.log("📦 수거 및 분리량 조회 결과:", boxLogData);
+                const boxLogData = await getBoxLog()
+                console.log("📦 수거 및 분리량 조회 결과:", boxLogData)
 
                 if (Array.isArray(boxLogData)) {
-                    const today = new Date();
-                    const todayDateStr = today.toISOString().split('T')[0]; // '2025-04-28' 형태
+                    const today = new Date()
+                    const todayDateStr = today.toISOString().split('T')[0]
 
-                    let dischargeSum = 0;
-                    let collectionSum = 0;
-                    const userSet = new Set(); // ✅ userId 중복 제거용
+                    let dischargeSum = 0
+                    let collectionSum = 0
+                    const userSet = new Set()
 
                     boxLogData.forEach((entry) => {
-                        const { boxLog } = entry;
-                        if (!boxLog) return;
+                        const { boxLog } = entry
+                        if (!boxLog) return
 
-                        const logDate = new Date(boxLog.date);
-                        const logDateStr = logDate.toISOString().split('T')[0];
+                        const logDate = new Date(boxLog.date)
+                        const logDateStr = logDate.toISOString().split('T')[0]
 
                         if (logDateStr === todayDateStr) {
                             if (boxLog.type === "분리") {
-                                dischargeSum += boxLog.value || 0;
+                                dischargeSum += boxLog.value || 0
                             } else if (boxLog.type === "수거") {
-                                collectionSum += boxLog.value || 0;
+                                collectionSum += boxLog.value || 0
                             }
                             if (boxLog.userId) {
-                                userSet.add(boxLog.userId); // ✅ 유저 ID 저장
+                                userSet.add(boxLog.userId)
                             }
                         }
-                    });
+                    })
 
-                    setTodayDischargeTotal(dischargeSum);
-                    setTodayCollectionTotal(collectionSum);
-                    setTodayUserCount(userSet.size); // ✅ 중복 제거된 user 수
+                    setTodayDischargeTotal(dischargeSum)
+                    setTodayCollectionTotal(collectionSum)
+                    setTodayUserCount(userSet.size)
                 }
             } catch (error) {
-                console.error("❌ 수거 및 분리량 조회 실패:", error);
+                console.error("❌ 수거 및 분리량 조회 실패:", error)
+            }
+        }
+
+        const loadBoxes = async () => {
+            try {
+                const data = await findAllBox();
+                const mappedBoxes = data.map((entry) => {
+                    const { id, name, location, volume1, volume2, volume3, fireStatus1, fireStatus2, fireStatus3 } = entry.box;
+
+                    // 위치 파싱 (띄어쓰기 유무 상관없이 처리)
+                    let lng = 0;
+                    let lat = 0;
+                    if (location) {
+                        const coordsMatch = location.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/);
+                        if (coordsMatch) {
+                            lng = parseFloat(coordsMatch[1]);
+                            lat = parseFloat(coordsMatch[2]);
+                        }
+                    }
+
+                    // 상태 계산
+                    let status = "normal";
+                    const fireDetected = [fireStatus1, fireStatus2, fireStatus3].includes("FIRE");
+                    const volumeThresholdExceeded = [volume1, volume2, volume3].some((v) => v >= 81);
+
+                    if (fireDetected) {
+                        status = "fire";
+                    } else if (volumeThresholdExceeded) {
+                        status = "need-collect";
+                    }
+
+                    return { id, name, lat, lng, status };
+                });
+
+                setBoxes(mappedBoxes);
+            } catch (error) {
+                console.error("수거함 정보 로딩 실패:", error);
             }
         };
 
-
-        loadEmployeeRequests();
-        loadBoxLog();
-    }, []);
-
+        loadEmployeeRequests()
+        loadBoxLog()
+        loadBoxes()
+    }, [])
 
     const filteredBoxes =
         selectedTab === "전체 수거함"
-            ? dummyBoxes
-            : dummyBoxes.filter((box) =>
+            ? boxes
+            : boxes.filter((box) =>
                 selectedTab === "수거 필요" ? box.status === "need-collect" : box.status === "fire",
             )
-
     return (
         <div className="flex min-h-screen w-full bg-[#F3F3F5]">
             <Sidebar />
@@ -129,69 +133,66 @@ const N_mainPage = () => {
                 <Topbar />
                 <main className="pt-24 px-24 pb-6 space-y-4">
                     <p className="font-bold text-xl text-[#272F42]">대시 보드</p>
+
                     <div className="flex gap-4">
                         {/* 신규 수거자 가입신청 */}
                         <div className="w-[19%] bg-[#21262B] rounded-2xl p-4 shadow">
-                            <div className="flex items-center gap-2 mt-4 mb-4 ml-4 mr-4">
-                                <img src={joinIcon || "/placeholder.svg"} alt="신규 수거자 아이콘" className="w-6 h-6"/>
+                            <div className="flex items-center gap-2 mt-4 ml-4 mr-4 mb-4">
+                                <img src={joinIcon} alt="신규 수거자" className="w-6 h-6" />
                                 <h2 className="font-bold text-xl text-white whitespace-nowrap">신규 수거자 가입신청</h2>
                             </div>
-                            <p className="text-sm text-[#A5ACBA] ml-3 mr-4 mb-6">
-                                가입신청이 들어왔어요! 여기를 눌러 <span className="text-blue-400 underline cursor-pointer">확인</span>
-                                해주세요!
+                            <p className="text-sm text-[#A5ACBA] ml-4 mr-4 mb-6">
+                                가입신청이 들어왔어요! 여기를 눌러 <span className="text-blue-400 underline cursor-pointer">확인</span> 해주세요!
                             </p>
-                            <p className="font-bold text-[22px] text-white mt-3 ml-4 mr-4 mb-2">
-                                {employeeRequestCount}건
-                            </p>
+                            <p className="font-bold text-[22px] text-white mt-3 ml-4">{employeeRequestCount}건</p>
                         </div>
 
                         {/* 일간 이용 현황 */}
                         <div className="flex-1 bg-white rounded-2xl p-4 shadow">
                             <div className="flex items-center justify-between mb-14">
-                                <div className="flex items-center gap-2 mt-4 ml-6 mr-4">
-                                    <img src={dayIcon || "/placeholder.svg"} alt="일간 아이콘" className="w-5 h-5" />
-                                    <h2 className="pl-1 text-xl text-[#21262B] font-bold whitespace-nowrap">일간 이용 현황</h2>
+                                <div className="flex items-center gap-2 mt-4 ml-6">
+                                    <img src={dayIcon} alt="일간" className="w-5 h-5" />
+                                    <h2 className="pl-1 text-xl font-bold text-[#21262B]">일간 이용 현황</h2>
                                 </div>
-                                <p className="text-sm font-medium text-[#7A7F8A] whitespace-nowrap pr-3 mt-4">
-                                    마지막 업데이트 2025.03.31
-                                </p>
+                                <p className="text-sm font-medium text-[#7A7F8A] pr-3 mt-4">마지막 업데이트 2025.03.31</p>
                             </div>
+
                             <div className="flex flex-col md:flex-row items-center justify-between gap-4 mx-4 text-sm">
                                 {/* 일간 배출량 */}
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
-                                        <p className="font-normal text-gray-500">일간 배출량</p>
-                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4" />
+                                        <p className="text-gray-500">일간 배출량</p>
+                                        <img src={infoIcon} alt="info" className="w-4 h-4" />
                                     </div>
-                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">{todayDischargeTotal}</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayDischargeTotal}g</p>
                                 </div>
 
                                 {/* 구분선 */}
                                 <div className="hidden md:flex justify-center px-4">
-                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8" />
+                                    <img src={lineIcon} alt="line" className="h-8" />
                                 </div>
 
                                 {/* 일간 수거량 */}
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
-                                        <p className="font-normal text-gray-500">일간 수거량</p>
-                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4" />
+                                        <p className="text-gray-500">일간 수거량</p>
+                                        <img src={infoIcon} alt="info" className="w-4 h-4" />
                                     </div>
-                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">{todayCollectionTotal}</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayCollectionTotal}g</p>
                                 </div>
 
                                 {/* 구분선 */}
                                 <div className="hidden md:flex justify-center px-4">
-                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8" />
+                                    <img src={lineIcon} alt="line" className="h-8" />
                                 </div>
 
                                 {/* 일간 이용자수 */}
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
-                                        <p className="font-normal text-gray-500">일간 이용자</p>
-                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4" />
+                                        <p className="text-gray-500">일간 이용자</p>
+                                        <img src={infoIcon} alt="info" className="w-4 h-4" />
                                     </div>
-                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">{todayUserCount}명</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayUserCount}명</p>
                                 </div>
                             </div>
                         </div>
@@ -199,50 +200,44 @@ const N_mainPage = () => {
                         {/* 고객 관리 */}
                         <div className="flex-1 bg-white rounded-2xl p-4 shadow">
                             <div className="flex items-center justify-between mb-14">
-                                <div className="flex items-center gap-2 mt-4 ml-6 mr-4">
-                                    <img src={customerIcon || "/placeholder.svg"} alt="고객 관리 아이콘" className="w-5 h-5" />
-                                    <h2 className="font-bold text-xl text-[#21262B] whitespace-nowrap">고객 관리</h2>
+                                <div className="flex items-center gap-2 mt-4 ml-6">
+                                    <img src={customerIcon} alt="고객 관리" className="w-5 h-5" />
+                                    <h2 className="text-xl font-bold text-[#21262B]">고객 관리</h2>
                                 </div>
-                                <p className="font-medium text-sm text-[#7A7F8A] whitespace-nowrap pr-3 mt-4">
-                                    마지막 업데이트 2025.03.31
-                                </p>
+                                <p className="text-sm font-medium text-[#7A7F8A] pr-3 mt-4">마지막 업데이트 2025.03.31</p>
                             </div>
+
                             <div className="flex flex-col md:flex-row items-center justify-between gap-4 mx-4 text-sm">
-                                {/* 사용자 문의 */}
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
-                                        <p className="font-normal text-gray-500">사용자 문의</p>
-                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4" />
+                                        <p className="text-gray-500">사용자 문의</p>
+                                        <img src={infoIcon} alt="info" className="w-4 h-4" />
                                     </div>
-                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">13건</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">13건</p>
                                 </div>
 
-                                {/* 구분선 */}
                                 <div className="hidden md:flex justify-center px-4">
-                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8" />
+                                    <img src={lineIcon} alt="line" className="h-8" />
                                 </div>
 
-                                {/* 수거자 문의 */}
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
-                                        <p className="font-normal text-gray-500">수거자 문의</p>
-                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4" />
+                                        <p className="text-gray-500">수거자 문의</p>
+                                        <img src={infoIcon} alt="info" className="w-4 h-4" />
                                     </div>
-                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">5건</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">5건</p>
                                 </div>
 
-                                {/* 구분선 */}
                                 <div className="hidden md:flex justify-center px-4">
-                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8" />
+                                    <img src={lineIcon} alt="line" className="h-8" />
                                 </div>
 
-                                {/* 일반 민원 */}
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
-                                        <p className="font-normal text-gray-500">일반 민원</p>
-                                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4" />
+                                        <p className="text-gray-500">일반 민원</p>
+                                        <img src={infoIcon} alt="info" className="w-4 h-4" />
                                     </div>
-                                    <p className="font-bold text-[22px] text-[#21262B] mt-2 text-center md:text-left">0건</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">0건</p>
                                 </div>
                             </div>
                         </div>
@@ -250,15 +245,15 @@ const N_mainPage = () => {
 
                     {/* 수거함 현황 */}
                     <div className="pt-12 mb-4">
-                        <h3 className="font-bold text-xl text-[#272F42] mb-4">수거함 현황</h3>
+                        <h3 className="text-xl font-bold mb-4 text-[#272F42]">수거함 현황</h3>
                         <div className="relative mb-9">
-                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
-                            <div className="flex items-center gap-6 relative">
+                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200" />
+                            <div className="flex items-center gap-6">
                                 {["전체 수거함", "수거 필요", "화재감지"].map((tab) => (
                                     <button
                                         key={tab}
                                         onClick={() => setSelectedTab(tab)}
-                                        className={`pb-1 flex items-center gap-1 bg-transparent ${
+                                        className={`pb-1 flex items-center gap-1 ${
                                             selectedTab === tab
                                                 ? `border-b-[3px] ${
                                                     tab === "화재감지"
@@ -272,11 +267,7 @@ const N_mainPage = () => {
                                     >
                                         {tab}
                                         {tab === "화재감지" && (
-                                            <img
-                                                src={FireInfoIcon || "/placeholder.svg"}
-                                                alt="화재 정보 아이콘"
-                                                className="w-[14px] h-[14px] ml-[2px]"
-                                            />
+                                            <img src={FireInfoIcon} alt="화재" className="w-4 h-4 ml-1" />
                                         )}
                                     </button>
                                 ))}
@@ -286,19 +277,18 @@ const N_mainPage = () => {
 
                     <MapWithSidebar filteredBoxes={filteredBoxes} />
 
-                    {/* 탭 영역: 배출량 + 수거량 */}
+                    {/* 배출량, 수거량 탭 */}
                     <div className="grid grid-cols-2 gap-6 pt-9 mb-2">
-                        {/* 배출량 */}
                         <div>
                             <h3 className="text-xl font-bold mb-3">배출량</h3>
                             <div className="relative mb-6">
-                                <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
-                                <div className="flex gap-6 relative z-10">
+                                <div className="absolute bottom-0 left-0 w-full border-b border-gray-200" />
+                                <div className="flex gap-6">
                                     {tabs.map((tab) => (
                                         <button
                                             key={tab}
                                             onClick={() => setSelectedEmissionTab(tab)}
-                                            className={`pb-1 bg-transparent ${
+                                            className={`pb-1 ${
                                                 selectedEmissionTab === tab
                                                     ? "border-b-[3px] border-black text-[#21262B] font-semibold"
                                                     : "text-[#60697E]"
@@ -311,17 +301,16 @@ const N_mainPage = () => {
                             </div>
                         </div>
 
-                        {/* 수거량 */}
                         <div>
                             <h3 className="text-xl font-bold mb-3">수거량</h3>
                             <div className="relative mb-6">
-                                <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
-                                <div className="flex gap-6 relative z-10">
+                                <div className="absolute bottom-0 left-0 w-full border-b border-gray-200" />
+                                <div className="flex gap-6">
                                     {tabs.map((tab) => (
                                         <button
                                             key={tab}
                                             onClick={() => setSelectedCollectionTab(tab)}
-                                            className={`pb-1 bg-transparent ${
+                                            className={`pb-1 ${
                                                 selectedCollectionTab === tab
                                                     ? "border-b-[3px] border-black text-[#21262B] font-semibold"
                                                     : "text-[#60697E]"
@@ -335,34 +324,27 @@ const N_mainPage = () => {
                         </div>
                     </div>
 
-                    {/* 차트 영역: 배출량 + 수거량 */}
+                    {/* 차트 자리 */}
                     <div className="grid grid-cols-2 gap-4 pb-10">
                         <div className="bg-white rounded-lg p-4 shadow">
-                            <div className="h-52 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-sm">
-                                배출량 차트 영역
-                            </div>
+                            <div className="h-52 bg-gray-100 flex items-center justify-center text-gray-400">배출량 차트 영역</div>
                         </div>
                         <div className="bg-white rounded-lg p-4 shadow">
-                            <div className="h-52 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-sm">
-                                수거량 차트 영역
-                            </div>
+                            <div className="h-52 bg-gray-100 flex items-center justify-center text-gray-400">수거량 차트 영역</div>
                         </div>
                     </div>
 
+                    {/* 회원 정보 */}
                     <div className="pb-6">
-                        <h3 className="text-xl text-[#272F42] font-bold mb-4">회원 정보 검색</h3>
-
+                        <h3 className="text-xl font-bold text-[#272F42] mb-4">회원 정보 검색</h3>
                         <div className="relative">
-                            {/* 얇은 하단 선 */}
-                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
-
-                            {/* 탭 버튼 */}
-                            <div className="flex gap-6 relative z-10">
+                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200" />
+                            <div className="flex gap-6">
                                 {memberTabs.map((tab) => (
                                     <button
                                         key={tab}
                                         onClick={() => setMemberSelectedTab(tab)}
-                                        className={`pb-1 bg-transparent ${
+                                        className={`pb-1 ${
                                             memberselectedTab === tab
                                                 ? "border-b-[3px] border-black text-[#21262B] font-semibold"
                                                 : "text-[#60697E]"
@@ -375,7 +357,6 @@ const N_mainPage = () => {
                         </div>
                     </div>
 
-                    {/* 사용자/수거자 정보 섹션 - 선택된 탭에 따라 표시 */}
                     {memberselectedTab === "사용자" ? <UserInfoSection /> : <CollectorInfoSection />}
 
                     <div className="pb-32" />
@@ -386,3 +367,4 @@ const N_mainPage = () => {
 }
 
 export default N_mainPage
+
