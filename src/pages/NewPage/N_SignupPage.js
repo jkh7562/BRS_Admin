@@ -132,7 +132,7 @@ const N_SignupPage = () => {
                     />
                     <button
                         onClick={handleVerifyCode}
-                        className="w-20 h-11 bg-gray-200 text-[#21262B] rounded hover:bg-gray-300 text-[14px] font-[Pretendard]"
+                        className="w-20 h-11 mt-2 bg-gray-200 text-[#21262B] rounded hover:bg-gray-300 text-[14px] font-[Pretendard]"
                     >
                         확인하기
                     </button>

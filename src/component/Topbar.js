@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import AlarmIcon from "../assets/알림.png"
 import DownIcon from "../assets/Down.png"
 import FireInfoIcon from "../assets/FireInfo.png"
@@ -7,6 +8,7 @@ import BoxIcon from "../assets/수거함Black.png"
 import PlusIcon from "../assets/가입신청Black.png"
 
 const Topbar = () => {
+    const navigate = useNavigate()
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
     const [isNotificationSidebarOpen, setIsNotificationSidebarOpen] = useState(false)
     const [showPasswordForm, setShowPasswordForm] = useState(false)
@@ -93,6 +95,10 @@ const Topbar = () => {
         alert("비밀번호가 변경되었습니다.")
     }
 
+    const handleLogoutClick = () => {
+        navigate("/n_LoginPage");
+    };
+
     return (
         <>
             <div
@@ -137,6 +143,7 @@ const Topbar = () => {
                                             비밀번호 변경
                                         </button>
                                         <button
+                                            onClick={handleLogoutClick}
                                             className="w-full py-2 bg-red-400 text-white rounded-md hover:bg-red-500 transition-colors">
                                             로그아웃
                                         </button>

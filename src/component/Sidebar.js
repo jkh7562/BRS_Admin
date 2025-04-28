@@ -92,6 +92,10 @@ const Sidebar = () => {
         },
     ]
 
+    const handleLogoutClick = () => {
+        navigate("/n_LoginPage");
+    };
+
     return (
         <aside className="w-[340px] sticky top-0 z-50 h-screen text-white" style={{ backgroundColor: "#101213" }}>
             <div className="sidebar-content h-full overflow-y-auto p-5">
@@ -195,7 +199,7 @@ const Sidebar = () => {
                 </div>
                 {/* 로그아웃 + 버전 */}
                 <div className="mt-12 pl-6 pr-6 flex items-center justify-between text-[#A5ACBA] text-sm">
-                    <div className="flex items-center gap-4 cursor-pointer">
+                    <div onClick={handleLogoutClick} className="flex items-center gap-4 cursor-pointer">
                         <img src={logoutIcon || "/placeholder.svg"} alt="logout" className="w-5 h-5"/>
                         <span>로그아웃</span>
                     </div>
