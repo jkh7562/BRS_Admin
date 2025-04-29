@@ -4,6 +4,8 @@ import Topbar from "../../component/Topbar"
 import MapWithSidebar from "../../component/MapWithSidebar"
 import UserInfoSection from "../../component/InfoSection/UserInfoSection"
 import CollectorInfoSection from "../../component/InfoSection/CollectorInfoSection"
+import DischargeChart from "../../component/chart/DischargeChart"
+import CollectionChart from "../../component/chart/CollectionChart"
 import joinIcon from "../../assets/가입관리2.png"
 import dayIcon from "../../assets/일간.png"
 import infoIcon from "../../assets/추가정보2.png"
@@ -138,11 +140,12 @@ const N_mainPage = () => {
                         {/* 신규 수거자 가입신청 */}
                         <div className="w-[19%] bg-[#21262B] rounded-2xl p-4 shadow">
                             <div className="flex items-center gap-2 mt-4 ml-4 mr-4 mb-4">
-                                <img src={joinIcon} alt="신규 수거자" className="w-6 h-6" />
+                                <img src={joinIcon} alt="신규 수거자" className="w-6 h-6"/>
                                 <h2 className="font-bold text-xl text-white whitespace-nowrap">신규 수거자 가입신청</h2>
                             </div>
                             <p className="text-sm text-[#A5ACBA] ml-4 mr-4 mb-6">
-                                가입신청이 들어왔어요! 여기를 눌러 <span className="text-blue-400 underline cursor-pointer">확인</span> 해주세요!
+                                가입신청이 들어왔어요! 여기를 눌러 <span
+                                className="text-blue-400 underline cursor-pointer">확인</span> 해주세요!
                             </p>
                             <p className="font-bold text-[22px] text-white mt-3 ml-4">{employeeRequestCount}건</p>
                         </div>
@@ -151,7 +154,7 @@ const N_mainPage = () => {
                         <div className="flex-1 bg-white rounded-2xl p-4 shadow">
                             <div className="flex items-center justify-between mb-14">
                                 <div className="flex items-center gap-2 mt-4 ml-6">
-                                    <img src={dayIcon} alt="일간" className="w-5 h-5" />
+                                    <img src={dayIcon} alt="일간" className="w-5 h-5"/>
                                     <h2 className="pl-1 text-xl font-bold text-[#21262B]">일간 이용 현황</h2>
                                 </div>
                                 <p className="text-sm font-medium text-[#7A7F8A] pr-3 mt-4">마지막 업데이트 2025.03.31</p>
@@ -162,35 +165,35 @@ const N_mainPage = () => {
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
                                         <p className="text-gray-500">일간 배출량</p>
-                                        <img src={infoIcon} alt="info" className="w-4 h-4" />
+                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
                                     <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayDischargeTotal}g</p>
                                 </div>
 
                                 {/* 구분선 */}
                                 <div className="hidden md:flex justify-center px-4">
-                                    <img src={lineIcon} alt="line" className="h-8" />
+                                    <img src={lineIcon} alt="line" className="h-8"/>
                                 </div>
 
                                 {/* 일간 수거량 */}
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
                                         <p className="text-gray-500">일간 수거량</p>
-                                        <img src={infoIcon} alt="info" className="w-4 h-4" />
+                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
                                     <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayCollectionTotal}g</p>
                                 </div>
 
                                 {/* 구분선 */}
                                 <div className="hidden md:flex justify-center px-4">
-                                    <img src={lineIcon} alt="line" className="h-8" />
+                                    <img src={lineIcon} alt="line" className="h-8"/>
                                 </div>
 
                                 {/* 일간 이용자수 */}
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
                                         <p className="text-gray-500">일간 이용자</p>
-                                        <img src={infoIcon} alt="info" className="w-4 h-4" />
+                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
                                     <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayUserCount}명</p>
                                 </div>
@@ -201,7 +204,7 @@ const N_mainPage = () => {
                         <div className="flex-1 bg-white rounded-2xl p-4 shadow">
                             <div className="flex items-center justify-between mb-14">
                                 <div className="flex items-center gap-2 mt-4 ml-6">
-                                    <img src={customerIcon} alt="고객 관리" className="w-5 h-5" />
+                                    <img src={customerIcon} alt="고객 관리" className="w-5 h-5"/>
                                     <h2 className="text-xl font-bold text-[#21262B]">고객 관리</h2>
                                 </div>
                                 <p className="text-sm font-medium text-[#7A7F8A] pr-3 mt-4">마지막 업데이트 2025.03.31</p>
@@ -211,31 +214,31 @@ const N_mainPage = () => {
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
                                         <p className="text-gray-500">사용자 문의</p>
-                                        <img src={infoIcon} alt="info" className="w-4 h-4" />
+                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
                                     <p className="font-bold text-[22px] text-[#21262B] mt-2">13건</p>
                                 </div>
 
                                 <div className="hidden md:flex justify-center px-4">
-                                    <img src={lineIcon} alt="line" className="h-8" />
+                                    <img src={lineIcon} alt="line" className="h-8"/>
                                 </div>
 
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
                                         <p className="text-gray-500">수거자 문의</p>
-                                        <img src={infoIcon} alt="info" className="w-4 h-4" />
+                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
                                     <p className="font-bold text-[22px] text-[#21262B] mt-2">5건</p>
                                 </div>
 
                                 <div className="hidden md:flex justify-center px-4">
-                                    <img src={lineIcon} alt="line" className="h-8" />
+                                    <img src={lineIcon} alt="line" className="h-8"/>
                                 </div>
 
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
                                         <p className="text-gray-500">일반 민원</p>
-                                        <img src={infoIcon} alt="info" className="w-4 h-4" />
+                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
                                     <p className="font-bold text-[22px] text-[#21262B] mt-2">0건</p>
                                 </div>
@@ -247,7 +250,7 @@ const N_mainPage = () => {
                     <div className="pt-12 mb-4">
                         <h3 className="text-xl font-bold mb-4 text-[#272F42]">수거함 현황</h3>
                         <div className="relative mb-9">
-                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200" />
+                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200"/>
                             <div className="flex items-center gap-6">
                                 {["전체 수거함", "수거 필요", "화재감지"].map((tab) => (
                                     <button
@@ -267,7 +270,7 @@ const N_mainPage = () => {
                                     >
                                         {tab}
                                         {tab === "화재감지" && (
-                                            <img src={FireInfoIcon} alt="화재" className="w-4 h-4 ml-1" />
+                                            <img src={FireInfoIcon} alt="화재" className="w-4 h-4 ml-1"/>
                                         )}
                                     </button>
                                 ))}
@@ -275,70 +278,26 @@ const N_mainPage = () => {
                         </div>
                     </div>
 
-                    <MapWithSidebar filteredBoxes={filteredBoxes} />
+                    <MapWithSidebar filteredBoxes={filteredBoxes}/>
+                    <div className="pb-8"></div>
 
                     {/* 배출량, 수거량 탭 */}
-                    <div className="grid grid-cols-2 gap-6 pt-9 mb-2">
+                    <div className="grid grid-cols-2 gap-6">
                         <div>
-                            <h3 className="text-xl font-bold mb-3">배출량</h3>
-                            <div className="relative mb-6">
-                                <div className="absolute bottom-0 left-0 w-full border-b border-gray-200" />
-                                <div className="flex gap-6">
-                                    {tabs.map((tab) => (
-                                        <button
-                                            key={tab}
-                                            onClick={() => setSelectedEmissionTab(tab)}
-                                            className={`pb-1 ${
-                                                selectedEmissionTab === tab
-                                                    ? "border-b-[3px] border-black text-[#21262B] font-semibold"
-                                                    : "text-[#60697E]"
-                                            }`}
-                                        >
-                                            {tab}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                            <h3 className="text-[#272F42] text-xl font-bold mb-3">배출량</h3>
+                            <DischargeChart/>
                         </div>
-
                         <div>
-                            <h3 className="text-xl font-bold mb-3">수거량</h3>
-                            <div className="relative mb-6">
-                                <div className="absolute bottom-0 left-0 w-full border-b border-gray-200" />
-                                <div className="flex gap-6">
-                                    {tabs.map((tab) => (
-                                        <button
-                                            key={tab}
-                                            onClick={() => setSelectedCollectionTab(tab)}
-                                            className={`pb-1 ${
-                                                selectedCollectionTab === tab
-                                                    ? "border-b-[3px] border-black text-[#21262B] font-semibold"
-                                                    : "text-[#60697E]"
-                                            }`}
-                                        >
-                                            {tab}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* 차트 자리 */}
-                    <div className="grid grid-cols-2 gap-4 pb-10">
-                        <div className="bg-white rounded-lg p-4 shadow">
-                            <div className="h-52 bg-gray-100 flex items-center justify-center text-gray-400">배출량 차트 영역</div>
-                        </div>
-                        <div className="bg-white rounded-lg p-4 shadow">
-                            <div className="h-52 bg-gray-100 flex items-center justify-center text-gray-400">수거량 차트 영역</div>
+                            <h3 className="text-[#272F42] text-xl font-bold mb-3">수거량</h3>
+                            <CollectionChart/>
                         </div>
                     </div>
 
                     {/* 회원 정보 */}
-                    <div className="pb-6">
+                    <div className="pt-8 pb-6">
                         <h3 className="text-xl font-bold text-[#272F42] mb-4">회원 정보 검색</h3>
                         <div className="relative">
-                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200" />
+                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200"/>
                             <div className="flex gap-6">
                                 {memberTabs.map((tab) => (
                                     <button
@@ -357,9 +316,9 @@ const N_mainPage = () => {
                         </div>
                     </div>
 
-                    {memberselectedTab === "사용자" ? <UserInfoSection /> : <CollectorInfoSection />}
+                    {memberselectedTab === "사용자" ? <UserInfoSection/> : <CollectorInfoSection/>}
 
-                    <div className="pb-32" />
+                    <div className="pb-32"/>
                 </main>
             </div>
         </div>
