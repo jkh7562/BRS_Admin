@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-    baseURL: "https://localhost:8443/", // API 기본 URL
+    baseURL: process.env.REACT_APP_API_BASE_URL, // API 기본 URL
     withCredentials: true,             // 쿠키 자동 포함
     headers: {
         "Content-Type": "application/json",

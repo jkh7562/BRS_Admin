@@ -37,7 +37,7 @@ const NavigationBar = () => {
     }, [status, dispatch]);
 
     useEffect(() => {
-        const eventSource = new EventSource(`https://localhost:8443/SSEsubscribe`, {
+        const eventSource = new EventSource(`${process.env.REACT_APP_API_BASE_URL}/SSEsubscribe`, {
             withCredentials: true,
         });
         console.log("구독 후", eventSource);
