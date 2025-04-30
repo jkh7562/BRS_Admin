@@ -34,32 +34,55 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage= false, isAddRemovePage = fa
         })
         : filteredBoxes;
 
+    const addressFetchedRef = useRef(false);
+
     useEffect(() => {
-        const geocoder = new window.kakao.maps.services.Geocoder()
-        const fetchAddresses = async () => {
-            const newAddressMap = {}
-            for (const box of filteredBoxes) {
-                if (!box.lat || !box.lng) continue
-                await new Promise((resolve) => {
-                    geocoder.coord2Address(box.lng, box.lat, (result, status) => {
-                        if (status === window.kakao.maps.services.Status.OK) {
-                            newAddressMap[box.id] = result[0].road_address
-                                ? result[0].road_address.address_name
-                                : result[0].address.address_name
-                        } else {
-                            newAddressMap[box.id] = "주소 변환 실패"
-                        }
-                        resolve()
-                    })
-                })
-            }
-            setAddressMap(newAddressMap)
+        // 이미 주소를 가져왔거나 filteredBoxes가 비어있으면 실행하지 않음
+        if (addressFetchedRef.current || filteredBoxes.length === 0) {
+            return;
         }
 
-        if (filteredBoxes.length > 0) {
-            fetchAddresses()
-        }
-    }, [filteredBoxes])
+        const geocoder = new window.kakao.maps.services.Geocoder();
+        const fetchAddresses = async () => {
+            const newAddressMap = {};
+
+            // 이미 주소가 있는 경우 유지
+            const existingAddresses = { ...addressMap };
+
+            for (const box of filteredBoxes) {
+                // 이미 주소가 있으면 건너뛰기
+                if (existingAddresses[box.id]) {
+                    newAddressMap[box.id] = existingAddresses[box.id];
+                    continue;
+                }
+
+                if (!box.lat || !box.lng) continue;
+
+                try {
+                    await new Promise((resolve) => {
+                        geocoder.coord2Address(box.lng, box.lat, (result, status) => {
+                            if (status === window.kakao.maps.services.Status.OK) {
+                                newAddressMap[box.id] = result[0].road_address
+                                    ? result[0].road_address.address_name
+                                    : result[0].address.address_name;
+                            } else {
+                                newAddressMap[box.id] = "주소 변환 실패";
+                            }
+                            resolve();
+                        });
+                    });
+                } catch (error) {
+                    console.error("주소 변환 중 오류 발생:", error);
+                    newAddressMap[box.id] = "주소 변환 실패";
+                }
+            }
+
+            setAddressMap(prev => ({ ...prev, ...newAddressMap }));
+            addressFetchedRef.current = true;
+        };
+
+        fetchAddresses();
+    }, [filteredBoxes]);
 
     const formatInstallStatus = (status) => {
         if (!status) return "상태 정보 없음";
@@ -72,7 +95,7 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage= false, isAddRemovePage = fa
             "REMOVE_REQUEST": "제거 요청 중",
             "REMOVE_IN_PROGRESS": "제거 진행 중",
             "REMOVE_COMPLETED": "제거 완료",
-            "REMOVE_CONFIRME": "제거 확정"
+            "REMOVE_CONFIRMED": "제거 확정"
         };
 
         return statusMap[status] || status;
