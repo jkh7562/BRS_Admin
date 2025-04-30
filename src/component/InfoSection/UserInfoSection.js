@@ -4,6 +4,7 @@ import CopyIcon from "../../assets/copy.png"
 import InfoIcon from "../../assets/추가정보2.png"
 import LineIcon from "../../assets/구분선.png"
 import VectorIcon from "../../assets/Vector.png"
+import UserIcon from "../../assets/user.png";
 import { findUserAll, getBoxLog, fetchOrdersByUserId } from "../../api/apiServices" // API 임포트
 
 export default function UserInfoSection() {
@@ -151,7 +152,7 @@ export default function UserInfoSection() {
                             <div className="flex">
                                 <div className="mr-4">
                                     <div className="w-14 h-14 rounded-full bg-gray-200 overflow-hidden">
-                                        <img src="/diverse-online-profiles.png" alt="프로필 이미지" className="w-full h-full object-cover" />
+                                        <img src={UserIcon} alt="프로필 이미지" className="w-full h-full object-cover" />
                                     </div>
                                 </div>
                                 <div>

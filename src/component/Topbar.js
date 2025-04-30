@@ -5,7 +5,7 @@ import DownIcon from "../assets/Down.png";
 import FireInfoIcon from "../assets/FireInfo.png";
 import BoxIcon from "../assets/수거함Black.png";
 import PlusIcon from "../assets/가입신청Black.png";
-import { X } from "lucide-react";
+import UserIcon from "../assets/user.png";
 import { getMyInfo } from "../api/apiServices";
 import { logout } from "../api/apiServices"
 
@@ -156,9 +156,9 @@ const Topbar = () => {
                 <div className="flex items-center gap-8">
                     <div className="relative flex items-center gap-3">
                         <img
-                            src="https://via.placeholder.com/32"
+                            src={UserIcon}
                             alt="profile"
-                            className="w-8 h-8 rounded-full border border-black"
+                            className="w-8 h-8 rounded-full"
                         />
                         <span className="text-lg font-medium text-[#272F42]">{userInfo.name}</span>
                         <button onClick={toggleProfileDropdown} className="profile-button flex items-center justify-center">
