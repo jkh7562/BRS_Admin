@@ -352,7 +352,7 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                     </div>
 
                     {/* 리스트 */}
-                    <div className="overflow-y-auto h-[calc(100%-60px)] mx-4">
+                    <div className="overflow-y-auto h-[calc(100%-60px)] ml-4">
                         {displayedBoxes.map((box) => (
                             <div
                                 key={box.id}
