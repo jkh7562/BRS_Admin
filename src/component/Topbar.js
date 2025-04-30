@@ -6,8 +6,7 @@ import FireInfoIcon from "../assets/FireInfo.png";
 import BoxIcon from "../assets/수거함Black.png";
 import PlusIcon from "../assets/가입신청Black.png";
 import UserIcon from "../assets/user.png";
-import { getMyInfo } from "../api/apiServices";
-import { logout } from "../api/apiServices"
+import { getMyInfo, logout, fetchEmployeeRequests, findAllBox } from "../api/apiServices";
 
 const Topbar = () => {
     const navigate = useNavigate();
@@ -19,10 +18,13 @@ const Topbar = () => {
         newPassword: "",
         confirmPassword: "",
     });
-    const [userInfo, setUserInfo] = useState({ name: "", id: "" }); // ✅ 유저 정보 상태 추가
-
+    const [userInfo, setUserInfo] = useState({ name: "", id: "" });
     const [alarms, setAlarms] = useState([]);
+    const [employeeRequests, setEmployeeRequests] = useState([]);
+    const [hasNewRequests, setHasNewRequests] = useState(false);
+    const [fireAlarms, setFireAlarms] = useState([]);
 
+    // 사용자 정보 가져오기
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
@@ -39,6 +41,100 @@ const Topbar = () => {
         fetchUserInfo();
     }, []);
 
+    // 화재 상태 확인 및 알람 생성
+    useEffect(() => {
+        const checkFireStatus = async () => {
+            try {
+                const boxes = await findAllBox();
+                const fireBoxes = boxes.filter(box =>
+                    box.fire_status1 === 'FIRE' ||
+                    box.fire_status2 === 'FIRE' ||
+                    box.fire_status3 === 'FIRE'
+                );
+
+                if (fireBoxes.length > 0) {
+                    // 기존 화재 알람 ID 목록
+                    const existingFireAlarmIds = fireAlarms.map(alarm => alarm.boxId);
+
+                    // 새로운 화재 알람 생성
+                    const newFireAlarms = fireBoxes
+                        .filter(box => !existingFireAlarmIds.includes(box.id))
+                        .map(box => ({
+                            id: `fire-${box.id}-${Date.now()}`,
+                            type: "fire",
+                            boxId: box.id,
+                            location: box.name,
+                            timestamp: new Date().toISOString(),
+                            priority: 1 // 최우선 순위
+                        }));
+
+                    if (newFireAlarms.length > 0) {
+                        setFireAlarms(prev => [...prev, ...newFireAlarms]);
+                        // 화재 알람을 일반 알람에도 추가
+                        setAlarms(prev => [...prev, ...newFireAlarms]);
+                    }
+                }
+            } catch (error) {
+                console.error("화재 상태 확인 실패:", error);
+            }
+        };
+
+        // 초기 로드 시 화재 상태 확인
+        checkFireStatus();
+
+        // 1분마다 화재 상태 확인
+        const interval = setInterval(checkFireStatus, 60 * 1000);
+
+        return () => clearInterval(interval);
+    }, [fireAlarms]);
+
+    // 신규 가입자 요청 가져오기
+    useEffect(() => {
+        const getEmployeeRequests = async () => {
+            try {
+                const requests = await fetchEmployeeRequests();
+                if (requests && requests.length > 0) {
+                    setEmployeeRequests(requests);
+                    setHasNewRequests(true);
+
+                    // 신규 가입자 요청을 알람 형태로 변환하여 추가
+                    const newRequestAlarm = {
+                        id: `employee-requests-${Date.now()}`,
+                        type: "NEW_USER_REQUEST",
+                        count: requests.length,
+                        timestamp: new Date().toISOString(),
+                        requests: requests, // 원본 요청 데이터 저장
+                        priority: 2 // 화재 다음 우선순위
+                    };
+
+                    setAlarms(prev => {
+                        // 이미 NEW_USER_REQUEST 타입의 알람이 있는지 확인
+                        const existingIndex = prev.findIndex(alarm => alarm.type === "NEW_USER_REQUEST");
+                        if (existingIndex >= 0) {
+                            // 기존 알람 업데이트
+                            const updatedAlarms = [...prev];
+                            updatedAlarms[existingIndex] = newRequestAlarm;
+                            return updatedAlarms;
+                        } else {
+                            // 새 알람 추가
+                            return [...prev, newRequestAlarm];
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("가입 요청 불러오기 실패:", error);
+            }
+        };
+
+        getEmployeeRequests();
+
+        // 주기적으로 신규 가입자 요청 확인 (5분마다)
+        const interval = setInterval(getEmployeeRequests, 5 * 60 * 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    // 클릭 이벤트 처리
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (
@@ -64,6 +160,7 @@ const Topbar = () => {
         };
     }, [isProfileDropdownOpen, isNotificationSidebarOpen]);
 
+    // SSE 연결
     useEffect(() => {
         const eventSource = new EventSource(`${process.env.REACT_APP_API_BASE_URL}/SSEsubscribe`, {
             withCredentials: true,
@@ -78,7 +175,45 @@ const Topbar = () => {
             try {
                 console.log("SSE 메시지 수신:", event.event);
                 const alarmData = JSON.parse(event.data);
-                setAlarms((prev) => [...prev, alarmData]);
+
+                // 알람 타입에 따른 처리
+                if (alarmData.type === "NEW_USER_REQUEST") {
+                    // 신규 가입자 요청이 있으면 최신 정보 가져오기
+                    fetchEmployeeRequests()
+                        .then(requests => {
+                            if (requests && requests.length > 0) {
+                                setEmployeeRequests(requests);
+                                alarmData.count = requests.length;
+                                alarmData.requests = requests;
+                                alarmData.priority = 2; // 화재 다음 우선순위
+                            }
+                            setAlarms((prev) => [...prev, alarmData]);
+                        })
+                        .catch(error => {
+                            console.error("가입 요청 불러오기 실패:", error);
+                            alarmData.priority = 2;
+                            setAlarms((prev) => [...prev, alarmData]);
+                        });
+                } else if (alarmData.type === "fire") {
+                    // 화재 알람은 최우선 순위로 설정
+                    alarmData.priority = 1;
+                    setFireAlarms(prev => [...prev, alarmData]);
+                    setAlarms((prev) => [...prev, alarmData]);
+
+                    // 화재 발생 시 즉시 화재 상태 확인
+                    findAllBox().then(boxes => {
+                        const fireBoxes = boxes.filter(box =>
+                            box.fire_status1 === 'FIRE' ||
+                            box.fire_status2 === 'FIRE' ||
+                            box.fire_status3 === 'FIRE'
+                        );
+                        console.log("화재 발생 수거함:", fireBoxes);
+                    });
+                } else {
+                    // 기타 알람은 낮은 우선순위로 설정
+                    alarmData.priority = 3;
+                    setAlarms((prev) => [...prev, alarmData]);
+                }
             } catch (error) {
                 console.error("SSE 데이터 파싱 에러:", error);
             }
@@ -142,13 +277,169 @@ const Topbar = () => {
 
     const handleLogoutClick = async () => {
         try {
-            await logout(); // ✅ logout API 호출
-            navigate("/n_LoginPage"); // ✅ 성공하면 로그인페이지로 이동
+            await logout();
+            navigate("/n_LoginPage");
         } catch (error) {
             console.error("❌ 로그아웃 실패:", error);
             alert("로그아웃에 실패했습니다. 다시 시도해주세요.");
         }
     };
+
+    // 알람 클릭 핸들러
+    const handleAlarmClick = (alarm) => {
+        // 알람 타입에 따라 다른 페이지로 이동
+        if (alarm.type === "NEW_USER_REQUEST") {
+            navigate("/n_UserApprovalPage"); // 가입 관리 페이지로 이동
+        } else if (alarm.type === "fire") {
+            navigate("/n_MonitoringPage"); // 모니터링 페이지로 이동
+        } else if (alarm.type.startsWith("INSTALL_") || alarm.type.startsWith("REMOVE_")) {
+            navigate("/n_BoxAddRemovePage"); // 수거함 설치/제거 페이지로 이동
+        }
+
+        // 알림 사이드바 닫기
+        setIsNotificationSidebarOpen(false);
+    };
+
+    // 알람 타입에 따른 제목과 아이콘 가져오기
+    const getAlarmInfo = (alarmType) => {
+        switch (alarmType) {
+            case "fire":
+                return {
+                    title: "화재가 감지됐어요",
+                    icon: FireInfoIcon,
+                    bgColor: "bg-red-600", // 더 눈에 띄는 빨간색으로 변경
+                    textColor: "text-white"
+                };
+            case "INSTALL_REQUEST":
+                return {
+                    title: "수거함 설치 요청",
+                    icon: BoxIcon,
+                    bgColor: "bg-white",
+                    textColor: "text-[#21262B]"
+                };
+            case "INSTALL_IN_PROGRESS":
+                return {
+                    title: "수거함 설치 진행 중",
+                    icon: BoxIcon,
+                    bgColor: "bg-white",
+                    textColor: "text-[#21262B]"
+                };
+            case "INSTALL_COMPLETED":
+                return {
+                    title: "수거함 설치 완료",
+                    icon: BoxIcon,
+                    bgColor: "bg-white",
+                    textColor: "text-[#21262B]"
+                };
+            case "INSTALL_CONFIRMED":
+                return {
+                    title: "수거함 설치 확정",
+                    icon: BoxIcon,
+                    bgColor: "bg-white",
+                    textColor: "text-[#21262B]"
+                };
+            case "REMOVE_REQUEST":
+                return {
+                    title: "수거함 제거 요청",
+                    icon: BoxIcon,
+                    bgColor: "bg-white",
+                    textColor: "text-[#21262B]"
+                };
+            case "REMOVE_IN_PROGRESS":
+                return {
+                    title: "수거함 제거 진행 중",
+                    icon: BoxIcon,
+                    bgColor: "bg-white",
+                    textColor: "text-[#21262B]"
+                };
+            case "REMOVE_COMPLETED":
+                return {
+                    title: "수거함 제거 완료",
+                    icon: BoxIcon,
+                    bgColor: "bg-white",
+                    textColor: "text-[#21262B]"
+                };
+            case "REMOVE_CONFIRMED":
+                return {
+                    title: "수거함 제거 확정",
+                    icon: BoxIcon,
+                    bgColor: "bg-white",
+                    textColor: "text-[#21262B]"
+                };
+            case "NEW_USER_REQUEST":
+                return {
+                    title: "신규 수거자 가입신청",
+                    icon: PlusIcon,
+                    bgColor: "bg-white",
+                    textColor: "text-[#21262B]"
+                };
+            default:
+                return {
+                    title: "새로운 알림",
+                    icon: AlarmIcon,
+                    bgColor: "bg-white",
+                    textColor: "text-[#21262B]"
+                };
+        }
+    };
+
+    // 알람 메시지 포맷팅
+    const formatAlarmMessage = (alarm) => {
+        switch (alarm.type) {
+            case "fire":
+                return `${alarm.location || "알 수 없는 위치"} 수거함에서 화재가 감지됐어요.`;
+            case "INSTALL_REQUEST":
+                return `${alarm.location || "알 수 없는 위치"}에 수거함 설치가 요청되었어요.`;
+            case "INSTALL_IN_PROGRESS":
+                return `${alarm.location || "알 수 없는 위치"}에 수거함 설치가 진행 중이에요.`;
+            case "INSTALL_COMPLETED":
+                return `${alarm.location || "알 수 없는 위치"}에 수거함 설치가 완료되었어요.`;
+            case "INSTALL_CONFIRMED":
+                return `${alarm.location || "알 수 없는 위치"}에 수거함 설치가 확정되었어요.`;
+            case "REMOVE_REQUEST":
+                return `${alarm.location || "알 수 없는 위치"}의 수거함 제거가 요청되었어요.`;
+            case "REMOVE_IN_PROGRESS":
+                return `${alarm.location || "알 수 없는 위치"}의 수거함 제거가 진행 중이에요.`;
+            case "REMOVE_COMPLETED":
+                return `${alarm.location || "알 수 없는 위치"}의 수거함 제거가 완료되었어요.`;
+            case "REMOVE_CONFIRMED":
+                return `${alarm.location || "알 수 없는 위치"}의 수거함 제거가 확정되었어요.`;
+            case "NEW_USER_REQUEST":
+                // 실제 요청 데이터가 있으면 그 개수를 표시
+                if (alarm.requests && alarm.requests.length > 0) {
+                    return `${alarm.requests.length}건의 가입신청이 들어왔어요.`;
+                }
+                return `${alarm.count || "여러"}건의 가입신청이 들어왔어요.`;
+            default:
+                return alarm.message || "새로운 알림이 있습니다.";
+        }
+    };
+
+    // 테스트용 더미 알람 데이터 (실제 구현 시 제거)
+    const dummyAlarms = [
+        /*{ id: 1, type: "fire", location: "서울특별시 송파구 가락로 111", timestamp: new Date().toISOString(), priority: 1 },
+        { id: 2, type: "INSTALL_COMPLETED", location: "선문대 동문 앞", timestamp: new Date().toISOString(), priority: 3 },
+        { id: 3, type: "REMOVE_COMPLETED", location: "선문대 서문 앞", timestamp: new Date().toISOString(), priority: 3 }*/
+    ];
+
+    // 실제 알람과 더미 알람 합치기 (테스트용, 실제 구현 시 alarms만 사용)
+    const allAlarms = [...alarms, ...dummyAlarms];
+
+    // 우선순위에 따라 알람 정렬 (1: 화재, 2: 신규가입, 3: 기타)
+    const sortedAlarms = [...allAlarms].sort((a, b) => {
+        // 우선순위로 먼저 정렬
+        if (a.priority !== b.priority) {
+            return a.priority - b.priority;
+        }
+        // 같은 우선순위면 최신순으로 정렬
+        return new Date(b.timestamp) - new Date(a.timestamp);
+    });
+
+    // 알림 개수
+    const totalNotifications = sortedAlarms.length;
+
+    // 화재 알람 개수
+    const fireAlarmsCount = sortedAlarms.filter(alarm => alarm.type === "fire").length;
 
     return (
         <>
@@ -156,7 +447,7 @@ const Topbar = () => {
                 <div className="flex items-center gap-8">
                     <div className="relative flex items-center gap-3">
                         <img
-                            src={UserIcon}
+                            src={UserIcon || "/placeholder.svg"}
                             alt="profile"
                             className="w-8 h-8 rounded-full"
                         />
@@ -252,7 +543,15 @@ const Topbar = () => {
                     <div className="relative w-6 h-6 mr-4">
                         <button onClick={toggleNotificationSidebar} className="notification-button w-full h-full flex items-center justify-center">
                             <img src={AlarmIcon || "/placeholder.svg"} alt="알림 아이콘" className="w-full h-full object-contain" />
-                            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                            {totalNotifications > 0 && (
+                                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                            )}
+                            {/* 화재 알람이 있을 경우 특별한 표시 추가 */}
+                            {fireAlarmsCount > 0 && (
+                                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 text-white rounded-full flex items-center justify-center text-[8px] animate-pulse">
+                                    {fireAlarmsCount}
+                                </span>
+                            )}
                         </button>
                     </div>
                 </div>
@@ -264,62 +563,78 @@ const Topbar = () => {
                 }`}
             >
                 <div className="flex items-center justify-between px-5 pt-8">
-                    <h2 className="font-bold text-[#21262B] text-lg">알림 4건</h2>
+                    <h2 className="font-bold text-[#21262B] text-lg">
+                        알림 {totalNotifications}건
+                        {fireAlarmsCount > 0 && (
+                            <span className="ml-2 text-sm font-bold text-red-600 animate-pulse">
+                                (화재 {fireAlarmsCount}건)
+                            </span>
+                        )}
+                    </h2>
                 </div>
 
                 <div className="p-5 overflow-y-auto h-[calc(100%-60px)]">
                     <div className="flex flex-col gap-2">
-                        {/* 알림 카드들 */}
-                        <div className="bg-gray-800 text-white py-6 px-6 rounded-2xl shadow">
-                            <div className="flex items-start gap-2">
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <img src={FireInfoIcon || "/placeholder.svg"} alt="화재 알림 아이콘" className="w-5 h-5 object-contain" />
-                                        <p className="font-semibold text-lg">화재가 감지됐어요.</p>
-                                    </div>
-                                    <p className="text-sm mt-1">서울특별시 송파구 가락로 111 수거함에서 화재가 감지됐어요.</p>
-                                </div>
-                            </div>
-                        </div>
+                        {totalNotifications > 0 ? (
+                            sortedAlarms.map((alarm) => {
+                                const { title, icon, bgColor, textColor } = getAlarmInfo(alarm.type);
+                                const message = formatAlarmMessage(alarm);
 
-                        <div className="bg-white py-6 px-6 rounded-2xl shadow">
-                            <div className="flex items-start gap-3">
-                                <div>
-                                    <div className="flex items-start gap-2">
-                                        <img src={BoxIcon || "/placeholder.svg"} alt="수거함 아이콘" className="w-5 h-5 object-contain" />
-                                        <p className="font-bold text-[#21262B]">수거함 추가</p>
+                                return (
+                                    <div
+                                        key={alarm.id}
+                                        className={`${bgColor} py-6 px-6 rounded-2xl shadow cursor-pointer hover:opacity-90 transition-opacity ${
+                                            alarm.type === 'fire' ? 'animate-pulse-slow border-2 border-red-700' : ''
+                                        }`}
+                                        onClick={() => handleAlarmClick(alarm)}
+                                    >
+                                        <div className="flex items-start gap-2">
+                                            <div className="w-full">
+                                                <div className="flex items-center gap-2">
+                                                    <img src={icon || "/placeholder.svg"} alt="알림 아이콘" className="w-5 h-5 object-contain" />
+                                                    <p className={`font-semibold text-lg ${textColor}`}>{title}</p>
+                                                    {alarm.type === 'fire' && (
+                                                        <span className="bg-red-700 text-white text-xs px-2 py-0.5 rounded-full ml-auto">
+                                                            긴급
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className={`text-sm mt-1 ${alarm.type === 'fire' ? 'text-white' : 'text-[#60697E]'}`}>
+                                                    {message}
+                                                </p>
+                                                {alarm.timestamp && (
+                                                    <p className={`text-xs mt-2 ${alarm.type === 'fire' ? 'text-gray-300' : 'text-gray-500'}`}>
+                                                        {new Date(alarm.timestamp).toLocaleString()}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p className="text-sm text-[#60697E] mt-1">선문대 동문 앞 수거함이 추가되었어요</p>
-                                </div>
+                                );
+                            })
+                        ) : (
+                            <div className="text-center py-10 text-gray-500">
+                                알림이 없습니다.
                             </div>
-                        </div>
-
-                        <div className="bg-white py-6 px-6 rounded-2xl shadow">
-                            <div className="flex items-start gap-3">
-                                <div>
-                                    <div className="flex items-start gap-2">
-                                        <img src={BoxIcon || "/placeholder.svg"} alt="수거함 아이콘" className="w-5 h-5 object-contain" />
-                                        <p className="font-bold text-[#21262B]">수거함 제거</p>
-                                    </div>
-                                    <p className="text-sm text-[#60697E] mt-1">선문대 서문 앞 수거함이 제거되었어요</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white py-6 px-6 rounded-2xl shadow-md">
-                            <div className="flex items-start gap-3">
-                                <div>
-                                    <div className="flex items-start gap-2">
-                                        <img src={PlusIcon || "/placeholder.svg"} alt="가입신청 아이콘" className="w-5 h-5 object-contain" />
-                                        <p className="font-bold text-[#21262B]">신규 수거자 가입신청</p>
-                                    </div>
-                                    <p className="text-sm text-[#60697E] mt-1">16건의 가입신청이 들어왔어요</p>
-                                </div>
-                            </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>
+
+            {/* 화재 알람을 위한 CSS 애니메이션 */}
+            <style jsx>{`
+                @keyframes pulse-slow {
+                    0%, 100% {
+                        opacity: 1;
+                    }
+                    50% {
+                        opacity: 0.8;
+                    }
+                }
+                .animate-pulse-slow {
+                    animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+                }
+            `}</style>
         </>
     );
 };
