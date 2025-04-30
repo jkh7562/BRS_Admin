@@ -555,7 +555,7 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
             )}
 
             {/* 기존 핀 오버레이 (핀 위치에 표시) */}
-            {isAddRemovePage && showExistingPinOverlay && selectedBoxId && (
+            {isAddRemovePage && showExistingPinOverlay && selectedBoxId && getSelectedBox() && !getSelectedBox()?.installStatus?.startsWith("REMOVE_") && (
                 <div
                     className="absolute z-30"
                     style={{
