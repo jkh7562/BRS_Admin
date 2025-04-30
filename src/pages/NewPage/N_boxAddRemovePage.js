@@ -11,7 +11,7 @@ import { findAllBox } from "../../api/apiServices"
 
 const N_boxAddRemovePage = () => {
     const [activeTab, setActiveTab] = useState("전체")
-    const tabs = ["전체", "설치 상태", "제거 상태", "설치 추천 위치"]
+    const tabs = ["전체", "설치 상태", "제거 상태"]
     const [boxes, setBoxes] = useState([])
 
     useEffect(() => {

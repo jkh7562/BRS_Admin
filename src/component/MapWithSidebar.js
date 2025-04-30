@@ -25,6 +25,12 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
     const [copiedId, setCopiedId] = useState(null)
     const [isDragging, setIsDragging] = useState(false);
     const dragStartTimeRef = useRef(0);
+    const [showRecommendedLocations, setShowRecommendedLocations] = useState(true);
+
+    // 토글 함수 추가
+    const toggleRecommendedLocations = () => {
+        setShowRecommendedLocations(prev => !prev);
+    };
 
     // 새로운 핀 관련 상태
     const [newPinPosition, setNewPinPosition] = useState(null)
@@ -413,7 +419,40 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                             }}
                         />
                     )}
+
+                    {/* 추천 위치 마커들 (showRecommendedLocations가 true일 때만 표시) */}
+                    {isAddRemovePage && showRecommendedLocations && (
+                        // 여기에 추천 위치 마커를 추가할 수 있습니다
+                        // 예시 데이터로 구현
+                        [
+                            { lat: 36.8082, lng: 127.019 },
+                            { lat: 36.8182, lng: 127.005 },
+                            { lat: 36.7982, lng: 127.012 }
+                        ].map((location, index) => (
+                            <MapMarker
+                                key={`recommended-${index}`}
+                                position={location}
+                                image={{
+                                    src: YellowIcon, // 추천 위치는 녹색 아이콘 사용
+                                    size: { width: 34, height: 40 },
+                                    options: { offset: { x: 20, y: 40 } },
+                                }}
+                            />
+                        ))
+                    )}
                 </Map>
+
+                {/* 토글 버튼 - 상태에 따라 텍스트와 색상 변경 */}
+                {isAddRemovePage && (
+                    <button
+                        className={`absolute top-4 right-4 rounded-md text-white font-bold p-2 z-10 shadow-md transition-colors duration-200 ${
+                            showRecommendedLocations ? "bg-[#00C17B]" : "bg-[#FF7671]"
+                        }`}
+                        onClick={toggleRecommendedLocations}
+                    >
+                        설치 추천 위치 {showRecommendedLocations ? "ON" : "OFF"}
+                    </button>
+                )}
             </div>
 
             {/* 새 핀 오버레이 (절대 위치로 표시) */}
