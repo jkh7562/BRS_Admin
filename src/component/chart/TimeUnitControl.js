@@ -5,7 +5,7 @@ const TimeUnitControl = ({ selectedUnit, onSelectUnit }) => {
     const units = ["연", "월", "일"];
 
     return (
-        <div className="bg-white flex gap-2 p-4">
+        <div className="border-white rounded-t-md bg-white flex gap-2 p-4">
             {units.map((unit) => (
                 <button
                     key={unit}
