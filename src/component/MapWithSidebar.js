@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Map, MapMarker } from "react-kakao-maps-sdk"
+import { Map, MapMarker, CustomOverlayMap } from "react-kakao-maps-sdk"
 import ArrowLeftIcon from "../assets/arrow_left.png"
 import ArrowRightIcon from "../assets/arrow_right.png"
 import SearchIcon from "../assets/검색.png"
@@ -196,7 +196,11 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
 
         // isAddRemovePage가 true일 때 기존 핀 클릭 시 오버레이 표시
         if (isAddRemovePage) {
-            setShowExistingPinOverlay(true)
+            const selectedBox = filteredBoxes.find(box => box.id === boxId);
+            // 제거 상태인 핀은 오버레이를 표시하지 않음
+            if (!selectedBox?.installStatus?.startsWith("REMOVE_")) {
+                setShowExistingPinOverlay(true);
+            }
             // 새 핀 오버레이가 열려있으면 닫기
             setShowNewPinOverlay(false)
             setNewPinPosition(null)
@@ -214,6 +218,19 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
     // Handle list item click - select box and center map on marker
     const handleListItemClick = (box) => {
         setSelectedBoxId(box.id)
+
+        // isAddRemovePage가 true일 때 기존 핀 클릭 시 오버레이 표시
+        if (isAddRemovePage) {
+            // 제거 상태인 핀은 오버레이를 표시하지 않음
+            if (!box?.installStatus?.startsWith("REMOVE_")) {
+                setShowExistingPinOverlay(true);
+            } else {
+                setShowExistingPinOverlay(false);
+            }
+            // 새 핀 오버레이가 열려있으면 닫기
+            setShowNewPinOverlay(false);
+            setNewPinPosition(null);
+        }
 
         // Center the map on the selected marker
         if (map) {
@@ -317,24 +334,6 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
     const getSelectedBox = () => {
         return filteredBoxes.find((box) => box.id === selectedBoxId) || null
     }
-
-    // Add map movement listener to update overlay positions
-    useEffect(() => {
-        if (map && (showNewPinOverlay || showExistingPinOverlay)) {
-            // Force re-render when map moves to update overlay positions
-            const moveHandler = () => {
-                setMap(map)
-            }
-
-            window.kakao.maps.event.addListener(map, "dragend", moveHandler)
-            window.kakao.maps.event.addListener(map, "zoom_changed", moveHandler)
-
-            return () => {
-                window.kakao.maps.event.removeListener(map, "dragend", moveHandler)
-                window.kakao.maps.event.removeListener(map, "zoom_changed", moveHandler)
-            }
-        }
-    }, [map, showNewPinOverlay, showExistingPinOverlay])
 
     return (
         <div className="flex bg-white rounded-2xl shadow-md overflow-hidden h-[570px] relative">
@@ -479,6 +478,98 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                                 onClick={() => handleRecommendedLocationClick(location)} // 클릭 이벤트 핸들러 추가
                             />
                         ))}
+
+                    {/* 새 핀 오버레이 (CustomOverlayMap 사용) */}
+                    {isAddRemovePage && showNewPinOverlay && newPinPosition && (
+                        <CustomOverlayMap
+                            position={{ lat: newPinPosition.lat, lng: newPinPosition.lng }}
+                            yAnchor={1.15} // 마커 위에 위치하도록 앵커 설정
+                            zIndex={3}
+                        >
+                            <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 w-64">
+                                <div className="flex justify-between items-center mb-3">
+                                    <h3 className="font-bold text-lg">새 수거함 설치 요청</h3>
+                                    <button className="text-gray-500 hover:text-gray-700" onClick={closeOverlays}>
+                                        ✕
+                                    </button>
+                                </div>
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">수거함 이름</label>
+                                        <input
+                                            type="text"
+                                            value={newBoxName}
+                                            onChange={(e) => setNewBoxName(e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                            placeholder="수거함 이름 입력"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">IP 주소</label>
+                                        <input
+                                            type="text"
+                                            value={newBoxIpAddress}
+                                            onChange={(e) => setNewBoxIpAddress(e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                            placeholder="IP 주소 입력"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">좌표</label>
+                                        <div className="text-sm text-gray-500">
+                                            {newPinPosition.lat.toFixed(6)}, {newPinPosition.lng.toFixed(6)}
+                                        </div>
+                                    </div>
+                                    <button
+                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium text-sm disabled:opacity-50"
+                                        onClick={handleInstallRequest}
+                                        disabled={isSubmitting || !newBoxName || !newBoxIpAddress}
+                                    >
+                                        {isSubmitting ? "요청 중..." : "설치 요청"}
+                                    </button>
+                                </div>
+                            </div>
+                        </CustomOverlayMap>
+                    )}
+
+                    {/* 기존 핀 오버레이 (CustomOverlayMap 사용) */}
+                    {isAddRemovePage && showExistingPinOverlay && selectedBoxId && getSelectedBox() && !getSelectedBox()?.installStatus?.startsWith("REMOVE_") && (
+                        <CustomOverlayMap
+                            position={{ lat: getSelectedBox()?.lat || 0, lng: getSelectedBox()?.lng || 0 }}
+                            yAnchor={1.15} // 마커 위에 위치하도록 앵커 설정
+                            zIndex={3}
+                        >
+                            <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 w-64">
+                                <div className="flex justify-between items-center mb-3">
+                                    <h3 className="font-bold text-lg">수거함 제거 요청</h3>
+                                    <button className="text-gray-500 hover:text-gray-700" onClick={closeOverlays}>
+                                        ✕
+                                    </button>
+                                </div>
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">수거함 이름</label>
+                                        <div className="text-sm">{getSelectedBox()?.name || ""}</div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">현재 상태</label>
+                                        <div className="text-sm">{formatInstallStatus(getSelectedBox()?.installStatus || "")}</div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">주소</label>
+                                        <div className="text-sm text-gray-500">{addressMap[selectedBoxId] || "주소 정보 없음"}</div>
+                                    </div>
+                                    <button
+                                        className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-md font-medium text-sm disabled:opacity-50"
+                                        onClick={handleRemoveRequest}
+                                        disabled={isSubmitting}
+                                    >
+                                        {isSubmitting ? "요청 중..." : "제거 요청"}
+                                    </button>
+                                </div>
+                            </div>
+                        </CustomOverlayMap>
+                    )}
                 </Map>
 
                 {/* 토글 버튼 - 상태에 따라 텍스트와 색상 변경 */}
@@ -493,114 +584,6 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                     </button>
                 )}
             </div>
-
-            {/* 새 핀 오버레이 (핀 위치에 표시) */}
-            {isAddRemovePage && showNewPinOverlay && newPinPosition && (
-                <div
-                    className="absolute z-30"
-                    style={{
-                        left: map
-                            ?.getProjection()
-                            .pointFromCoords(new window.kakao.maps.LatLng(newPinPosition.lat, newPinPosition.lng)).x,
-                        top:
-                            map?.getProjection().pointFromCoords(new window.kakao.maps.LatLng(newPinPosition.lat, newPinPosition.lng))
-                                .y - 40,
-                        transform: "translate(-50%, -100%)",
-                    }}
-                >
-                    <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 w-64">
-                        <div className="flex justify-between items-center mb-3">
-                            <h3 className="font-bold text-lg">새 수거함 설치 요청</h3>
-                            <button className="text-gray-500 hover:text-gray-700" onClick={closeOverlays}>
-                                ✕
-                            </button>
-                        </div>
-                        <div className="space-y-3">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">수거함 이름</label>
-                                <input
-                                    type="text"
-                                    value={newBoxName}
-                                    onChange={(e) => setNewBoxName(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                                    placeholder="수거함 이름 입력"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">IP 주소</label>
-                                <input
-                                    type="text"
-                                    value={newBoxIpAddress}
-                                    onChange={(e) => setNewBoxIpAddress(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                                    placeholder="IP 주소 입력"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">좌표</label>
-                                <div className="text-sm text-gray-500">
-                                    {newPinPosition.lat.toFixed(6)}, {newPinPosition.lng.toFixed(6)}
-                                </div>
-                            </div>
-                            <button
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium text-sm disabled:opacity-50"
-                                onClick={handleInstallRequest}
-                                disabled={isSubmitting || !newBoxName || !newBoxIpAddress}
-                            >
-                                {isSubmitting ? "요청 중..." : "설치 요청"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* 기존 핀 오버레이 (핀 위치에 표시) */}
-            {isAddRemovePage && showExistingPinOverlay && selectedBoxId && getSelectedBox() && !getSelectedBox()?.installStatus?.startsWith("REMOVE_") && (
-                <div
-                    className="absolute z-30"
-                    style={{
-                        left: map
-                            ?.getProjection()
-                            .pointFromCoords(new window.kakao.maps.LatLng(getSelectedBox()?.lat || 0, getSelectedBox()?.lng || 0)).x,
-                        top:
-                            map
-                                ?.getProjection()
-                                .pointFromCoords(new window.kakao.maps.LatLng(getSelectedBox()?.lat || 0, getSelectedBox()?.lng || 0))
-                                .y - 40,
-                        transform: "translate(-50%, -100%)",
-                    }}
-                >
-                    <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 w-64">
-                        <div className="flex justify-between items-center mb-3">
-                            <h3 className="font-bold text-lg">수거함 제거 요청</h3>
-                            <button className="text-gray-500 hover:text-gray-700" onClick={closeOverlays}>
-                                ✕
-                            </button>
-                        </div>
-                        <div className="space-y-3">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">수거함 이름</label>
-                                <div className="text-sm">{getSelectedBox()?.name || ""}</div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">현재 상태</label>
-                                <div className="text-sm">{formatInstallStatus(getSelectedBox()?.installStatus || "")}</div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">주소</label>
-                                <div className="text-sm text-gray-500">{addressMap[selectedBoxId] || "주소 정보 없음"}</div>
-                            </div>
-                            <button
-                                className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-md font-medium text-sm disabled:opacity-50"
-                                onClick={handleRemoveRequest}
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? "요청 중..." : "제거 요청"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     )
 }
