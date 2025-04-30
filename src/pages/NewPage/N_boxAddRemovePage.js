@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
@@ -5,38 +7,42 @@ import MapWithSidebar from "../../component/MapWithSidebar"
 import DownIcon from "../../assets/Down.png"
 import InstallationStatus from "../../component/Status/InstallationStatus"
 import RemoveStatus from "../../component/Status/RemoveStatus"
+import { findAllBox } from "../../api/apiServices"
 
 const N_boxAddRemovePage = () => {
     const [activeTab, setActiveTab] = useState("전체")
-    const tabs = ["전체", "설치", "제거", "설치 추천 위치"]
+    const tabs = ["전체", "설치 상태", "제거 상태", "설치 추천 위치"]
+    const [boxes, setBoxes] = useState([])
 
-    // 예시 데이터 - 실제 데이터는 API에서 가져오거나 props로 전달받아야 합니다
-    const boxesData = [
-        {
-            id: 1,
-            name: "수거함 A",
-            address: "서울시 강남구 테헤란로 123",
-            lat: 37.5665,
-            lng: 126.978,
-            status: "설치",
-        },
-        {
-            id: 2,
-            name: "수거함 B",
-            address: "서울시 서초구 서초대로 456",
-            lat: 37.4969,
-            lng: 127.0278,
-            status: "설치",
-        },
-        {
-            id: 3,
-            name: "수거함 C",
-            address: "서울시 송파구 올림픽로 789",
-            lat: 37.514,
-            lng: 127.0565,
-            status: "제거",
-        },
-    ]
+    useEffect(() => {
+        const loadBoxes = async () => {
+            try {
+                const data = await findAllBox();
+                const mappedBoxes = data.map((entry) => {
+                    const { id, name, location, volume1, volume2, volume3, fireStatus1, fireStatus2, fireStatus3, installStatus } = entry.box;
+
+                    // 위치 파싱 (띄어쓰기 유무 상관없이 처리)
+                    let lng = 0;
+                    let lat = 0;
+                    if (location) {
+                        const coordsMatch = location.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/);
+                        if (coordsMatch) {
+                            lng = parseFloat(coordsMatch[1]);
+                            lat = parseFloat(coordsMatch[2]);
+                        }
+                    }
+
+                    return { id, name, lat, lng, installStatus };
+                });
+
+                setBoxes(mappedBoxes);
+            } catch (error) {
+                console.error("수거함 정보 로딩 실패:", error);
+            }
+        };
+
+        loadBoxes()
+    }, [])
 
     // 지역 및 도시 데이터
     const regionData = {
@@ -75,12 +81,24 @@ const N_boxAddRemovePage = () => {
     // 모든 지역 목록
     const allRegions = Object.keys(regionData)
 
+    // 설치 상태 값 매핑 (API 응답의 installStatus 값에 맞게 수정)
+    const installStatuses = ["INSTALL_REQUEST", "INSTALL_IN_PROGRESS", "INSTALL_CONFIRMED", "INSTALL_COMPLETED"]
+    const removeStatuses = ["REMOVE_REQUEST", "REMOVE_IN_PROGRESS", "REMOVE_CONFIRMED", "REMOVE_COMPLETED"]
+
     // 선택된 탭에 따라 데이터 필터링
-    const filteredBoxes = activeTab === "전체" ? boxesData : boxesData.filter((box) => box.status === activeTab)
+    const filteredBoxes =
+        activeTab === "전체"
+            ? boxes
+            : activeTab === "설치 상태"
+                ? boxes.filter((box) => installStatuses.includes(box?.installStatus))
+                : activeTab === "제거 상태"
+                    ? boxes.filter((box) => removeStatuses.includes(box?.installStatus))
+                    : []
 
     // 필터 상태
     const [filters, setFilters] = useState({
         type: "설치",
+        statuses: ["INSTALL_REQUEST", "INSTALL_IN_PROGRESS", "INSTALL_CONFIRMED", "INSTALL_COMPLETED"],
         region: "광역시/도",
         city: "시/군/구",
     })
@@ -117,11 +135,11 @@ const N_boxAddRemovePage = () => {
         }))
     }, [filters.region])
 
-    // 필터 변경 핸들러
-    const handleFilterChange = (filterType, value) => {
+    const handleFilterChange = (filterType, value, statuses = undefined) => {
         setFilters((prev) => ({
             ...prev,
             [filterType]: value,
+            ...(statuses && { statuses }),
         }))
         // 드롭다운 닫기
         setOpenDropdown((prev) => ({
@@ -197,7 +215,7 @@ const N_boxAddRemovePage = () => {
             <div className="flex-1 relative">
                 <Topbar />
                 <main className="pt-24 px-24 pb-6 space-y-4">
-                    <p className="font-bold text-[#272F42] text-xl">설치/제거 수거함 현황</p>
+                    <p className="font-bold text-[#272F42] text-xl">수거함 설치/제거 요청</p>
                     <div>
                         <div className="relative mb-6">
                             <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
@@ -218,33 +236,50 @@ const N_boxAddRemovePage = () => {
                     </div>
 
                     {/* filteredBoxes 데이터를 전달 */}
-                    <MapWithSidebar filteredBoxes={filteredBoxes} />
+                    <MapWithSidebar filteredBoxes={filteredBoxes} isAddRemovePage={true}/>
 
                     <div className="pt-14 pb-3">
-                        <p className="font-bold text-[#272F42] text-xl">설치/제거 수거함 목록</p>
+                        <p className="font-bold text-[#272F42] text-xl">지역별 수거함 설치/제거 진행 상세 현황</p>
 
                         {/* 필터 UI 추가 */}
                         <div className="relative pt-2">
                             <div className="flex flex-wrap gap-7 mt-2 pb-1 font-bold relative z-10">
                                 <div className="relative dropdown-container">
-                                    <button className="flex items-center gap-2 text-base text-[#21262B]" onClick={() => toggleDropdown("type")}>
+                                    <button
+                                        className="flex items-center gap-2 text-base text-[#21262B]"
+                                        onClick={() => toggleDropdown("type")}
+                                    >
                                         {filters.type}
                                         <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
                                     </button>
                                     {/* 타입 드롭다운 메뉴 */}
                                     {openDropdown.type && (
                                         <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[120px] overflow-hidden shadow-sm">
-                                            {["설치", "제거"].map((type) => (
+                                            {[
+                                                {
+                                                    value: "설치",
+                                                    statuses: [
+                                                        "INSTALL_REQUEST",
+                                                        "INSTALL_IN_PROGRESS",
+                                                        "INSTALL_CONFIRMED",
+                                                        "INSTALL_COMPLETED",
+                                                    ],
+                                                },
+                                                {
+                                                    value: "제거",
+                                                    statuses: ["REMOVE_REQUEST", "REMOVE_IN_PROGRESS", "REMOVE_CONFIRMED", "REMOVE_COMPLETED"],
+                                                },
+                                            ].map((typeOption) => (
                                                 <div
-                                                    key={type}
+                                                    key={typeOption.value}
                                                     className={`px-4 py-2 cursor-pointer font-normal ${
-                                                        hoveredItem.type === type ? "bg-[#F5F5F5] rounded-lg" : ""
+                                                        hoveredItem.type === typeOption.value ? "bg-[#F5F5F5] rounded-lg" : ""
                                                     }`}
-                                                    onClick={() => handleFilterChange("type", type)}
-                                                    onMouseEnter={() => handleMouseEnter("type", type)}
+                                                    onClick={() => handleFilterChange("type", typeOption.value, typeOption.statuses)}
+                                                    onMouseEnter={() => handleMouseEnter("type", typeOption.value)}
                                                     onMouseLeave={() => handleMouseLeave("type")}
                                                 >
-                                                    {type}
+                                                    {typeOption.value}
                                                 </div>
                                             ))}
                                         </div>
@@ -320,7 +355,11 @@ const N_boxAddRemovePage = () => {
                     </div>
 
                     {/* 선택된 타입에 따라 컴포넌트 조건부 렌더링 */}
-                    {filters.type === "설치" ? <InstallationStatus /> : <RemoveStatus />}
+                    {filters.type === "설치" ? (
+                        <InstallationStatus statuses={filters.statuses} />
+                    ) : (
+                        <RemoveStatus statuses={filters.statuses} />
+                    )}
 
                     <div className="pb-32" />
                 </main>

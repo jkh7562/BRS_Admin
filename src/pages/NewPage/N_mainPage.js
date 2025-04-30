@@ -278,7 +278,7 @@ const N_mainPage = () => {
                         </div>
                     </div>
 
-                    <MapWithSidebar filteredBoxes={filteredBoxes}/>
+                    <MapWithSidebar filteredBoxes={filteredBoxes} isMainPage={true}/>
                     <div className="pb-8"></div>
 
                     {/* 배출량, 수거량 탭 */}

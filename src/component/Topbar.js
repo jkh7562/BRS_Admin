@@ -21,6 +21,8 @@ const Topbar = () => {
     });
     const [userInfo, setUserInfo] = useState({ name: "", id: "" }); // ✅ 유저 정보 상태 추가
 
+    const [alarms, setAlarms] = useState([]);
+
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
@@ -61,6 +63,36 @@ const Topbar = () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [isProfileDropdownOpen, isNotificationSidebarOpen]);
+
+    useEffect(() => {
+        const eventSource = new EventSource(`${process.env.REACT_APP_API_BASE_URL}/SSEsubscribe`, {
+            withCredentials: true,
+        });
+        console.log("구독 후", eventSource);
+
+        eventSource.onopen = () => {
+            console.log("SSE 연결 성공");
+        };
+
+        eventSource.addEventListener("alarm", (event) => {
+            try {
+                console.log("SSE 메시지 수신:", event.event);
+                const alarmData = JSON.parse(event.data);
+                setAlarms((prev) => [...prev, alarmData]);
+            } catch (error) {
+                console.error("SSE 데이터 파싱 에러:", error);
+            }
+        });
+
+        eventSource.onerror = (error) => {
+            console.error("SSE Error:", error);
+            eventSource.close();
+        };
+
+        return () => {
+            eventSource.close();
+        };
+    }, []);
 
     const toggleProfileDropdown = () => {
         if (!isProfileDropdownOpen) {
