@@ -239,7 +239,7 @@ const N_boxAddRemovePage = () => {
                     <MapWithSidebar filteredBoxes={filteredBoxes} isAddRemovePage={true}/>
 
                     <div className="pt-14 pb-3">
-                        <p className="font-bold text-[#272F42] text-xl">지역별 수거함 설치/제거 진행 상세 현황</p>
+                        <p className="font-bold text-[#272F42] text-xl">지역별 설치/제거 상세 현황</p>
 
                         {/* 필터 UI 추가 */}
                         <div className="relative pt-2">
