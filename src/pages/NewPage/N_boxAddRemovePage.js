@@ -14,33 +14,33 @@ const N_boxAddRemovePage = () => {
     const tabs = ["전체", "설치 상태", "제거 상태"]
     const [boxes, setBoxes] = useState([])
 
-    useEffect(() => {
-        const loadBoxes = async () => {
-            try {
-                const data = await findAllBox();
-                const mappedBoxes = data.map((entry) => {
-                    const { id, name, location, volume1, volume2, volume3, fireStatus1, fireStatus2, fireStatus3, installStatus } = entry.box;
+    const loadBoxes = async () => {
+        try {
+            const data = await findAllBox();
+            const mappedBoxes = data.map((entry) => {
+                const { id, name, location, volume1, volume2, volume3, fireStatus1, fireStatus2, fireStatus3, installStatus } = entry.box;
 
-                    // 위치 파싱 (띄어쓰기 유무 상관없이 처리)
-                    let lng = 0;
-                    let lat = 0;
-                    if (location) {
-                        const coordsMatch = location.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/);
-                        if (coordsMatch) {
-                            lng = parseFloat(coordsMatch[1]);
-                            lat = parseFloat(coordsMatch[2]);
-                        }
+                // 위치 파싱 (띄어쓰기 유무 상관없이 처리)
+                let lng = 0;
+                let lat = 0;
+                if (location) {
+                    const coordsMatch = location.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/);
+                    if (coordsMatch) {
+                        lng = parseFloat(coordsMatch[1]);
+                        lat = parseFloat(coordsMatch[2]);
                     }
+                }
 
-                    return { id, name, lat, lng, installStatus };
-                });
+                return { id, name, lat, lng, installStatus };
+            });
 
-                setBoxes(mappedBoxes);
-            } catch (error) {
-                console.error("수거함 정보 로딩 실패:", error);
-            }
-        };
+            setBoxes(mappedBoxes);
+        } catch (error) {
+            console.error("수거함 정보 로딩 실패:", error);
+        }
+    };
 
+    useEffect(() => {
         loadBoxes()
     }, [])
 
@@ -236,7 +236,7 @@ const N_boxAddRemovePage = () => {
                     </div>
 
                     {/* filteredBoxes 데이터를 전달 */}
-                    <MapWithSidebar filteredBoxes={filteredBoxes} isAddRemovePage={true}/>
+                    <MapWithSidebar filteredBoxes={filteredBoxes} isAddRemovePage={true} onDataChange={loadBoxes}/>
 
                     <div className="pt-14 pb-3">
                         <p className="font-bold text-[#272F42] text-xl">지역별 설치/제거 상세 현황</p>

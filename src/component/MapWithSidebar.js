@@ -17,9 +17,9 @@ import FireIcon from "../assets/아이콘 화재감지.svg"
 // API 함수 import
 import { requestInstallBox, requestRemoveBox } from "../api/apiServices"; // 경로는 실제 API 파일 위치에 맞게 조정해주세요
 
-const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = false }) => {
+const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = false, onDataChange = () => {} }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true)
-    const [selectedBoxId, setSelectedBoxId] = useState(3)
+    const [selectedBoxId, setSelectedBoxId] = useState(0)
     const [searchTerm, setSearchTerm] = useState("")
     const [addressMap, setAddressMap] = useState({})
     const [copiedId, setCopiedId] = useState(null)
@@ -106,6 +106,23 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
 
         fetchAddresses();
     }, [filteredBoxes]);
+
+    // 추천 위치 마커 클릭 핸들러 추가
+    const handleRecommendedLocationClick = (location) => {
+        // 기존 핀 오버레이가 열려있으면 닫기
+        setShowExistingPinOverlay(false);
+
+        // 클릭한 추천 위치에 새 핀 생성
+        setNewPinPosition({
+            lat: location.lat,
+            lng: location.lng
+        });
+        setShowNewPinOverlay(true);
+
+        // 입력 필드 초기화
+        setNewBoxName("");
+        setNewBoxIpAddress("");
+    };
 
     const formatInstallStatus = (status) => {
         if (!status) return "상태 정보 없음";
@@ -258,10 +275,13 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
             setShowNewPinOverlay(false);
             setNewBoxName("");
             setNewBoxIpAddress("");
+
+            onDataChange();
         } catch (error) {
             alert("설치 요청 중 오류가 발생했습니다: " + (error.message || "알 수 없는 오류"));
         } finally {
             setIsSubmitting(false);
+            onDataChange();
         }
     };
 
@@ -275,10 +295,13 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
             await requestRemoveBox(selectedBoxId);
             alert("제거 요청이 성공적으로 전송되었습니다.");
             setShowExistingPinOverlay(false);
+
+            onDataChange();
         } catch (error) {
             alert("제거 요청 중 오류가 발생했습니다: " + (error.message || "알 수 없는 오류"));
         } finally {
             setIsSubmitting(false);
+            onDataChange();
         }
     };
 
@@ -433,10 +456,11 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                                 key={`recommended-${index}`}
                                 position={location}
                                 image={{
-                                    src: YellowIcon, // 추천 위치는 녹색 아이콘 사용
+                                    src: YellowIcon, // 추천 위치는 노란색 아이콘 사용
                                     size: { width: 34, height: 40 },
                                     options: { offset: { x: 20, y: 40 } },
                                 }}
+                                onClick={() => handleRecommendedLocationClick(location)} // 클릭 이벤트 핸들러 추가
                             />
                         ))
                     )}
