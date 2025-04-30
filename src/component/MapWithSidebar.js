@@ -15,7 +15,7 @@ import RedSelectIcon from "../assets/아이콘 RED 선택효과.png"
 import FireIcon from "../assets/아이콘 화재감지.svg"
 
 // API 함수 import
-import { requestInstallBox, requestRemoveBox } from "../api/apiServices"; // 경로는 실제 API 파일 위치에 맞게 조정해주세요
+import { requestInstallBox, requestRemoveBox } from "../api/apiServices" // 경로는 실제 API 파일 위치에 맞게 조정해주세요
 
 const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = false, onDataChange = () => {} }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true)
@@ -23,14 +23,14 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
     const [searchTerm, setSearchTerm] = useState("")
     const [addressMap, setAddressMap] = useState({})
     const [copiedId, setCopiedId] = useState(null)
-    const [isDragging, setIsDragging] = useState(false);
-    const dragStartTimeRef = useRef(0);
-    const [showRecommendedLocations, setShowRecommendedLocations] = useState(true);
+    const [isDragging, setIsDragging] = useState(false)
+    const dragStartTimeRef = useRef(0)
+    const [showRecommendedLocations, setShowRecommendedLocations] = useState(true)
 
     // 토글 함수 추가
     const toggleRecommendedLocations = () => {
-        setShowRecommendedLocations(prev => !prev);
-    };
+        setShowRecommendedLocations((prev) => !prev)
+    }
 
     // 새로운 핀 관련 상태
     const [newPinPosition, setNewPinPosition] = useState(null)
@@ -50,36 +50,36 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
 
     const displayedBoxes = searchTerm
         ? filteredBoxes.filter((box) => {
-            const nameMatch = box.name.toLowerCase().includes(searchTerm.toLowerCase());
-            const address = addressMap[box.id] || "";
-            const addressMatch = address.toLowerCase().includes(searchTerm.toLowerCase());
-            return nameMatch || addressMatch;
+            const nameMatch = box.name.toLowerCase().includes(searchTerm.toLowerCase())
+            const address = addressMap[box.id] || ""
+            const addressMatch = address.toLowerCase().includes(searchTerm.toLowerCase())
+            return nameMatch || addressMatch
         })
-        : filteredBoxes;
+        : filteredBoxes
 
-    const addressFetchedRef = useRef(false);
+    const addressFetchedRef = useRef(false)
 
     useEffect(() => {
         // 이미 주소를 가져왔거나 filteredBoxes가 비어있으면 실행하지 않음
         if (addressFetchedRef.current || filteredBoxes.length === 0) {
-            return;
+            return
         }
 
-        const geocoder = new window.kakao.maps.services.Geocoder();
+        const geocoder = new window.kakao.maps.services.Geocoder()
         const fetchAddresses = async () => {
-            const newAddressMap = {};
+            const newAddressMap = {}
 
             // 이미 주소가 있는 경우 유지
-            const existingAddresses = { ...addressMap };
+            const existingAddresses = { ...addressMap }
 
             for (const box of filteredBoxes) {
                 // 이미 주소가 있으면 건너뛰기
                 if (existingAddresses[box.id]) {
-                    newAddressMap[box.id] = existingAddresses[box.id];
-                    continue;
+                    newAddressMap[box.id] = existingAddresses[box.id]
+                    continue
                 }
 
-                if (!box.lat || !box.lng) continue;
+                if (!box.lat || !box.lng) continue
 
                 try {
                     await new Promise((resolve) => {
@@ -87,77 +87,78 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                             if (status === window.kakao.maps.services.Status.OK) {
                                 newAddressMap[box.id] = result[0].road_address
                                     ? result[0].road_address.address_name
-                                    : result[0].address.address_name;
+                                    : result[0].address.address_name
                             } else {
-                                newAddressMap[box.id] = "주소 변환 실패";
+                                newAddressMap[box.id] = "주소 변환 실패"
                             }
-                            resolve();
-                        });
-                    });
+                            resolve()
+                        })
+                    })
                 } catch (error) {
-                    console.error("주소 변환 중 오류 발생:", error);
-                    newAddressMap[box.id] = "주소 변환 실패";
+                    console.error("주소 변환 중 오류 발생:", error)
+                    newAddressMap[box.id] = "주소 변환 실패"
                 }
             }
 
-            setAddressMap(prev => ({ ...prev, ...newAddressMap }));
-            addressFetchedRef.current = true;
-        };
+            setAddressMap((prev) => ({ ...prev, ...newAddressMap }))
+            addressFetchedRef.current = true
+        }
 
-        fetchAddresses();
-    }, [filteredBoxes]);
+        fetchAddresses()
+    }, [filteredBoxes])
 
     // 추천 위치 마커 클릭 핸들러 추가
     const handleRecommendedLocationClick = (location) => {
         // 기존 핀 오버레이가 열려있으면 닫기
-        setShowExistingPinOverlay(false);
+        setShowExistingPinOverlay(false)
 
         // 클릭한 추천 위치에 새 핀 생성
         setNewPinPosition({
             lat: location.lat,
-            lng: location.lng
-        });
-        setShowNewPinOverlay(true);
+            lng: location.lng,
+        })
+        setShowNewPinOverlay(true)
 
         // 입력 필드 초기화
-        setNewBoxName("");
-        setNewBoxIpAddress("");
-    };
+        setNewBoxName("")
+        setNewBoxIpAddress("")
+    }
 
     const formatInstallStatus = (status) => {
-        if (!status) return "상태 정보 없음";
+        if (!status) return "상태 정보 없음"
 
         const statusMap = {
-            "INSTALL_REQUEST": "설치 요청 중",
-            "INSTALL_IN_PROGRESS": "설치 진행 중",
-            "INSTALL_COMPLETED": "설치 완료",
-            "INSTALL_CONFIRME": "설치 확정",
-            "REMOVE_REQUEST": "제거 요청 중",
-            "REMOVE_IN_PROGRESS": "제거 진행 중",
-            "REMOVE_COMPLETED": "제거 완료",
-            "REMOVE_CONFIRMED": "제거 확정"
-        };
+            INSTALL_REQUEST: "설치 요청 중",
+            INSTALL_IN_PROGRESS: "설치 진행 중",
+            INSTALL_COMPLETED: "설치 완료",
+            INSTALL_CONFIRME: "설치 확정",
+            REMOVE_REQUEST: "제거 요청 중",
+            REMOVE_IN_PROGRESS: "제거 진행 중",
+            REMOVE_COMPLETED: "제거 완료",
+            REMOVE_CONFIRMED: "제거 확정",
+        }
 
-        return statusMap[status] || status;
-    };
+        return statusMap[status] || status
+    }
 
     const handleCopy = (e, boxId, text) => {
-        e.stopPropagation(); // 이벤트 버블링 방지
+        e.stopPropagation() // 이벤트 버블링 방지
 
-        navigator.clipboard.writeText(text)
+        navigator.clipboard
+            .writeText(text)
             .then(() => {
                 // 복사된 항목 ID 저장
-                setCopiedId(boxId);
+                setCopiedId(boxId)
 
                 // 1.5초 후 상태 초기화
                 setTimeout(() => {
-                    setCopiedId(null);
-                }, 1500);
+                    setCopiedId(null)
+                }, 1500)
             })
-            .catch(err => {
-                console.error('복사 실패:', err);
-            });
-    };
+            .catch((err) => {
+                console.error("복사 실패:", err)
+            })
+    }
 
     // ✅ 아이콘 결정 (화재 우선)
     const getMarkerIcon = (box) => {
@@ -223,99 +224,117 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
     // 지도 클릭 이벤트 핸들러
     const handleMapClick = (_, mouseEvent) => {
         // 드래그 중이거나 드래그 직후인 경우 클릭 이벤트 무시
-        if (isDragging || (Date.now() - dragStartTimeRef.current < 200)) {
-            return;
+        if (isDragging || Date.now() - dragStartTimeRef.current < 200) {
+            return
         }
 
-        if (!isAddRemovePage) return;
+        if (!isAddRemovePage) return
 
         // mouseEvent.latLng가 없는 경우 처리
         if (!mouseEvent || !mouseEvent.latLng) {
-            console.error("유효하지 않은 클릭 이벤트입니다.");
-            return;
+            console.error("유효하지 않은 클릭 이벤트입니다.")
+            return
         }
 
         // 기존 핀 오버레이가 열려있으면 닫기
-        setShowExistingPinOverlay(false);
+        setShowExistingPinOverlay(false)
 
         // 클릭한 위치에 새 핀 생성
-        const latlng = mouseEvent.latLng;
+        const latlng = mouseEvent.latLng
         setNewPinPosition({
             lat: latlng.getLat(),
-            lng: latlng.getLng()
-        });
-        setShowNewPinOverlay(true);
+            lng: latlng.getLng(),
+        })
+        setShowNewPinOverlay(true)
 
         // 입력 필드 초기화
-        setNewBoxName("");
-        setNewBoxIpAddress("");
-    };
+        setNewBoxName("")
+        setNewBoxIpAddress("")
+    }
 
     // 설치 요청 처리
     const handleInstallRequest = async () => {
         if (!newBoxName || !newBoxIpAddress || !newPinPosition) {
-            alert("수거함 이름과 IP 주소를 모두 입력해주세요.");
-            return;
+            alert("수거함 이름과 IP 주소를 모두 입력해주세요.")
+            return
         }
 
-        setIsSubmitting(true);
+        setIsSubmitting(true)
 
         try {
             await requestInstallBox({
                 name: newBoxName,
                 ipAddress: newBoxIpAddress,
                 longitude: newPinPosition.lng,
-                latitude: newPinPosition.lat
-            });
+                latitude: newPinPosition.lat,
+            })
 
-            alert("설치 요청이 성공적으로 전송되었습니다.");
+            alert("설치 요청이 성공적으로 전송되었습니다.")
 
             // 상태 초기화
-            setNewPinPosition(null);
-            setShowNewPinOverlay(false);
-            setNewBoxName("");
-            setNewBoxIpAddress("");
+            setNewPinPosition(null)
+            setShowNewPinOverlay(false)
+            setNewBoxName("")
+            setNewBoxIpAddress("")
 
-            onDataChange();
+            onDataChange()
         } catch (error) {
-            alert("설치 요청 중 오류가 발생했습니다: " + (error.message || "알 수 없는 오류"));
+            alert("설치 요청 중 오류가 발생했습니다: " + (error.message || "알 수 없는 오류"))
         } finally {
-            setIsSubmitting(false);
-            onDataChange();
+            setIsSubmitting(false)
+            onDataChange()
         }
-    };
+    }
 
     // 제거 요청 처리
     const handleRemoveRequest = async () => {
-        if (!selectedBoxId) return;
+        if (!selectedBoxId) return
 
-        setIsSubmitting(true);
+        setIsSubmitting(true)
 
         try {
-            await requestRemoveBox(selectedBoxId);
-            alert("제거 요청이 성공적으로 전송되었습니다.");
-            setShowExistingPinOverlay(false);
+            await requestRemoveBox(selectedBoxId)
+            alert("제거 요청이 성공적으로 전송되었습니다.")
+            setShowExistingPinOverlay(false)
 
-            onDataChange();
+            onDataChange()
         } catch (error) {
-            alert("제거 요청 중 오류가 발생했습니다: " + (error.message || "알 수 없는 오류"));
+            alert("제거 요청 중 오류가 발생했습니다: " + (error.message || "알 수 없는 오류"))
         } finally {
-            setIsSubmitting(false);
-            onDataChange();
+            setIsSubmitting(false)
+            onDataChange()
         }
-    };
+    }
 
     // 오버레이 닫기
     const closeOverlays = () => {
-        setShowNewPinOverlay(false);
-        setShowExistingPinOverlay(false);
-        setNewPinPosition(null);
-    };
+        setShowNewPinOverlay(false)
+        setShowExistingPinOverlay(false)
+        setNewPinPosition(null)
+    }
 
     // 선택된 박스 정보 가져오기
     const getSelectedBox = () => {
-        return filteredBoxes.find(box => box.id === selectedBoxId) || null;
-    };
+        return filteredBoxes.find((box) => box.id === selectedBoxId) || null
+    }
+
+    // Add map movement listener to update overlay positions
+    useEffect(() => {
+        if (map && (showNewPinOverlay || showExistingPinOverlay)) {
+            // Force re-render when map moves to update overlay positions
+            const moveHandler = () => {
+                setMap(map)
+            }
+
+            window.kakao.maps.event.addListener(map, "dragend", moveHandler)
+            window.kakao.maps.event.addListener(map, "zoom_changed", moveHandler)
+
+            return () => {
+                window.kakao.maps.event.removeListener(map, "dragend", moveHandler)
+                window.kakao.maps.event.removeListener(map, "zoom_changed", moveHandler)
+            }
+        }
+    }, [map, showNewPinOverlay, showExistingPinOverlay])
 
     return (
         <div className="flex bg-white rounded-2xl shadow-md overflow-hidden h-[570px] relative">
@@ -376,16 +395,12 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                                         </p>
                                     </div>
                                     <div className="relative">
-                                        <button
-                                            className="text-gray-400 p-1"
-                                            onClick={(e) => handleCopy(e, box.id, box.name)}
-                                        >
-                                            <img src={CopyIcon || "/placeholder.svg"} alt="복사" className="w-4 h-5"/>
+                                        <button className="text-gray-400 p-1" onClick={(e) => handleCopy(e, box.id, box.name)}>
+                                            <img src={CopyIcon || "/placeholder.svg"} alt="복사" className="w-4 h-5" />
                                         </button>
 
                                         {copiedId === box.id && (
-                                            <div
-                                                className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full w-3 h-3 flex items-center justify-center text-[8px]">
+                                            <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full w-3 h-3 flex items-center justify-center text-[8px]">
                                                 ✓
                                             </div>
                                         )}
@@ -400,21 +415,21 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
             {/* 지도 */}
             <div className="absolute top-0 left-0 w-full h-full z-0">
                 <Map
-                    center={{lat: 36.8082, lng: 127.009}}
-                    style={{width: "100%", height: "100%"}}
+                    center={{ lat: 36.8082, lng: 127.009 }}
+                    style={{ width: "100%", height: "100%" }}
                     level={3}
                     onCreate={setMap}
                     onClick={handleMapClick}
-                    draggable={true}  // 드래그 기능 명시적 활성화
+                    draggable={true} // 드래그 기능 명시적 활성화
                     onDragStart={() => {
-                        dragStartTimeRef.current = Date.now();
-                        setIsDragging(true);
+                        dragStartTimeRef.current = Date.now()
+                        setIsDragging(true)
                     }}
                     onDragEnd={() => {
                         // 드래그 종료 후 약간의 지연을 두고 isDragging 상태 변경
                         setTimeout(() => {
-                            setIsDragging(false);
-                        }, 100);
+                            setIsDragging(false)
+                        }, 100)
                     }}
                 >
                     {/* 기존 마커들 */}
@@ -444,13 +459,14 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                     )}
 
                     {/* 추천 위치 마커들 (showRecommendedLocations가 true일 때만 표시) */}
-                    {isAddRemovePage && showRecommendedLocations && (
+                    {isAddRemovePage &&
+                        showRecommendedLocations &&
                         // 여기에 추천 위치 마커를 추가할 수 있습니다
                         // 예시 데이터로 구현
                         [
                             { lat: 36.8082, lng: 127.019 },
                             { lat: 36.8182, lng: 127.005 },
-                            { lat: 36.7982, lng: 127.012 }
+                            { lat: 36.7982, lng: 127.012 },
                         ].map((location, index) => (
                             <MapMarker
                                 key={`recommended-${index}`}
@@ -462,8 +478,7 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                                 }}
                                 onClick={() => handleRecommendedLocationClick(location)} // 클릭 이벤트 핸들러 추가
                             />
-                        ))
-                    )}
+                        ))}
                 </Map>
 
                 {/* 토글 버튼 - 상태에 따라 텍스트와 색상 변경 */}
@@ -479,24 +494,30 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                 )}
             </div>
 
-            {/* 새 핀 오버레이 (절대 위치로 표시) */}
+            {/* 새 핀 오버레이 (핀 위치에 표시) */}
             {isAddRemovePage && showNewPinOverlay && newPinPosition && (
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30">
+                <div
+                    className="absolute z-30"
+                    style={{
+                        left: map
+                            ?.getProjection()
+                            .pointFromCoords(new window.kakao.maps.LatLng(newPinPosition.lat, newPinPosition.lng)).x,
+                        top:
+                            map?.getProjection().pointFromCoords(new window.kakao.maps.LatLng(newPinPosition.lat, newPinPosition.lng))
+                                .y - 40,
+                        transform: "translate(-50%, -100%)",
+                    }}
+                >
                     <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 w-64">
                         <div className="flex justify-between items-center mb-3">
                             <h3 className="font-bold text-lg">새 수거함 설치 요청</h3>
-                            <button
-                                className="text-gray-500 hover:text-gray-700"
-                                onClick={closeOverlays}
-                            >
+                            <button className="text-gray-500 hover:text-gray-700" onClick={closeOverlays}>
                                 ✕
                             </button>
                         </div>
                         <div className="space-y-3">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    수거함 이름
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">수거함 이름</label>
                                 <input
                                     type="text"
                                     value={newBoxName}
@@ -506,9 +527,7 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    IP 주소
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">IP 주소</label>
                                 <input
                                     type="text"
                                     value={newBoxIpAddress}
@@ -518,9 +537,7 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    좌표
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">좌표</label>
                                 <div className="text-sm text-gray-500">
                                     {newPinPosition.lat.toFixed(6)}, {newPinPosition.lng.toFixed(6)}
                                 </div>
@@ -537,43 +554,41 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                 </div>
             )}
 
-            {/* 기존 핀 오버레이 (절대 위치로 표시) */}
+            {/* 기존 핀 오버레이 (핀 위치에 표시) */}
             {isAddRemovePage && showExistingPinOverlay && selectedBoxId && (
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30">
+                <div
+                    className="absolute z-30"
+                    style={{
+                        left: map
+                            ?.getProjection()
+                            .pointFromCoords(new window.kakao.maps.LatLng(getSelectedBox()?.lat || 0, getSelectedBox()?.lng || 0)).x,
+                        top:
+                            map
+                                ?.getProjection()
+                                .pointFromCoords(new window.kakao.maps.LatLng(getSelectedBox()?.lat || 0, getSelectedBox()?.lng || 0))
+                                .y - 40,
+                        transform: "translate(-50%, -100%)",
+                    }}
+                >
                     <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 w-64">
                         <div className="flex justify-between items-center mb-3">
                             <h3 className="font-bold text-lg">수거함 제거 요청</h3>
-                            <button
-                                className="text-gray-500 hover:text-gray-700"
-                                onClick={closeOverlays}
-                            >
+                            <button className="text-gray-500 hover:text-gray-700" onClick={closeOverlays}>
                                 ✕
                             </button>
                         </div>
                         <div className="space-y-3">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    수거함 이름
-                                </label>
-                                <div className="text-sm">
-                                    {getSelectedBox()?.name || ""}
-                                </div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">수거함 이름</label>
+                                <div className="text-sm">{getSelectedBox()?.name || ""}</div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    현재 상태
-                                </label>
-                                <div className="text-sm">
-                                    {formatInstallStatus(getSelectedBox()?.installStatus || "")}
-                                </div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">현재 상태</label>
+                                <div className="text-sm">{formatInstallStatus(getSelectedBox()?.installStatus || "")}</div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    주소
-                                </label>
-                                <div className="text-sm text-gray-500">
-                                    {addressMap[selectedBoxId] || "주소 정보 없음"}
-                                </div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">주소</label>
+                                <div className="text-sm text-gray-500">{addressMap[selectedBoxId] || "주소 정보 없음"}</div>
                             </div>
                             <button
                                 className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-md font-medium text-sm disabled:opacity-50"
