@@ -14,12 +14,29 @@ import YellowSelectIcon from "../assets/아이콘 YELLOW 선택효과.png"
 import RedSelectIcon from "../assets/아이콘 RED 선택효과.png"
 import FireIcon from "../assets/아이콘 화재감지.svg"
 
-const MapWithSidebar = ({ filteredBoxes, isMainPage= false, isAddRemovePage = false }) => {
+// API 함수 import
+import { requestInstallBox, requestRemoveBox } from "../api/apiServices"; // 경로는 실제 API 파일 위치에 맞게 조정해주세요
+
+const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = false }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true)
     const [selectedBoxId, setSelectedBoxId] = useState(3)
     const [searchTerm, setSearchTerm] = useState("")
     const [addressMap, setAddressMap] = useState({})
-    const [copiedId, setCopiedId] = useState(null);
+    const [copiedId, setCopiedId] = useState(null)
+    const [isDragging, setIsDragging] = useState(false);
+    const dragStartTimeRef = useRef(0);
+
+    // 새로운 핀 관련 상태
+    const [newPinPosition, setNewPinPosition] = useState(null)
+    const [showNewPinOverlay, setShowNewPinOverlay] = useState(false)
+    const [newBoxName, setNewBoxName] = useState("")
+    const [newBoxIpAddress, setNewBoxIpAddress] = useState("")
+
+    // 기존 핀 오버레이 상태
+    const [showExistingPinOverlay, setShowExistingPinOverlay] = useState(false)
+
+    // 로딩 상태
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     // Add refs for list items and map
     const listItemRefs = useRef({})
@@ -153,6 +170,14 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage= false, isAddRemovePage = fa
     const handleMarkerClick = (boxId) => {
         setSelectedBoxId(boxId)
 
+        // isAddRemovePage가 true일 때 기존 핀 클릭 시 오버레이 표시
+        if (isAddRemovePage) {
+            setShowExistingPinOverlay(true)
+            // 새 핀 오버레이가 열려있으면 닫기
+            setShowNewPinOverlay(false)
+            setNewPinPosition(null)
+        }
+
         // Scroll the list item into view
         if (listItemRefs.current[boxId] && isSidebarOpen) {
             listItemRefs.current[boxId].scrollIntoView({
@@ -171,6 +196,97 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage= false, isAddRemovePage = fa
             map.setCenter(new window.kakao.maps.LatLng(box.lat, box.lng))
         }
     }
+
+    // 지도 클릭 이벤트 핸들러
+    const handleMapClick = (_, mouseEvent) => {
+        // 드래그 중이거나 드래그 직후인 경우 클릭 이벤트 무시
+        if (isDragging || (Date.now() - dragStartTimeRef.current < 200)) {
+            return;
+        }
+
+        if (!isAddRemovePage) return;
+
+        // mouseEvent.latLng가 없는 경우 처리
+        if (!mouseEvent || !mouseEvent.latLng) {
+            console.error("유효하지 않은 클릭 이벤트입니다.");
+            return;
+        }
+
+        // 기존 핀 오버레이가 열려있으면 닫기
+        setShowExistingPinOverlay(false);
+
+        // 클릭한 위치에 새 핀 생성
+        const latlng = mouseEvent.latLng;
+        setNewPinPosition({
+            lat: latlng.getLat(),
+            lng: latlng.getLng()
+        });
+        setShowNewPinOverlay(true);
+
+        // 입력 필드 초기화
+        setNewBoxName("");
+        setNewBoxIpAddress("");
+    };
+
+    // 설치 요청 처리
+    const handleInstallRequest = async () => {
+        if (!newBoxName || !newBoxIpAddress || !newPinPosition) {
+            alert("수거함 이름과 IP 주소를 모두 입력해주세요.");
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            await requestInstallBox({
+                name: newBoxName,
+                ipAddress: newBoxIpAddress,
+                longitude: newPinPosition.lng,
+                latitude: newPinPosition.lat
+            });
+
+            alert("설치 요청이 성공적으로 전송되었습니다.");
+
+            // 상태 초기화
+            setNewPinPosition(null);
+            setShowNewPinOverlay(false);
+            setNewBoxName("");
+            setNewBoxIpAddress("");
+        } catch (error) {
+            alert("설치 요청 중 오류가 발생했습니다: " + (error.message || "알 수 없는 오류"));
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // 제거 요청 처리
+    const handleRemoveRequest = async () => {
+        if (!selectedBoxId) return;
+
+        setIsSubmitting(true);
+
+        try {
+            await requestRemoveBox(selectedBoxId);
+            alert("제거 요청이 성공적으로 전송되었습니다.");
+            setShowExistingPinOverlay(false);
+        } catch (error) {
+            alert("제거 요청 중 오류가 발생했습니다: " + (error.message || "알 수 없는 오류"));
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // 오버레이 닫기
+    const closeOverlays = () => {
+        setShowNewPinOverlay(false);
+        setShowExistingPinOverlay(false);
+        setNewPinPosition(null);
+    };
+
+    // 선택된 박스 정보 가져오기
+    const getSelectedBox = () => {
+        return filteredBoxes.find(box => box.id === selectedBoxId) || null;
+    };
 
     return (
         <div className="flex bg-white rounded-2xl shadow-md overflow-hidden h-[570px] relative">
@@ -259,8 +375,21 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage= false, isAddRemovePage = fa
                     style={{width: "100%", height: "100%"}}
                     level={3}
                     onCreate={setMap}
+                    onClick={handleMapClick}
+                    draggable={true}  // 드래그 기능 명시적 활성화
+                    onDragStart={() => {
+                        dragStartTimeRef.current = Date.now();
+                        setIsDragging(true);
+                    }}
+                    onDragEnd={() => {
+                        // 드래그 종료 후 약간의 지연을 두고 isDragging 상태 변경
+                        setTimeout(() => {
+                            setIsDragging(false);
+                        }, 100);
+                    }}
                 >
-                {filteredBoxes.map((box) => (
+                    {/* 기존 마커들 */}
+                    {filteredBoxes.map((box) => (
                         <MapMarker
                             key={box.id}
                             position={{ lat: box.lat, lng: box.lng }}
@@ -272,8 +401,128 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage= false, isAddRemovePage = fa
                             onClick={() => handleMarkerClick(box.id)}
                         />
                     ))}
+
+                    {/* 새로운 핀 */}
+                    {isAddRemovePage && newPinPosition && (
+                        <MapMarker
+                            position={newPinPosition}
+                            image={{
+                                src: GreenIcon,
+                                size: { width: 34, height: 40 },
+                                options: { offset: { x: 20, y: 40 } },
+                            }}
+                        />
+                    )}
                 </Map>
             </div>
+
+            {/* 새 핀 오버레이 (절대 위치로 표시) */}
+            {isAddRemovePage && showNewPinOverlay && newPinPosition && (
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30">
+                    <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 w-64">
+                        <div className="flex justify-between items-center mb-3">
+                            <h3 className="font-bold text-lg">새 수거함 설치 요청</h3>
+                            <button
+                                className="text-gray-500 hover:text-gray-700"
+                                onClick={closeOverlays}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="space-y-3">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    수거함 이름
+                                </label>
+                                <input
+                                    type="text"
+                                    value={newBoxName}
+                                    onChange={(e) => setNewBoxName(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                    placeholder="수거함 이름 입력"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    IP 주소
+                                </label>
+                                <input
+                                    type="text"
+                                    value={newBoxIpAddress}
+                                    onChange={(e) => setNewBoxIpAddress(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                    placeholder="IP 주소 입력"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    좌표
+                                </label>
+                                <div className="text-sm text-gray-500">
+                                    {newPinPosition.lat.toFixed(6)}, {newPinPosition.lng.toFixed(6)}
+                                </div>
+                            </div>
+                            <button
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium text-sm disabled:opacity-50"
+                                onClick={handleInstallRequest}
+                                disabled={isSubmitting || !newBoxName || !newBoxIpAddress}
+                            >
+                                {isSubmitting ? "요청 중..." : "설치 요청"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 기존 핀 오버레이 (절대 위치로 표시) */}
+            {isAddRemovePage && showExistingPinOverlay && selectedBoxId && (
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30">
+                    <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 w-64">
+                        <div className="flex justify-between items-center mb-3">
+                            <h3 className="font-bold text-lg">수거함 제거 요청</h3>
+                            <button
+                                className="text-gray-500 hover:text-gray-700"
+                                onClick={closeOverlays}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="space-y-3">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    수거함 이름
+                                </label>
+                                <div className="text-sm">
+                                    {getSelectedBox()?.name || ""}
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    현재 상태
+                                </label>
+                                <div className="text-sm">
+                                    {formatInstallStatus(getSelectedBox()?.installStatus || "")}
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    주소
+                                </label>
+                                <div className="text-sm text-gray-500">
+                                    {addressMap[selectedBoxId] || "주소 정보 없음"}
+                                </div>
+                            </div>
+                            <button
+                                className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-md font-medium text-sm disabled:opacity-50"
+                                onClick={handleRemoveRequest}
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? "요청 중..." : "제거 요청"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
