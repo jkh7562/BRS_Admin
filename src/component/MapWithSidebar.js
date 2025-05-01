@@ -49,14 +49,23 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
     const listItemRefs = useRef({})
     const [map, setMap] = useState(null)
 
+    // 표시할 박스 필터링 함수
+    const shouldDisplayBox = (box) => {
+        return isAddRemovePage ||
+            box.installStatus === "INSTALL_CONFIRME" ||
+            box.installStatus === "REMOVE_REQUEST" ||
+            box.installStatus === "REMOVE_IN_PROGRESS"
+    }
+
+    // 검색 및 필터링된 박스
     const displayedBoxes = searchTerm
         ? filteredBoxes.filter((box) => {
             const nameMatch = box.name.toLowerCase().includes(searchTerm.toLowerCase())
             const address = addressMap[box.id] || ""
             const addressMatch = address.toLowerCase().includes(searchTerm.toLowerCase())
-            return nameMatch || addressMatch
+            return (nameMatch || addressMatch) && shouldDisplayBox(box)
         })
-        : filteredBoxes
+        : filteredBoxes.filter(shouldDisplayBox)
 
     const addressFetchedRef = useRef(false)
 
@@ -199,11 +208,23 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
             // 상태가 없는 경우 기본 아이콘
             return selectedBoxId === box.id ? YellowSelectIcon : YellowIcon
         } else {
-            if (box.status === "fire") return FireIcon
-            const maxVolume = Math.max(box.volume1 || 0, box.volume2 || 0, box.volume3 || 0)
-            if (maxVolume <= 50) return selectedBoxId === box.id ? GreenSelectIcon : GreenIcon
-            if (maxVolume <= 80) return selectedBoxId === box.id ? YellowSelectIcon : YellowIcon
-            return selectedBoxId === box.id ? RedSelectIcon : RedIcon
+            // 설치 확정, 제거 요청 중, 제거 진행 중 상태 확인을 먼저
+            if (
+                box.installStatus === "INSTALL_CONFIRME" ||
+                box.installStatus === "REMOVE_REQUEST" ||
+                box.installStatus === "REMOVE_IN_PROGRESS"
+            ) {
+                // 화재 상태 확인
+                if (box.status === "fire") return FireIcon
+
+                // 그 외의 경우 수거량에 따라 아이콘 결정
+                const maxVolume = Math.max(box.volume1 || 0, box.volume2 || 0, box.volume3 || 0)
+                if (maxVolume <= 50) return selectedBoxId === box.id ? GreenSelectIcon : GreenIcon
+                if (maxVolume <= 80) return selectedBoxId === box.id ? YellowSelectIcon : YellowIcon
+                return selectedBoxId === box.id ? RedSelectIcon : RedIcon
+            }
+            // 세 가지 상태가 아닌 경우 null 반환 (마커 표시 안 함)
+            return null
         }
     }
 
@@ -464,19 +485,23 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                         }, 100)
                     }}
                 >
-                    {/* 기존 마커들 */}
-                    {filteredBoxes.map((box) => (
-                        <MapMarker
-                            key={box.id}
-                            position={{ lat: box.lat, lng: box.lng }}
-                            image={{
-                                src: getMarkerIcon(box),
-                                size: getMarkerSize(box),
-                                options: { offset: { x: 20, y: 40 } },
-                            }}
-                            onClick={() => handleMarkerClick(box.id)}
-                        />
-                    ))}
+                    {/* 기존 마커들 - 필터링하여 표시 */}
+                    {displayedBoxes.map((box) => {
+                        const icon = getMarkerIcon(box);
+                        // 아이콘이 null이 아닌 경우에만 마커 렌더링
+                        return icon ? (
+                            <MapMarker
+                                key={box.id}
+                                position={{ lat: box.lat, lng: box.lng }}
+                                image={{
+                                    src: icon,
+                                    size: getMarkerSize(box),
+                                    options: { offset: { x: 20, y: 40 } },
+                                }}
+                                onClick={() => handleMarkerClick(box.id)}
+                            />
+                        ) : null;
+                    })}
 
                     {/* 새로운 핀 */}
                     {isAddRemovePage && newPinPosition && (

@@ -86,7 +86,7 @@ const N_mainPage = () => {
             try {
                 const data = await findAllBox();
                 const mappedBoxes = data.map((entry) => {
-                    const { id, name, location, volume1, volume2, volume3, fireStatus1, fireStatus2, fireStatus3 } = entry.box;
+                    const { id, name, location, volume1, volume2, volume3, fireStatus1, fireStatus2, fireStatus3, installStatus } = entry.box;
 
                     // 위치 파싱 (띄어쓰기 유무 상관없이 처리)
                     let lng = 0;
@@ -110,7 +110,7 @@ const N_mainPage = () => {
                         status = "need-collect";
                     }
 
-                    return { id, name, lat, lng, status };
+                    return { id, name, lat, lng, status, installStatus, volume1, volume2, volume3 };
                 });
 
                 setBoxes(mappedBoxes);
