@@ -318,3 +318,17 @@ export const requestRemoveConfirmed = async (boxId) => {
         throw error;  // 에러 발생 시 다시 던져서 처리할 수 있도록
     }
 };
+
+// ✅ 관리자용 미해결 알람 조회 API
+export const fetchUnresolvedAlarms = async () => {
+    try {
+        const response = await axiosInstance.get("/admin/alarm/unResolved", {
+            withCredentials: true, // 인증이 필요한 경우
+        });
+        console.log("✅ 미해결 알람 조회 성공:", response.data);
+        return response.data; // Alarm[] 형태의 응답
+    } catch (error) {
+        console.error("❌ 미해결 알람 조회 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
