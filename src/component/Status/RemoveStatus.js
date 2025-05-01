@@ -175,7 +175,7 @@ export default function RemoveStatus({ statuses, addressData = {}, processedBoxe
                             <span className="font-nomal">{addressData[selectedBox.id]?.region || "정보 없음"}</span>
                         </div>
                         <div className="flex items-center">
-                            <span className="font-bold w-[70px]">담당지역</span>
+                            <span className="font-bold w-[70px]">시/군/구</span>
                             <span className="font-nomal">{addressData[selectedBox.id]?.city || "정보 없음"}</span>
                         </div>
                         <div className="flex items-center">
