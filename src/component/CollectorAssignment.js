@@ -6,6 +6,7 @@ import CopyIcon from "../assets/copy.png"
 import InfoIcon from "../assets/추가정보2.png"
 import VectorIcon from "../assets/Vector.png"
 import DownIcon from "../assets/Down.png"
+import UserIcon from "../assets/user.png"
 
 function CustomDropdown({ options, value, onChange, width = "200px" }) {
     const [isOpen, setIsOpen] = useState(false)
@@ -141,7 +142,7 @@ export default function CollectorAssignment() {
                             <div className="mr-4">
                                 <div className="w-14 h-14 rounded-full bg-gray-200 overflow-hidden">
                                     <img
-                                        src="/placeholder.svg?height=56&width=56"
+                                        src={UserIcon}
                                         alt="프로필 이미지"
                                         className="w-full h-full object-cover"
                                     />
