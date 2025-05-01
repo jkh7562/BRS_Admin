@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from 'react-router-dom';
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import MapWithSidebar from "../../component/MapWithSidebar"
@@ -15,6 +16,7 @@ import FireInfoIcon from "../../assets/FireInfo.png"
 import { fetchEmployeeRequests, getBoxLog, findAllBox } from "../../api/apiServices"
 
 const N_mainPage = () => {
+    const navigate = useNavigate();
     const tabs = ["전체 수거함", "건전지", "방전 배터리", "잔여 용량 배터리"]
     const [selectedEmissionTab, setSelectedEmissionTab] = useState("전체 수거함")
     const [selectedCollectionTab, setSelectedCollectionTab] = useState("전체 수거함")
@@ -128,6 +130,11 @@ const N_mainPage = () => {
             : boxes.filter((box) =>
                 selectedTab === "수거 필요" ? box.status === "need-collect" : box.status === "fire",
             )
+
+    const goToApprovalPage = () => {
+        navigate('/n_UserApprovalPage'); // React Router를 사용하는 경우
+    };
+
     return (
         <div className="flex min-h-screen w-full bg-[#F3F3F5]">
             <Sidebar />
@@ -138,7 +145,8 @@ const N_mainPage = () => {
 
                     <div className="flex gap-4">
                         {/* 신규 수거자 가입신청 */}
-                        <div className="w-[19%] bg-[#21262B] rounded-2xl p-4 shadow">
+                        <div className="w-[19%] bg-[#21262B] rounded-2xl p-4 shadow cursor-pointer"
+                             onClick={goToApprovalPage}>
                             <div className="flex items-center gap-2 mt-4 ml-4 mr-4 mb-4">
                                 <img src={joinIcon} alt="신규 수거자" className="w-6 h-6"/>
                                 <h2 className="font-bold text-xl text-white whitespace-nowrap">신규 수거자 가입신청</h2>
@@ -167,7 +175,7 @@ const N_mainPage = () => {
                                         <p className="text-gray-500">일간 배출량</p>
                                         <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayDischargeTotal}g</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayDischargeTotal}</p>
                                 </div>
 
                                 {/* 구분선 */}
@@ -181,7 +189,7 @@ const N_mainPage = () => {
                                         <p className="text-gray-500">일간 수거량</p>
                                         <img src={infoIcon} alt="info" className="w-4 h-4"/>
                                     </div>
-                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayCollectionTotal}g</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayCollectionTotal}</p>
                                 </div>
 
                                 {/* 구분선 */}
