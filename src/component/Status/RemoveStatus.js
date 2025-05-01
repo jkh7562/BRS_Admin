@@ -4,21 +4,20 @@ import { useState, useEffect } from "react"
 import { Map, MapMarker } from "react-kakao-maps-sdk"
 import SearchIcon from "../../assets/검색.png"
 import CopyIcon from "../../assets/copy.png"
+import RedIcon from "../../assets/아이콘 RED.png"
 import { findAllBox, fetchUnresolvedAlarms, findUserAll } from "../../api/apiServices"
 
-export default function RemoveStatus({
-                                         statuses = ["REMOVE_REQUEST", "REMOVE_IN_PROGRESS", "REMOVE_CONFIRMED", "REMOVE_COMPLETED"],
-                                     }) {
+export default function RemoveStatus({ statuses }) {
     const [boxes, setBoxes] = useState([])
     const [filteredBoxes, setFilteredBoxes] = useState([])
     const [selectedBox, setSelectedBox] = useState(null)
     const [searchTerm, setSearchTerm] = useState("")
     const [addressData, setAddressData] = useState({})
     const [isLoading, setIsLoading] = useState(true)
-    const [alarmData, setAlarmData] = useState({})
-    const [debug, setDebug] = useState({ boxCount: 0, alarmCount: 0, removeAlarmCount: 0 })
+    const [alarmData, setAlarmData] = useState({}) // 알람 데이터를 저장할 상태 추가
+    const [userMap, setUserMap] = useState({}) // 사용자 맵을 상태로 관리
 
-    // 박스 데이터 로드 부분
+    // 박스 데이터 로드 부분을 수정
     useEffect(() => {
         const loadBoxes = async () => {
             setIsLoading(true)
@@ -30,33 +29,47 @@ export default function RemoveStatus({
                 console.log("Alarm Data:", alarmData) // 디버깅용 로그
                 console.log("User Data:", userData) // 디버깅용 로그
 
-                // 디버깅 정보 저장
-                setDebug({
-                    boxCount: boxData?.length || 0,
-                    alarmCount: alarmData?.length || 0,
-                    removeAlarmCount: alarmData?.filter((a) => a.type && a.type.startsWith("REMOVE"))?.length || 0,
-                })
-
-                // 사용자 정보 처리
-                const userMap = {}
+                // 사용자 정보 처리 부분을 수정합니다.
+                // userMap 생성 부분을 더 명확하게 로깅하고 확인합니다.
+                const userMapObj = {}
                 console.log("Raw user data:", userData)
+
+                // userMap 생성 부분을 수정하여 모든 사용자 ID를 로깅하고 확인합니다.
+                console.log(
+                    "All user IDs in userData:",
+                    userData.map((user) => user.id),
+                )
+
+                // userMap 생성 부분을 API 응답 형식에 맞게 수정합니다.
                 userData.forEach((user, index) => {
                     if (user && user.id) {
-                        userMap[user.id] = {
+                        userMapObj[user.id] = {
                             id: user.id,
                             name: user.name || user.id,
                             createdAt: user.date ? formatDate(user.date) : "정보 없음",
                             location: user.location || "정보 없음",
-                            phoneNumber: user.phone_number || "정보 없음",
+                            phoneNumber: user.phoneNumber || "정보 없음", // phone_number에서 phoneNumber로 수정
                             role: user.role || "정보 없음",
                         }
-                        console.log(`User ${index} mapped:`, user.id, "->", userMap[user.id].name)
+                        console.log(
+                            `User ${index} mapped:`,
+                            user.id,
+                            "->",
+                            userMapObj[user.id].name,
+                            "createdAt:",
+                            userMapObj[user.id].createdAt,
+                            "date value:",
+                            user.date,
+                        )
                     } else {
                         console.log(`User ${index} skipped:`, user)
                     }
                 })
 
-                // 알람 데이터 매핑
+                // userMap을 상태로 저장
+                setUserMap(userMapObj)
+
+                // 알람 데이터 매핑 부분도 로깅을 추가합니다.
                 const alarmsByBoxId = {}
                 const alarmsByBoxIdForState = {} // UserListItem에서 사용할 알람 데이터
 
@@ -77,7 +90,12 @@ export default function RemoveStatus({
                             alarmsByBoxIdForState[alarm.boxId] = alarm
                         }
 
-                        console.log(`Alarm ${index} mapped to box ${alarm.boxId}, userId: ${alarm.userId}, type: ${alarm.type}`)
+                        // 그리고 알람 데이터에서 사용자 ID를 추출하는 부분에 로깅을 추가합니다.
+                        if (alarm.userId) {
+                            console.log(`Checking if user ${alarm.userId} exists in userMap:`, !!userMapObj[alarm.userId])
+                        }
+
+                        console.log(`Alarm ${index} mapped to box ${alarm.boxId}, userId: ${alarm.userId}`)
                     } else {
                         console.log(`Alarm ${index} has no boxId:`, alarm)
                     }
@@ -86,18 +104,8 @@ export default function RemoveStatus({
                 // 알람 데이터를 상태에 저장
                 setAlarmData(alarmsByBoxIdForState)
 
-                // 중요: 제거 요청이 있는 모든 박스를 포함하도록 수정
-                // 이 부분이 핵심입니다 - 박스에 remove_status가 없더라도 REMOVE 알람이 있으면 포함시킵니다
-                const boxesWithRemoveAlarms = new Set()
-                alarmData.forEach((alarm) => {
-                    if (alarm.type && alarm.type.startsWith("REMOVE")) {
-                        boxesWithRemoveAlarms.add(alarm.boxId)
-                    }
-                })
-
-                console.log("Boxes with REMOVE alarms:", Array.from(boxesWithRemoveAlarms))
-
-                // 박스 매핑 부분에서 사용자 정보 처리
+                // 사용자 정보 처리 부분을 완전히 재작성합니다.
+                // 박스 매핑 부분에서 사용자 정보 처리 로직을 개선합니다.
                 const mappedBoxes = boxData
                     .map((entry) => {
                         // entry 구조 확인
@@ -105,31 +113,21 @@ export default function RemoveStatus({
                         const id = box.id
                         const name = box.name
                         const location = box.location
-
-                        // 중요: 상태 필드가 없는 경우를 처리합니다
-                        // remove_status 또는 removeStatus 필드가 없는 경우 알람 타입에 따라 상태를 결정합니다
-                        let status = box.remove_status || box.removeStatus
+                        const status = box.remove_status || box.removeStatus
 
                         console.log(`\n--- Processing Box ${id} (${name}) ---`)
-                        console.log(`Original status: ${status}`)
 
                         // 해당 박스의 알람 정보 가져오기
                         const boxAlarms = alarmsByBoxId[id] || []
                         console.log(`Box ${id} has ${boxAlarms.length} alarms`)
 
-                        // 제거 관련 알람만 필터링
+                        // 설치 관련 알람만 필터링
                         const removeAlarms = boxAlarms.filter((alarm) => alarm.type && alarm.type.startsWith("REMOVE"))
                         console.log(`Box ${id} has ${removeAlarms.length} removal alarms`)
 
                         // 가장 최근 알람 사용
                         const latestAlarm =
                             removeAlarms.length > 0 ? removeAlarms.sort((a, b) => new Date(b.date) - new Date(a.date))[0] : null
-
-                        // 중요: 상태가 없지만 REMOVE 알람이 있는 경우 상태를 설정합니다
-                        if (!status && latestAlarm) {
-                            status = latestAlarm.type // REMOVE_REQUEST 등으로 설정
-                            console.log(`Setting status from alarm: ${status}`)
-                        }
 
                         if (latestAlarm) {
                             console.log(`Latest alarm for box ${id}:`, {
@@ -166,20 +164,35 @@ export default function RemoveStatus({
                             console.log(`Box ${id} has userId ${userId} from alarm`)
 
                             // userMap에서 사용자 정보 조회
-                            if (userMap[userId]) {
-                                userName = userMap[userId].name
-                                userCreatedAt = userMap[userId].createdAt
-                                console.log(`Found user in userMap: ${userId} -> ${userName}`)
+                            if (userMapObj[userId]) {
+                                userName = userMapObj[userId].name
+                                userCreatedAt = userMapObj[userId].createdAt
+                                console.log(`Found user in userMap: ${userId} -> ${userName}, createdAt: ${userCreatedAt}`)
                             } else {
+                                // 사용자 ID가 userMap에 없는 경우, API에서 해당 사용자 정보를 직접 가져오는 로직 추가
+                                console.log(`User ${userId} not found in userMap, will fetch directly`)
+
+                                // 이 부분은 실제 구현 시 비동기 함수로 처리해야 하지만, 디버깅을 위해 임시로 추가
                                 userName = userId
-                                console.log(`User ${userId} not found in userMap, using ID as name`)
+
+                                // 이 사용자가 왜 userMap에 없는지 확인하기 위한 로깅
+                                const matchingUsers = userData.filter((u) => u.id === userId)
+                                if (matchingUsers.length > 0) {
+                                    console.log(`Found matching user in raw userData:`, matchingUsers[0])
+                                    // 이 사용자의 날짜 정보가 있다면 사용
+                                    if (matchingUsers[0].date) {
+                                        userCreatedAt = formatDate(matchingUsers[0].date)
+                                        console.log(`Using date from raw userData: ${matchingUsers[0].date} -> ${userCreatedAt}`)
+                                    }
+                                } else {
+                                    console.log(`No matching user found in raw userData for ID: ${userId}`)
+                                }
                             }
                         } else {
                             console.log(`Box ${id} has no user information from alarms`)
                         }
 
-                        console.log(`Final user info for box ${id}: ${userName} (${userId})`)
-                        console.log(`Final status: ${status}`)
+                        console.log(`Final user info for box ${id}: ${userName} (${userId}), createdAt: ${userCreatedAt}`)
 
                         return {
                             id,
@@ -195,14 +208,15 @@ export default function RemoveStatus({
                                 name: userName,
                                 createdAt: userCreatedAt,
                             },
-                            hasRemoveAlarm: removeAlarms.length > 0,
                         }
                     })
                     .filter((box) => {
-                        // 중요: 필터링 로직을 수정합니다
-                        // 1. 상태가 statuses 배열에 포함되어 있거나
-                        // 2. REMOVE 알람이 있는 경우 포함
-                        return (box.removeStatus && statuses.includes(box.removeStatus)) || box.hasRemoveAlarm
+                        // 1. box.removeStatus가 있고 statuses 배열에 포함되어 있는 경우
+                        // 2. box.alarmType이 있고 "REMOVE"로 시작하는 경우
+                        return (
+                            (box.removeStatus && statuses.includes(box.removeStatus)) ||
+                            (box.alarmType && box.alarmType.startsWith("REMOVE"))
+                        )
                     })
 
                 console.log("Mapped boxes:", mappedBoxes)
@@ -214,6 +228,8 @@ export default function RemoveStatus({
                 // 첫 번째 박스 선택
                 if (mappedBoxes.length > 0) {
                     setSelectedBox(mappedBoxes[0])
+                    console.log("Selected box:", mappedBoxes[0])
+                    console.log("Selected box user info:", mappedBoxes[0].user)
                 }
 
                 // 주소 변환 시작
@@ -227,6 +243,14 @@ export default function RemoveStatus({
 
         loadBoxes()
     }, [statuses])
+
+    // 선택된 박스가 변경될 때마다 로그 출력
+    useEffect(() => {
+        if (selectedBox) {
+            console.log("Selected box changed:", selectedBox)
+            console.log("Selected box user info:", selectedBox.user)
+        }
+    }, [selectedBox])
 
     // 검색어에 따른 필터링
     useEffect(() => {
@@ -327,12 +351,25 @@ export default function RemoveStatus({
     }
 
     // 날짜 포맷 함수
+    // 날짜 포맷 함수를 ISO 형식 문자열을 처리할 수 있도록 개선합니다.
     const formatDate = (dateString) => {
-        if (!dateString) return "정보 없음"
+        if (!dateString) {
+            console.log("Date string is empty or null")
+            return "정보 없음"
+        }
 
         try {
+            console.log(`Formatting date: ${dateString}`)
+            // ISO 형식 문자열을 Date 객체로 변환
             const date = new Date(dateString)
-            return date
+
+            // 유효한 날짜인지 확인
+            if (isNaN(date.getTime())) {
+                console.log(`Invalid date: ${dateString}`)
+                return "정보 없음"
+            }
+
+            const formatted = date
                 .toLocaleDateString("ko-KR", {
                     year: "numeric",
                     month: "2-digit",
@@ -340,12 +377,16 @@ export default function RemoveStatus({
                 })
                 .replace(/\. /g, ".")
                 .replace(/\.$/, "")
+
+            console.log(`Date formatted result: ${formatted}`)
+            return formatted
         } catch (e) {
+            console.error(`Date formatting error for ${dateString}:`, e)
             return "정보 없음"
         }
     }
 
-    // 제거 상태 한글 변환
+    // 설치 상태 한글 변환
     const getStatusText = (status) => {
         const statusMap = {
             REMOVE_REQUEST: "제거 요청",
@@ -390,9 +431,6 @@ export default function RemoveStatus({
                 <div className="text-center">
                     <p className="text-xl font-bold text-gray-700">데이터가 없습니다</p>
                     <p className="text-gray-500 mt-2">해당 상태의 수거함이 없습니다.</p>
-                    <p className="text-gray-500 mt-2">
-                        디버그 정보: 박스 {debug.boxCount}개, 알람 {debug.alarmCount}개, 제거 알람 {debug.removeAlarmCount}개
-                    </p>
                 </div>
             </div>
         )
@@ -406,7 +444,7 @@ export default function RemoveStatus({
                     <div className="relative mx-2 my-4 p-3">
                         <input
                             type="text"
-                            placeholder="수거자 이름 검색"
+                            placeholder="ID 검색"
                             className="w-full py-2 pl-4 rounded-2xl border border-black/20 text-sm focus:outline-none"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -465,7 +503,13 @@ export default function RemoveStatus({
                             level={3}
                             className={"border rounded-2xl"}
                         >
-                            <MapMarker position={{ lat: selectedBox.lat, lng: selectedBox.lng }} />
+                            <MapMarker position={{ lat: selectedBox.lat, lng: selectedBox.lng }}
+                                       image={{
+                                           src: RedIcon,
+                                           size: {
+                                               width: 44,
+                                               height: 50
+                                           }}}/>
                         </Map>
                     </div>
                 </div>
@@ -500,12 +544,6 @@ export default function RemoveStatus({
                         <div className="flex items-center">
                             <span className="font-bold w-[70px]">알림일자</span>
                             <span className="font-nomal">{selectedBox.alarmDate || selectedBox.createdAt}</span>
-                        </div>
-                        <div className="flex items-center">
-                            <span className="font-bold w-[70px]">알림타입</span>
-                            <span className="font-nomal">
-                {selectedBox.alarmType ? getAlarmTypeText(selectedBox.alarmType) : "정보 없음"}
-              </span>
                         </div>
                     </div>
                 </div>
@@ -550,7 +588,7 @@ function UserListItem({ boxId, name, status, date, isActive, onClick, alarmData,
                 <div>
                     <h3 className="text-base text-[#21262B] font-bold">{userId}</h3>
                     <p className="text-sm text-[#60697E] font-normal text-gray-500 mt-1">{status}</p>
-                    <p className="text-sm text-[#60697E] font-normal text-gray-500">{alarmDate}</p>
+                    <p className="text-sm text-[#60697E] font-normal text-gray-500">{date}</p>
                 </div>
             </div>
             <button

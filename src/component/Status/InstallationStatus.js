@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Map, MapMarker } from "react-kakao-maps-sdk"
 import SearchIcon from "../../assets/검색.png"
 import CopyIcon from "../../assets/copy.png"
+import GreenIcon from "../../assets/아이콘 GREEN.png"
 import { findAllBox, fetchUnresolvedAlarms, findUserAll } from "../../api/apiServices"
 
 export default function InstallationStatus({ statuses }) {
@@ -14,6 +15,7 @@ export default function InstallationStatus({ statuses }) {
     const [addressData, setAddressData] = useState({})
     const [isLoading, setIsLoading] = useState(true)
     const [alarmData, setAlarmData] = useState({}) // 알람 데이터를 저장할 상태 추가
+    const [userMap, setUserMap] = useState({}) // 사용자 맵을 상태로 관리
 
     // 박스 데이터 로드 부분을 수정
     useEffect(() => {
@@ -29,23 +31,40 @@ export default function InstallationStatus({ statuses }) {
 
                 // 사용자 정보 처리 부분을 수정합니다.
                 // userMap 생성 부분을 더 명확하게 로깅하고 확인합니다.
-                const userMap = {}
+                const userMapObj = {}
                 console.log("Raw user data:", userData)
+
+                // userMap 생성 부분을 수정하여 모든 사용자 ID를 로깅하고 확인합니다.
+                console.log("All user IDs in userData:", userData.map(user => user.id));
+
+                // userMap 생성 부분을 API 응답 형식에 맞게 수정합니다.
                 userData.forEach((user, index) => {
                     if (user && user.id) {
-                        userMap[user.id] = {
+                        userMapObj[user.id] = {
                             id: user.id,
                             name: user.name || user.id,
                             createdAt: user.date ? formatDate(user.date) : "정보 없음",
                             location: user.location || "정보 없음",
-                            phoneNumber: user.phone_number || "정보 없음",
+                            phoneNumber: user.phoneNumber || "정보 없음", // phone_number에서 phoneNumber로 수정
                             role: user.role || "정보 없음",
                         }
-                        console.log(`User ${index} mapped:`, user.id, "->", userMap[user.id].name)
+                        console.log(
+                            `User ${index} mapped:`,
+                            user.id,
+                            "->",
+                            userMapObj[user.id].name,
+                            "createdAt:",
+                            userMapObj[user.id].createdAt,
+                            "date value:",
+                            user.date,
+                        )
                     } else {
                         console.log(`User ${index} skipped:`, user)
                     }
                 })
+
+                // userMap을 상태로 저장
+                setUserMap(userMapObj)
 
                 // 알람 데이터 매핑 부분도 로깅을 추가합니다.
                 const alarmsByBoxId = {}
@@ -66,6 +85,11 @@ export default function InstallationStatus({ statuses }) {
                             new Date(alarm.date) > new Date(alarmsByBoxIdForState[alarm.boxId].date)
                         ) {
                             alarmsByBoxIdForState[alarm.boxId] = alarm
+                        }
+
+                        // 그리고 알람 데이터에서 사용자 ID를 추출하는 부분에 로깅을 추가합니다.
+                        if (alarm.userId) {
+                            console.log(`Checking if user ${alarm.userId} exists in userMap:`, !!userMapObj[alarm.userId]);
                         }
 
                         console.log(`Alarm ${index} mapped to box ${alarm.boxId}, userId: ${alarm.userId}`)
@@ -133,23 +157,39 @@ export default function InstallationStatus({ statuses }) {
 
                         // 알람에서 사용자 정보를 가져오는 경우
                         if (latestAlarm && latestAlarm.userId) {
-                            userId = latestAlarm.userId
-                            console.log(`Box ${id} has userId ${userId} from alarm`)
+                            userId = latestAlarm.userId;
+                            console.log(`Box ${id} has userId ${userId} from alarm`);
 
                             // userMap에서 사용자 정보 조회
-                            if (userMap[userId]) {
-                                userName = userMap[userId].name
-                                userCreatedAt = userMap[userId].createdAt
-                                console.log(`Found user in userMap: ${userId} -> ${userName}`)
+                            if (userMapObj[userId]) {
+                                userName = userMapObj[userId].name;
+                                userCreatedAt = userMapObj[userId].createdAt;
+                                console.log(`Found user in userMap: ${userId} -> ${userName}, createdAt: ${userCreatedAt}`);
                             } else {
-                                userName = userId
-                                console.log(`User ${userId} not found in userMap, using ID as name`)
+                                // 사용자 ID가 userMap에 없는 경우, API에서 해당 사용자 정보를 직접 가져오는 로직 추가
+                                console.log(`User ${userId} not found in userMap, will fetch directly`);
+
+                                // 이 부분은 실제 구현 시 비동기 함수로 처리해야 하지만, 디버깅을 위해 임시로 추가
+                                userName = userId;
+
+                                // 이 사용자가 왜 userMap에 없는지 확인하기 위한 로깅
+                                const matchingUsers = userData.filter(u => u.id === userId);
+                                if (matchingUsers.length > 0) {
+                                    console.log(`Found matching user in raw userData:`, matchingUsers[0]);
+                                    // 이 사용자의 날짜 정��가 있다면 사용
+                                    if (matchingUsers[0].date) {
+                                        userCreatedAt = formatDate(matchingUsers[0].date);
+                                        console.log(`Using date from raw userData: ${matchingUsers[0].date} -> ${userCreatedAt}`);
+                                    }
+                                } else {
+                                    console.log(`No matching user found in raw userData for ID: ${userId}`);
+                                }
                             }
                         } else {
-                            console.log(`Box ${id} has no user information from alarms`)
+                            console.log(`Box ${id} has no user information from alarms`);
                         }
 
-                        console.log(`Final user info for box ${id}: ${userName} (${userId})`)
+                        console.log(`Final user info for box ${id}: ${userName} (${userId}), createdAt: ${userCreatedAt}`)
 
                         return {
                             id,
@@ -180,6 +220,8 @@ export default function InstallationStatus({ statuses }) {
                 // 첫 번째 박스 선택
                 if (mappedBoxes.length > 0) {
                     setSelectedBox(mappedBoxes[0])
+                    console.log("Selected box:", mappedBoxes[0])
+                    console.log("Selected box user info:", mappedBoxes[0].user)
                 }
 
                 // 주소 변환 시작
@@ -193,6 +235,14 @@ export default function InstallationStatus({ statuses }) {
 
         loadBoxes()
     }, [statuses])
+
+    // 선택된 박스가 변경될 때마다 로그 출력
+    useEffect(() => {
+        if (selectedBox) {
+            console.log("Selected box changed:", selectedBox)
+            console.log("Selected box user info:", selectedBox.user)
+        }
+    }, [selectedBox])
 
     // 검색어에 따른 필터링
     useEffect(() => {
@@ -293,12 +343,25 @@ export default function InstallationStatus({ statuses }) {
     }
 
     // 날짜 포맷 함수
+    // 날짜 포맷 함수를 ISO 형식 문자열을 처리할 수 있도록 개선합니다.
     const formatDate = (dateString) => {
-        if (!dateString) return "정보 없음"
+        if (!dateString) {
+            console.log("Date string is empty or null")
+            return "정보 없음"
+        }
 
         try {
+            console.log(`Formatting date: ${dateString}`)
+            // ISO 형식 문자열을 Date 객체로 변환
             const date = new Date(dateString)
-            return date
+
+            // 유효한 날짜인지 확인
+            if (isNaN(date.getTime())) {
+                console.log(`Invalid date: ${dateString}`)
+                return "정보 없음"
+            }
+
+            const formatted = date
                 .toLocaleDateString("ko-KR", {
                     year: "numeric",
                     month: "2-digit",
@@ -306,7 +369,11 @@ export default function InstallationStatus({ statuses }) {
                 })
                 .replace(/\. /g, ".")
                 .replace(/\.$/, "")
+
+            console.log(`Date formatted result: ${formatted}`)
+            return formatted
         } catch (e) {
+            console.error(`Date formatting error for ${dateString}:`, e)
             return "정보 없음"
         }
     }
@@ -316,7 +383,7 @@ export default function InstallationStatus({ statuses }) {
         const statusMap = {
             INSTALL_REQUEST: "설치 요청",
             INSTALL_IN_PROGRESS: "설치 진행중",
-            INSTALL_CONFIRMED: "설치 확인",
+            INSTALL_CONFIRMED: "설치 확정",
             INSTALL_COMPLETED: "설치 완료",
         }
         return statusMap[status] || status
@@ -331,15 +398,6 @@ export default function InstallationStatus({ statuses }) {
                 .then(() => alert("좌표가 클립보드에 복사되었습니다."))
                 .catch((err) => console.error("좌표 복사 실패:", err))
         }
-    }
-
-    // 알람 타입 한글 변환
-    const getAlarmTypeText = (type) => {
-        const typeMap = {
-            INSTALL_REQUEST: "설치 요청",
-            REMOVE_REQUEST: "제거 요청",
-        }
-        return typeMap[type] || type
     }
 
     if (isLoading) {
@@ -369,7 +427,7 @@ export default function InstallationStatus({ statuses }) {
                     <div className="relative mx-2 my-4 p-3">
                         <input
                             type="text"
-                            placeholder="수거자 이름 검색"
+                            placeholder="ID 검색"
                             className="w-full py-2 pl-4 rounded-2xl border border-black/20 text-sm focus:outline-none"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -427,7 +485,13 @@ export default function InstallationStatus({ statuses }) {
                             level={3}
                             className={"border rounded-2xl"}
                         >
-                            <MapMarker position={{ lat: selectedBox.lat, lng: selectedBox.lng }} />
+                            <MapMarker position={{ lat: selectedBox.lat, lng: selectedBox.lng }}
+                                       image={{
+                                           src: GreenIcon,
+                                           size: {
+                                               width: 44,
+                                               height: 50
+                                           }}}/>
                         </Map>
                     </div>
                 </div>
@@ -460,12 +524,6 @@ export default function InstallationStatus({ statuses }) {
                         <div className="flex items-center">
                             <span className="font-bold w-[70px]">알림일자</span>
                             <span className="font-nomal">{selectedBox.alarmDate || selectedBox.createdAt}</span>
-                        </div>
-                        <div className="flex items-center">
-                            <span className="font-bold w-[70px]">알림타입</span>
-                            <span className="font-nomal">
-                {selectedBox.alarmType ? getAlarmTypeText(selectedBox.alarmType) : "정보 없음"}
-              </span>
                         </div>
                     </div>
                 </div>
@@ -510,7 +568,7 @@ function UserListItem({ boxId, name, status, date, isActive, onClick, alarmData,
                 <div>
                     <h3 className="text-base text-[#21262B] font-bold">{userId}</h3>
                     <p className="text-sm text-[#60697E] font-normal text-gray-500 mt-1">{status}</p>
-                    <p className="text-sm text-[#60697E] font-normal text-gray-500">{alarmDate}</p>
+                    <p className="text-sm text-[#60697E] font-normal text-gray-500">{date}</p>
                 </div>
             </div>
             <button
