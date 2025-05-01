@@ -403,7 +403,7 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                     </div>
 
                     {/* 리스트 */}
-                    <div className="overflow-y-auto h-[calc(100%-60px)] ml-4">
+                    <div className="overflow-y-auto h-[calc(100%-60px)] ml-4 custom-scrollbar">
                         {displayedBoxes.map((box) => (
                             <div
                                 key={box.id}
@@ -647,6 +647,27 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                     </button>
                 )}
             </div>
+            {/* 스크롤바 스타일 */}
+            <style jsx>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                }
+
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                    border-radius: 10px;
+                }
+
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: #c1c1c1;
+                    border-radius: 10px;
+                    height: 50px;
+                }
+
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: #a1a1a1;
+                }
+            `}</style>
         </div>
     )
 }
