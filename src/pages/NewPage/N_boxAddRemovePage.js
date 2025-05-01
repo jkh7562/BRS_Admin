@@ -215,7 +215,7 @@ const N_boxAddRemovePage = () => {
             <div className="flex-1 relative">
                 <Topbar />
                 <main className="pt-24 px-24 pb-6 space-y-4">
-                    <p className="font-bold text-[#272F42] text-xl">수거함 설치/제거 요청</p>
+                    <p className="font-bold text-[#272F42] text-xl">수거함 설치 / 제거 요청</p>
                     <div>
                         <div className="relative mb-6">
                             <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
@@ -239,7 +239,7 @@ const N_boxAddRemovePage = () => {
                     <MapWithSidebar filteredBoxes={filteredBoxes} isAddRemovePage={true} onDataChange={loadBoxes}/>
 
                     <div className="pt-14 pb-3">
-                        <p className="font-bold text-[#272F42] text-xl">지역별 설치/제거 상세 현황</p>
+                        <p className="font-bold text-[#272F42] text-xl">지역별 설치 / 제거 상세 현황</p>
 
                         {/* 필터 UI 추가 */}
                         <div className="relative pt-2">

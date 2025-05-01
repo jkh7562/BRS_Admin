@@ -48,7 +48,7 @@ const Sidebar = () => {
         },
         {
             key: "install",
-            label: "수거함 설치/제거",
+            label: "수거함 설치 / 제거",
             icon: installIcon,
             iconOn: installIcon_on,
             className: "w-6 h-7",
@@ -56,7 +56,7 @@ const Sidebar = () => {
         },
         {
             key: "log",
-            label: "수거함 제어/로그",
+            label: "수거함 제어 / 로그",
             icon: logIcon,
             iconOn: logIcon_on,
             className: "w-6 h-5", // 크기 조정

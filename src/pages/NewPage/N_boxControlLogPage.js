@@ -218,7 +218,7 @@ const N_boxControlLogPage = () => {
             <div className="flex-1 relative">
                 <Topbar />
                 <div className="pt-24 px-24 pb-6 space-y-4">
-                    <p className="font-bold text-[#272F42] text-xl">수거함 제어</p>
+                    <p className="font-bold text-[#272F42] text-xl">수거함 현황 / 제어</p>
                     <div className="flex">
                         {/* Collection Box Control Interface - Left and Center sections */}
                         <div className="flex w-[1100px] h-[520px] bg-white rounded-2xl shadow-md overflow-hidden">
