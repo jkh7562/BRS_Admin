@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react"
+"use client"
+
+import { useState, useEffect, useRef } from "react"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import DownIcon from "../../assets/Down.png"
@@ -10,19 +12,7 @@ const N_collectorAssignmentPage = () => {
     const regionData = {
         "광역시/도": [], // 전체 선택 옵션
         서울특별시: ["강남구", "서초구", "송파구", "강동구", "마포구", "용산구", "종로구", "중구", "성동구", "광진구"],
-        부산광역시: [
-            "해운대구",
-            "수영구",
-            "남구",
-            "동구",
-            "서구",
-            "북구",
-            "사상구",
-            "사하구",
-            "사하구",
-            "연제구",
-            "영도구",
-        ],
+        부산광역시: ["해운대구", "수영구", "남구", "동구", "서구", "북구", "사상구", "사하구", "연제구", "영도구"],
         인천광역시: ["중구", "동구", "미추홀구", "연수구", "남동구", "부평구", "계양구", "서구", "강화군", "옹진군"],
         대구광역시: ["중구", "동구", "서구", "남구", "북구", "수성구", "달서구", "달성군"],
         광주광역시: ["동구", "서구", "남구", "북구", "광산구"],
@@ -40,6 +30,27 @@ const N_collectorAssignmentPage = () => {
         제주특별자치도: ["제주시", "서귀포시"],
     }
 
+    // 지역별 중심 좌표 및 확대 레벨
+    const regionCenters = {
+        서울특별시: { lat: 37.5665, lng: 126.978, level: 10 },
+        부산광역시: { lat: 35.1796, lng: 129.0756, level: 10 },
+        인천광역시: { lat: 37.4563, lng: 126.7052, level: 10 },
+        대구광역시: { lat: 35.8714, lng: 128.6014, level: 10 },
+        광주광역시: { lat: 35.1595, lng: 126.8526, level: 10 },
+        대전광역시: { lat: 36.3504, lng: 127.3845, level: 10 },
+        울산광역시: { lat: 35.5384, lng: 129.3114, level: 10 },
+        세종특별자치시: { lat: 36.48, lng: 127.289, level: 10 },
+        경기도: { lat: 37.4138, lng: 127.5183, level: 11 },
+        강원도: { lat: 37.8228, lng: 128.1555, level: 11 },
+        충청북도: { lat: 36.8, lng: 127.7, level: 11 },
+        충청남도: { lat: 36.5184, lng: 126.8, level: 11 },
+        전라북도: { lat: 35.82, lng: 127.108, level: 11 },
+        전라남도: { lat: 34.816, lng: 126.463, level: 11 },
+        경상북도: { lat: 36.4919, lng: 128.8889, level: 11 },
+        경상남도: { lat: 35.4606, lng: 128.2132, level: 11 },
+        제주특별자치도: { lat: 33.4996, lng: 126.5312, level: 10 },
+    }
+
     // 모든 지역 목록
     const allRegions = Object.keys(regionData)
 
@@ -48,6 +59,10 @@ const N_collectorAssignmentPage = () => {
         region: "광역시/도",
         city: "시/군/구",
     })
+
+    // 지도 상태
+    const [mapCenter, setMapCenter] = useState({ lat: 36.8082, lng: 127.009 })
+    const [mapLevel, setMapLevel] = useState(13)
 
     // 도시 옵션 상태
     const [cityOptions, setCityOptions] = useState([])
@@ -64,12 +79,40 @@ const N_collectorAssignmentPage = () => {
         city: null,
     })
 
+    // 행정구역 경계 데이터
+    const [boundaryData, setBoundaryData] = useState(null)
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState(null)
+
+    // 카카오맵 인스턴스 참조
+    const mapRef = useRef(null)
+    const geocoderRef = useRef(null)
+    const boundaryPolygonsRef = useRef([])
+    const boundaryLabelsRef = useRef([])
+
     // 선택된 지역에 따라 도시 옵션 업데이트
     useEffect(() => {
         if (filters.region === "광역시/도") {
             setCityOptions([])
+            // 전체 지도 보기로 리셋
+            setMapCenter({ lat: 36.8082, lng: 127.009 })
+            setMapLevel(13)
+            setBoundaryData(null)
+            clearBoundaries()
         } else {
             setCityOptions(regionData[filters.region] || [])
+
+            // 선택된 지역으로 지도 중심 이동
+            if (regionCenters[filters.region]) {
+                setMapCenter({
+                    lat: regionCenters[filters.region].lat,
+                    lng: regionCenters[filters.region].lng,
+                })
+                setMapLevel(regionCenters[filters.region].level)
+
+                // 지역 경계 데이터 가져오기
+                searchRegionBoundary(filters.region)
+            }
         }
 
         // 지역이 변경되면 도시를 기본값으로 재설정
@@ -78,6 +121,220 @@ const N_collectorAssignmentPage = () => {
             city: "시/군/구",
         }))
     }, [filters.region])
+
+    // 도시 선택 시 지도 업데이트
+    useEffect(() => {
+        if (filters.city !== "시/군/구") {
+            // 선택된 도시로 지도 중심 이동
+            searchCityBoundary(filters.region, filters.city)
+        } else if (filters.region !== "광역시/도") {
+            // 지역 경계 데이터로 복원
+            searchRegionBoundary(filters.region)
+        }
+    }, [filters.city])
+
+    // 카카오맵 API를 사용하여 행정구역 경계 검색
+    const searchRegionBoundary = (region) => {
+        setIsLoading(true)
+        setError(null)
+        clearBoundaries()
+
+        if (!window.kakao || !window.kakao.maps) {
+            setError("카카오맵 API가 로드되지 않았습니다.")
+            setIsLoading(false)
+            return
+        }
+
+        // 카카오맵 객체가 초기화되었는지 확인
+        if (!mapRef.current) {
+            setError("지도가 초기화되지 않았습니다.")
+            setIsLoading(false)
+            return
+        }
+
+        // Geocoder 서비스 초기화
+        if (!geocoderRef.current) {
+            geocoderRef.current = new window.kakao.maps.services.Geocoder()
+        }
+
+        // 행정구역 검색
+        geocoderRef.current.addressSearch(region, (result, status) => {
+            if (status === window.kakao.maps.services.Status.OK) {
+                const bounds = new window.kakao.maps.LatLngBounds()
+
+                // 검색 결과의 좌표로 지도 이동
+                const coords = new window.kakao.maps.LatLng(result[0].y, result[0].x)
+
+                // 행정구역 경계 표시 (카카오맵은 직접적인 경계 API를 제공하지 않음)
+                // 대신 커스텀 오버레이를 사용하여 경계 표시
+                displayCustomBoundary(region, coords, result[0].address, "region")
+
+                bounds.extend(coords)
+                mapRef.current.setBounds(bounds)
+                // 명시적으로 레벨 설정 (bounds 설정 후)
+                mapRef.current.setLevel(regionCenters[region]?.level || 9)
+
+                setIsLoading(false)
+            } else {
+                setError(`'${region}' 지역을 찾을 수 없습니다.`)
+                setIsLoading(false)
+            }
+        })
+    }
+
+    // 시/군/구 경계 검색
+    const searchCityBoundary = (region, city) => {
+        setIsLoading(true)
+        setError(null)
+        clearBoundaries()
+
+        if (!window.kakao || !window.kakao.maps) {
+            setError("카카오맵 API가 로드되지 않았습니다.")
+            setIsLoading(false)
+            return
+        }
+
+        // 카카오맵 객체가 초기화되었는지 확인
+        if (!mapRef.current) {
+            setError("지도가 초기화되지 않았습니다.")
+            setIsLoading(false)
+            return
+        }
+
+        // Geocoder 서비스 초기화
+        if (!geocoderRef.current) {
+            geocoderRef.current = new window.kakao.maps.services.Geocoder()
+        }
+
+        // 전체 주소 생성 (예: '서울특별시 강남구')
+        const fullAddress = `${region} ${city}`
+
+        // 행정구역 검색
+        geocoderRef.current.addressSearch(fullAddress, (result, status) => {
+            if (status === window.kakao.maps.services.Status.OK) {
+                const bounds = new window.kakao.maps.LatLngBounds()
+
+                // 검색 결과의 좌표로 지도 이동
+                const coords = new window.kakao.maps.LatLng(result[0].y, result[0].x)
+
+                // 행정구역 경계 표시 (커스텀 오버레이 사용)
+                displayCustomBoundary(fullAddress, coords, result[0].address, "city")
+
+                bounds.extend(coords)
+                mapRef.current.setCenter(coords) // 먼저 중심점 설정
+
+                // 그 다음 레벨 설정 (더 가까이 확대)
+                setTimeout(() => {
+                    mapRef.current.setLevel(8) // 시군구 수준에서는 더 가까이 확대 (레벨 5로 변경)
+                }, 100) // 약간의 지연을 두어 중심점 설정 후 레벨 적용
+
+                setIsLoading(false)
+            } else {
+                setError(`'${fullAddress}' 지역을 찾을 수 없습니다.`)
+                setIsLoading(false)
+            }
+        })
+    }
+
+    // 커스텀 경계 표시 함수
+    const displayCustomBoundary = (address, centerCoords, addressInfo, type) => {
+        if (!mapRef.current) return
+
+        const map = mapRef.current
+
+        // 지도 레벨에 따라 반경 조정
+        let radius = 2000 // 기본 반경 (미터)
+        let strokeColor = "#4F6CFF" // 기본 경계선 색상
+        let fillColor = "#4F6CFF" // 기본 채우기 색상
+
+        if (type === "region") {
+            // 광역시/도 단위일 때
+            if (address.includes("특별시") || address.includes("광역시")) {
+                radius = 20000 // 광역시/특별시는 더 큰 반경
+            } else if (address.includes("도")) {
+                radius = 50000 // 도 단위는 큰 반경
+            } else if (address.includes("세종")) {
+                radius = 15000 // 세종특별자치시
+            }
+        } else if (type === "city") {
+            // 시/군/구 단위일 때 (훨씬 작은 반경 사용)
+            strokeColor = "#4F6CFF" // 시/군/구는 다른 색상 사용
+            fillColor = "#4F6CFF"
+
+            if (address.includes("구")) {
+                radius = 5000 // 구 단위 (더 작게 조정)
+            } else if (address.includes("군")) {
+                radius = 5000 // 군 단위 (더 작게 조정)
+            } else if (address.includes("시") && !address.includes("특별시") && !address.includes("광역시")) {
+                radius = 7000 // 일반 시 단위 (더 작게 조정)
+            }
+        }
+
+        // 원형 경계 생성
+        const circle = new window.kakao.maps.Circle({
+            center: centerCoords,
+            radius: radius,
+            strokeWeight: 3,
+            strokeColor: strokeColor,
+            strokeOpacity: 0.8,
+            strokeStyle: "solid",
+            fillColor: fillColor,
+            fillOpacity: 0.2,
+        })
+
+        // 지도에 원 표시
+        circle.setMap(map)
+        boundaryPolygonsRef.current.push(circle)
+
+        // 행정구역 이름 표시 (커스텀 오버레이)
+        const content = document.createElement("div")
+        content.className = "region-label"
+        content.innerHTML = `
+    <div style="padding: 5px 10px; background: white; border-radius: 4px; font-size: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      ${address.split(" ").pop()}
+    </div>
+  `
+
+        const customOverlay = new window.kakao.maps.CustomOverlay({
+            position: centerCoords,
+            content: content,
+            yAnchor: 0.5,
+        })
+
+        // 지도에 커스텀 오버레이 표시
+        customOverlay.setMap(map)
+        boundaryLabelsRef.current.push(customOverlay)
+
+        // 행정구역 정보 저장
+        setBoundaryData({
+            name: address,
+            center: { lat: centerCoords.getLat(), lng: centerCoords.getLng() },
+            addressInfo: addressInfo,
+            type: type,
+        })
+    }
+
+    // 경계 제거 함수
+    const clearBoundaries = () => {
+        // 폴리곤 제거
+        boundaryPolygonsRef.current.forEach((polygon) => {
+            polygon.setMap(null)
+        })
+        boundaryPolygonsRef.current = []
+
+        // 라벨 제거
+        boundaryLabelsRef.current.forEach((label) => {
+            label.setMap(null)
+        })
+        boundaryLabelsRef.current = []
+    }
+
+    // 컴포넌트 언마운트 시 경계 제거
+    useEffect(() => {
+        return () => {
+            clearBoundaries()
+        }
+    }, [])
 
     // 필터 변경 핸들러
     const handleFilterChange = (filterType, value) => {
@@ -165,12 +422,11 @@ const N_collectorAssignmentPage = () => {
                             <div className="relative dropdown-container">
                                 <button className="flex items-center gap-2 text-[#21262B]" onClick={() => toggleDropdown("region")}>
                                     {filters.region}
-                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
+                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
                                 </button>
                                 {/* 지역 드롭다운 메뉴 */}
                                 {openDropdown.region && (
-                                    <div
-                                        className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[200px] max-h-[200px] overflow-y-auto shadow-sm">
+                                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[200px] max-h-[200px] overflow-y-auto shadow-sm">
                                         {allRegions.map((region) => (
                                             <div
                                                 key={region}
@@ -195,12 +451,11 @@ const N_collectorAssignmentPage = () => {
                                     disabled={isCityDisabled}
                                 >
                                     {filters.city}
-                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
+                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
                                 </button>
                                 {/* 도시 드롭다운 메뉴 */}
                                 {openDropdown.city && !isCityDisabled && (
-                                    <div
-                                        className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[120px] max-h-[240px] overflow-y-auto shadow-sm">
+                                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[120px] max-h-[240px] overflow-y-auto shadow-sm">
                                         <div
                                             className={`px-4 py-2 cursor-pointer font-normal ${
                                                 hoveredItem.city === "시/군/구" ? "bg-[#F5F5F5] rounded-lg" : ""
@@ -228,14 +483,62 @@ const N_collectorAssignmentPage = () => {
                                 )}
                             </div>
                         </div>
-                        <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
+                        <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
                     </div>
                     <div className="h-1"></div>
 
                     <div className="flex bg-white rounded-2xl shadow-md overflow-hidden h-[570px] relative">
-                        <Map center={{lat: 36.8082, lng: 127.009}} style={{width: "100%", height: "100%"}} level={10}/>
+                        <Map
+                            center={mapCenter}
+                            style={{ width: "100%", height: "100%" }}
+                            level={mapLevel}
+                            onCreate={(map) => {
+                                mapRef.current = map
+                            }}
+                        />
+
+                        {/* 로딩 인디케이터 */}
+                        {isLoading && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
+                                <div className="bg-white p-4 rounded-lg shadow-lg">
+                                    <p className="text-gray-700">경계 데이터를 불러오는 중...</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 오류 메시지 */}
+                        {error && (
+                            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white p-3 rounded-lg shadow-md border-l-4 border-red-500">
+                                <p className="text-red-600 text-sm">{error}</p>
+                            </div>
+                        )}
+
+                        {/* 선택된 지역/도시 정보 표시 */}
+                        {boundaryData && (
+                            <div className="absolute top-4 right-4 bg-white p-3 rounded-lg shadow-md">
+                                <p className="font-bold text-sm text-[#21262B]">
+                                    {filters.region !== "광역시/도" ? filters.region : ""}
+                                    {filters.city !== "시/군/구" ? ` > ${filters.city}` : ""}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    {boundaryData.type === "region" ? "광역시/도 단위" : "시/군/구 단위"}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* 범례 표시 */}
+                        <div className="absolute bottom-4 right-4 bg-white p-3 rounded-lg shadow-md">
+                            <div className="flex items-center mb-2">
+                                <div className="w-4 h-4 rounded-full bg-[#4F6CFF] opacity-60 mr-2"></div>
+                                <p className="text-xs text-gray-700">광역시/도</p>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-4 h-4 rounded-full bg-[#FF6B6B] opacity-60 mr-2"></div>
+                                <p className="text-xs text-gray-700">시/군/구</p>
+                            </div>
+                        </div>
                     </div>
-                    <CollectorAssignment/>
+                    <CollectorAssignment />
                     <div className="pb-32" />
                 </main>
             </div>
