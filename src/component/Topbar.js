@@ -458,9 +458,9 @@ const Topbar = () => {
                             <div className="profile-dropdown absolute top-full right-0 mt-2 w-80 bg-white rounded-md shadow-lg z-50 overflow-hidden">
                                 <div className="p-4 flex items-center gap-3">
                                     <img
-                                        src="https://via.placeholder.com/32"
+                                        src={UserIcon}
                                         alt="profile"
-                                        className="w-14 h-14 rounded-full border border-black"
+                                        className="w-14 h-14 rounded-full"
                                     />
                                     <div>
                                         <p className="text-xl font-medium text-[#21262B]">{userInfo.name}</p>
