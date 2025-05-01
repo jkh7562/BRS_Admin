@@ -20,6 +20,91 @@ const N_boxAddRemovePage = () => {
     const [processedBoxes, setProcessedBoxes] = useState([])
     const [isDataLoading, setIsDataLoading] = useState(true)
 
+    // 지역 및 도시 데이터
+    const regionData = {
+        "광역시/도": [], // 전체 선택 옵션
+        서울특별시: ["강남구", "서초구", "송파구", "강동구", "마포구", "용산구", "종로구", "중구", "성동구", "광진구"],
+        부산광역시: [
+            "해운대구",
+            "수영구",
+            "남구",
+            "동구",
+            "서구",
+            "북구",
+            "사상구",
+            "사하구",
+            "사하구",
+            "연제구",
+            "영도구",
+        ],
+        인천광역시: ["중구", "동구", "미추홀구", "연수구", "남동구", "부평구", "계양구", "서구", "강화군", "옹진군"],
+        대구광역시: ["중구", "동구", "서구", "남구", "북구", "수성구", "달서구", "달성군"],
+        광주광역시: ["동구", "서구", "남구", "북구", "광산구"],
+        대전광역시: ["동구", "중구", "서구", "유성구", "대덕구"],
+        울산광역시: ["중구", "남구", "동구", "북구", "울주군"],
+        세종특별자치시: ["세종시"],
+        경기도: ["수원시", "성남시", "고양시", "용인시", "부천시", "안산시", "안양시", "남양주시", "화성시", "평택시"],
+        강원도: ["춘천시", "원주시", "강릉시", "동해시", "태백시", "속초시", "삼척시", "홍천군", "횡성군", "영월군"],
+        충청북도: ["청주시", "충주시", "제천시", "보은군", "옥천군", "영동군", "진천군", "괴산군", "음성군", "단양군"],
+        충청남도: ["천안시", "공주시", "보령시", "아산시", "서산시", "논산시", "계룡시", "당진시", "금산군", "부여군"],
+        전라북도: ["전주시", "군산시", "익산시", "정읍시", "남원시", "김제시", "완주군", "진안군", "무주군", "장수군"],
+        전라남도: ["목포시", "여수시", "순천시", "나주시", "광양시", "담양군", "곡성군", "구례군", "고흥군", "보성군"],
+        경상북도: ["포항시", "경주시", "김천시", "안동시", "구미시", "영주시", "영천시", "상주시", "문경시", "경산시"],
+        경상남도: ["창원시", "진주시", "통영시", "사천시", "김해시", "밀양시", "거제시", "양산시", "의령군", "함안군"],
+        제주특별자치도: ["제주시", "서귀포시"],
+    }
+
+    // 지역명 정규화를 위한 매핑 테이블
+    const regionNormalizationMap = {
+        // 특별시/광역시
+        서울: "서울특별시",
+        부산: "부산광역시",
+        인천: "인천광역시",
+        대구: "대구광역시",
+        광주: "광주광역시",
+        대전: "대전광역시",
+        울산: "울산광역시",
+        세종: "세종특별자치시",
+        // 도
+        경기: "경기도",
+        강원: "강원도",
+        충북: "충청북도",
+        충남: "충청남도",
+        전북: "전라북도",
+        전남: "전라남도",
+        경북: "경상북도",
+        경남: "경상남도",
+        제주: "제주특별자치도",
+        // 특별자치도
+        제주도: "제주특별자치도",
+        세종시: "세종특별자치시",
+    }
+
+    // 지역명 정규화 함수
+    const normalizeRegionName = (regionName) => {
+        if (!regionName) return ""
+
+        // 정확히 일치하는 경우 그대로 반환
+        if (Object.keys(regionData).includes(regionName)) {
+            return regionName
+        }
+
+        // 매핑 테이블에서 찾기
+        if (regionNormalizationMap[regionName]) {
+            return regionNormalizationMap[regionName]
+        }
+
+        // 부분 일치 검색
+        for (const standardRegion of Object.keys(regionData)) {
+            if (regionName.includes(standardRegion) || standardRegion.includes(regionName)) {
+                return standardRegion
+            }
+        }
+
+        console.warn(`정규화할 수 없는 지역명: ${regionName}`)
+        return regionName
+    }
+
     // 모든 데이터 로드 (박스, 알람, 사용자)
     const loadAllData = async () => {
         setIsDataLoading(true)
@@ -210,21 +295,32 @@ const N_boxAddRemovePage = () => {
 
     // 카카오 API 로드 및 주소 변환 함수
     const loadKakaoAPI = (boxesData) => {
+        console.log("카카오 API 로드 시도")
+
         // 이미 카카오 API가 로드되어 있는 경우
         if (window.kakao && window.kakao.maps) {
+            console.log("카카오 API가 이미 로드되어 있습니다.")
             convertAddresses(boxesData)
             return
         }
 
+        console.log("카카오 API 스크립트 로드 중...")
         // 카카오 API 스크립트 로드
         const script = document.createElement("script")
         script.async = true
-        script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.REACT_APP_KAKAO_API_KEY || "발급받은_API_키_입력"}&libraries=services&autoload=false`
+        const apiKey = process.env.REACT_APP_KAKAO_API_KEY || "발급받은_API_키_입력"
+        script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&libraries=services&autoload=false`
 
         script.onload = () => {
+            console.log("카카오 API 스크립트 로드 완료, 초기화 중...")
             window.kakao.maps.load(() => {
+                console.log("카카오 맵 API 초기화 완료")
                 convertAddresses(boxesData)
             })
+        }
+
+        script.onerror = (error) => {
+            console.error("카카오 API 스크립트 로드 실패:", error)
         }
 
         document.head.appendChild(script)
@@ -245,8 +341,14 @@ const N_boxAddRemovePage = () => {
                     const addressInfo = result[0]
 
                     // 주소 정보 추출
-                    const region = addressInfo.address ? addressInfo.address.region_1depth_name || "" : ""
-                    const city = addressInfo.address ? addressInfo.address.region_2depth_name || "" : ""
+                    const rawRegion = addressInfo.address ? addressInfo.address.region_1depth_name || "" : ""
+                    const rawCity = addressInfo.address ? addressInfo.address.region_2depth_name || "" : ""
+
+                    // 지역명 정규화
+                    const region = normalizeRegionName(rawRegion)
+                    const city = rawCity
+
+                    console.log(`주소 변환: ${rawRegion} -> ${region}, ${rawCity} -> ${city}`)
 
                     resolve({ region, city })
                 } else {
@@ -258,8 +360,12 @@ const N_boxAddRemovePage = () => {
 
     // 모든 박스의 주소 변환 (배치 처리)
     const convertAddresses = async (boxesData) => {
-        if (!window.kakao || !window.kakao.maps || boxesData.length === 0) return
+        if (!window.kakao || !window.kakao.maps || boxesData.length === 0) {
+            console.warn("카카오 맵 API가 로드되지 않았거나 박스 데이터가 비어 있습니다.")
+            return
+        }
 
+        console.log("주소 변환 시작:", boxesData.length, "개의 박스")
         setIsAddressLoading(true)
 
         try {
@@ -269,11 +375,15 @@ const N_boxAddRemovePage = () => {
 
             for (let i = 0; i < boxesData.length; i += batchSize) {
                 const batch = boxesData.slice(i, i + batchSize)
+                console.log(`배치 ${i / batchSize + 1} 처리 중: ${batch.length}개 항목`)
+
                 const promises = batch.map(async (box) => {
                     if (box.lat && box.lng) {
                         const address = await convertCoordsToAddress(box.lng, box.lat)
+                        console.log(`박스 ${box.id} 주소 변환 결과:`, address)
                         return { id: box.id, address }
                     }
+                    console.warn(`박스 ${box.id}에 좌표 정보가 없습니다.`)
                     return { id: box.id, address: { region: "", city: "" } }
                 })
 
@@ -287,11 +397,24 @@ const N_boxAddRemovePage = () => {
 
                 // 각 배치 후 상태 업데이트
                 setAddressData(addressMap)
+                console.log("주소 데이터 업데이트:", Object.keys(addressMap).length, "개의 주소")
 
                 // 너무 빠른 요청으로 인한 API 제한 방지를 위한 지연
                 if (i + batchSize < boxesData.length) {
+                    console.log("API 제한 방지를 위한 지연 중...")
                     await new Promise((resolve) => setTimeout(resolve, 300))
                 }
+            }
+
+            console.log("주소 변환 완료. 총", Object.keys(addressMap).length, "개의 주소 데이터")
+
+            // 주소 데이터 디버깅
+            console.log("주소 데이터 샘플:")
+            const addressEntries = Object.entries(addressMap)
+            if (addressEntries.length > 0) {
+                addressEntries.slice(0, 5).forEach(([id, address]) => {
+                    console.log(`ID: ${id}, 지역: ${address.region}, 도시: ${address.city}`)
+                })
             }
         } catch (error) {
             console.error("주소 변환 중 오류 발생:", error)
@@ -303,40 +426,6 @@ const N_boxAddRemovePage = () => {
     useEffect(() => {
         loadAllData()
     }, [])
-
-    // 지역 및 도시 데이터
-    const regionData = {
-        "광역시/도": [], // 전체 선택 옵션
-        서울특별시: ["강남구", "서초구", "송파구", "강동구", "마포구", "용산구", "종로구", "중구", "성동구", "광진구"],
-        부산광역시: [
-            "해운대구",
-            "수영구",
-            "남구",
-            "동구",
-            "서구",
-            "북구",
-            "사상구",
-            "사하구",
-            "사하구",
-            "연제구",
-            "영도구",
-        ],
-        인천광역시: ["중구", "동구", "미추홀구", "연수구", "남동구", "부평구", "계양구", "서구", "강화군", "옹진군"],
-        대구광역시: ["중구", "동구", "서구", "남구", "북구", "수성구", "달서구", "달성군"],
-        광주광역시: ["동구", "서구", "남구", "북구", "광산구"],
-        대전광역시: ["동구", "중구", "서구", "유성구", "대덕구"],
-        울산광역시: ["중구", "남구", "동구", "북구", "울주군"],
-        세종특별자치시: ["세종시"],
-        경기도: ["수원시", "성남시", "고양시", "용인시", "부천시", "안산시", "안양시", "남양주시", "화성시", "평택시"],
-        강원도: ["춘천시", "원주시", "강릉시", "동해시", "태백시", "속초시", "삼척시", "홍천군", "횡성군", "영월군"],
-        충청북도: ["청주시", "충주시", "제천시", "보은군", "옥천군", "영동군", "진천군", "괴산군", "음성군", "단양군"],
-        충청남도: ["천안시", "공주시", "보령시", "아산시", "서산시", "논산시", "계룡시", "당진시", "금산군", "부여군"],
-        전라북도: ["전주시", "군산시", "익산시", "정읍시", "남원시", "김제시", "완주군", "진안군", "무주군", "장수군"],
-        전라남도: ["목포시", "여수시", "순천시", "나주시", "광양시", "담양군", "곡성군", "구례군", "고흥군", "보성군"],
-        경상북도: ["포항시", "경주시", "김천시", "안동시", "구미시", "영주시", "영천시", "상주시", "문경시", "경산시"],
-        경상남도: ["창원시", "진주시", "통영시", "사천시", "김해시", "밀양시", "거제시", "양산시", "의령군", "함안군"],
-        제주특별자치도: ["제주시", "서귀포시"],
-    }
 
     // 모든 지역 목록
     const allRegions = Object.keys(regionData)
@@ -472,29 +561,58 @@ const N_boxAddRemovePage = () => {
 
     // 지역별 필터링된 박스 데이터 계산
     const getRegionFilteredBoxes = () => {
+        console.log("필터링 실행:", filters.type, filters.region, filters.city)
+        console.log("현재 주소 데이터:", addressData)
+        console.log("전체 박스 데이터:", boxes)
+
         // 먼저 타입에 따라 필터링
-        let filtered =
-            filters.type === "설치"
-                ? boxes.filter((box) => installStatuses.includes(box?.installStatus))
-                : boxes.filter(
-                    (box) =>
-                        removeStatuses.includes(box?.removeStatus) ||
-                        (box?.removeInfo?.alarmType && box.removeInfo.alarmType.startsWith("REMOVE")),
-                )
+        let filtered = []
+
+        if (filters.type === "설치") {
+            filtered = boxes.filter((box) => installStatuses.includes(box?.installStatus))
+            console.log("설치 상태 필터링 결과:", filtered.length, filtered)
+        } else {
+            filtered = boxes.filter(
+                (box) =>
+                    removeStatuses.includes(box?.removeStatus) ||
+                    (box?.removeInfo?.alarmType && box.removeInfo.alarmType.startsWith("REMOVE")),
+            )
+            console.log("제거 상태 필터링 결과:", filtered.length, filtered)
+        }
 
         // 지역 필터링
         if (filters.region !== "광역시/도") {
+            const beforeCount = filtered.length
+
+            // 주소 데이터가 있는지 확인
+            if (Object.keys(addressData).length === 0) {
+                console.warn("주소 데이터가 비어 있습니다. 지역 필터링을 건너뜁니다.")
+                return filtered
+            }
+
             filtered = filtered.filter((box) => {
                 const boxAddress = addressData[box.id]
-                return boxAddress && boxAddress.region === filters.region
+                if (!boxAddress) {
+                    console.warn(`박스 ID ${box.id}에 대한 주소 정보가 없습니다.`)
+                    return false
+                }
+                const isMatch = boxAddress.region === filters.region
+                console.log(`박스 ${box.id} 지역 필터링: ${boxAddress.region} === ${filters.region} => ${isMatch}`)
+                return isMatch
             })
+            console.log(`지역(${filters.region}) 필터링: ${beforeCount} -> ${filtered.length}`)
 
             // 도시 필터링
             if (filters.city !== "시/군/구") {
+                const beforeCityCount = filtered.length
                 filtered = filtered.filter((box) => {
                     const boxAddress = addressData[box.id]
-                    return boxAddress && boxAddress.city === filters.city
+                    if (!boxAddress) return false
+                    const isMatch = boxAddress.city === filters.city
+                    console.log(`박스 ${box.id} 도시 필터링: ${boxAddress.city} === ${filters.city} => ${isMatch}`)
+                    return isMatch
                 })
+                console.log(`도시(${filters.city}) 필터링: ${beforeCityCount} -> ${filtered.length}`)
             }
         }
 
@@ -503,7 +621,9 @@ const N_boxAddRemovePage = () => {
 
     // 필터링된 박스 데이터 업데이트
     useEffect(() => {
+        console.log("필터 또는 데이터 변경 감지됨")
         const filtered = getRegionFilteredBoxes()
+        console.log("필터링 결과:", filtered.length, "개의 박스")
         setProcessedBoxes(filtered)
     }, [filters, addressData, boxes, activeTab])
 
@@ -571,14 +691,18 @@ const N_boxAddRemovePage = () => {
                     />
 
                     <div className="pt-14 pb-3">
-                        <p className="font-bold text-[#272F42] text-xl">지역별 설치 / 제거 상세 현황</p>
+                        <div className="flex justify-between items-center">
+                            <p className="font-bold text-[#272F42] text-xl">지역별 설치 / 제거 상세 현황</p>
+                        </div>
 
                         {/* 필터 UI 추가 */}
                         <div className="relative pt-2">
                             <div className="flex flex-wrap gap-7 mt-2 pb-1 font-bold relative z-10">
                                 <div className="relative dropdown-container">
                                     <button
-                                        className="flex items-center gap-2 text-base text-[#21262B]"
+                                        className={`flex items-center gap-2 text-base ${
+                                            filters.type === "설치" ? "text-[#21262B] font-bold" : "text-[#21262B] font-bold"
+                                        }`}
                                         onClick={() => toggleDropdown("type")}
                                     >
                                         {filters.type}
@@ -619,7 +743,12 @@ const N_boxAddRemovePage = () => {
                                 </div>
 
                                 <div className="relative dropdown-container">
-                                    <button className="flex items-center gap-2 text-[#21262B]" onClick={() => toggleDropdown("region")}>
+                                    <button
+                                        className={`flex items-center gap-2 ${
+                                            filters.region !== "광역시/도" ? "text-[#21262B] font-bold" : "text-[#21262B] font-bold"
+                                        }`}
+                                        onClick={() => toggleDropdown("region")}
+                                    >
                                         {filters.region}
                                         <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
                                     </button>
@@ -645,7 +774,9 @@ const N_boxAddRemovePage = () => {
 
                                 <div className="relative dropdown-container">
                                     <button
-                                        className={`flex items-center gap-2 text-[#21262B] ${isCityDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                                        className={`flex items-center gap-2 ${
+                                            filters.city !== "시/군/구" ? "text-[#21262B] font-bold" : "text-[#21262B] font-bold"
+                                        } ${isCityDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
                                         onClick={() => toggleDropdown("city")}
                                         disabled={isCityDisabled}
                                     >
@@ -690,6 +821,26 @@ const N_boxAddRemovePage = () => {
                     {isDataLoading || isAddressLoading ? (
                         <div className="flex justify-center items-center h-[200px]">
                             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+                        </div>
+                    ) : processedBoxes.length === 0 ? (
+                        <div className="flex justify-center items-center h-[200px] bg-white rounded-2xl shadow-md">
+                            <div className="text-center">
+                                <p className="text-xl font-bold text-gray-700">필터링 결과가 없습니다</p>
+                                <p className="text-gray-500 mt-2">선택한 지역에 해당하는 수거함이 없습니다.</p>
+                                <button
+                                    className="mt-4 px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                                    onClick={() =>
+                                        setFilters({
+                                            type: filters.type,
+                                            statuses: filters.statuses,
+                                            region: "광역시/도",
+                                            city: "시/군/구",
+                                        })
+                                    }
+                                >
+                                    필터 초기화
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         <>

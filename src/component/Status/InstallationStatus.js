@@ -74,7 +74,17 @@ export default function InstallationStatus({ statuses, addressData = {}, process
             <div className="flex h-[525px] bg-white rounded-2xl shadow-md overflow-hidden justify-center items-center">
                 <div className="text-center">
                     <p className="text-xl font-bold text-gray-700">데이터가 없습니다</p>
-                    <p className="text-gray-500 mt-2">해당 상태의 수거함이 없습니다.</p>
+                    <p className="text-gray-500 mt-2">
+                        {searchTerm ? "검색 결과가 없습니다." : "해당 상태의 수거함이 없습니다."}
+                    </p>
+                    {searchTerm && (
+                        <button
+                            className="mt-4 px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                            onClick={() => setSearchTerm("")}
+                        >
+                            검색 초기화
+                        </button>
+                    )}
                 </div>
             </div>
         )
