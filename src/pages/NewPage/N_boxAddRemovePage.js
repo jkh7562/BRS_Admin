@@ -13,32 +13,130 @@ const N_boxAddRemovePage = () => {
     const [activeTab, setActiveTab] = useState("전체")
     const tabs = ["전체", "설치 상태", "제거 상태"]
     const [boxes, setBoxes] = useState([])
+    const [addressData, setAddressData] = useState({})
+    const [isAddressLoading, setIsAddressLoading] = useState(false)
 
     const loadBoxes = async () => {
         try {
-            const data = await findAllBox();
+            const data = await findAllBox()
             const mappedBoxes = data.map((entry) => {
-                const { id, name, location, volume1, volume2, volume3, fireStatus1, fireStatus2, fireStatus3, installStatus } = entry.box;
+                const { id, name, location, volume1, volume2, volume3, fireStatus1, fireStatus2, fireStatus3, installStatus } =
+                    entry.box
 
                 // 위치 파싱 (띄어쓰기 유무 상관없이 처리)
-                let lng = 0;
-                let lat = 0;
+                let lng = 0
+                let lat = 0
                 if (location) {
-                    const coordsMatch = location.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/);
+                    const coordsMatch = location.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/)
                     if (coordsMatch) {
-                        lng = parseFloat(coordsMatch[1]);
-                        lat = parseFloat(coordsMatch[2]);
+                        lng = Number.parseFloat(coordsMatch[1])
+                        lat = Number.parseFloat(coordsMatch[2])
                     }
                 }
 
-                return { id, name, lat, lng, installStatus };
-            });
+                return { id, name, lat, lng, installStatus }
+            })
 
-            setBoxes(mappedBoxes);
+            setBoxes(mappedBoxes)
+
+            // 박스 데이터가 로드된 후 카카오 API 로드
+            loadKakaoAPI(mappedBoxes)
         } catch (error) {
-            console.error("수거함 정보 로딩 실패:", error);
+            console.error("수거함 정보 로딩 실패:", error)
         }
-    };
+    }
+
+    // 카카오 API 로드 및 주소 변환 함수
+    const loadKakaoAPI = (boxesData) => {
+        // 이미 카카오 API가 로드되어 있는 경우
+        if (window.kakao && window.kakao.maps) {
+            convertAddresses(boxesData)
+            return
+        }
+
+        // 카카오 API 스크립트 로드
+        const script = document.createElement("script")
+        script.async = true
+        script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.REACT_APP_KAKAO_API_KEY || "발급받은_API_키_입력"}&libraries=services&autoload=false`
+
+        script.onload = () => {
+            window.kakao.maps.load(() => {
+                convertAddresses(boxesData)
+            })
+        }
+
+        document.head.appendChild(script)
+    }
+
+    // 좌표를 주소로 변환하는 함수
+    const convertCoordsToAddress = (lng, lat) => {
+        return new Promise((resolve) => {
+            if (!window.kakao || !window.kakao.maps || !window.kakao.maps.services) {
+                resolve({ region: "", city: "" })
+                return
+            }
+
+            const geocoder = new window.kakao.maps.services.Geocoder()
+
+            geocoder.coord2Address(lng, lat, (result, status) => {
+                if (status === window.kakao.maps.services.Status.OK && result[0]) {
+                    const addressInfo = result[0]
+
+                    // 주소 정보 추출
+                    const region = addressInfo.address ? addressInfo.address.region_1depth_name || "" : ""
+                    const city = addressInfo.address ? addressInfo.address.region_2depth_name || "" : ""
+
+                    resolve({ region, city })
+                } else {
+                    resolve({ region: "", city: "" })
+                }
+            })
+        })
+    }
+
+    // 모든 박스의 주소 변환 (배치 처리)
+    const convertAddresses = async (boxesData) => {
+        if (!window.kakao || !window.kakao.maps || boxesData.length === 0) return
+
+        setIsAddressLoading(true)
+
+        try {
+            // 주소 변환 요청을 10개씩 배치 처리
+            const batchSize = 10
+            const addressMap = { ...addressData }
+
+            for (let i = 0; i < boxesData.length; i += batchSize) {
+                const batch = boxesData.slice(i, i + batchSize)
+                const promises = batch.map(async (box) => {
+                    if (box.lat && box.lng) {
+                        const address = await convertCoordsToAddress(box.lng, box.lat)
+                        return { id: box.id, address }
+                    }
+                    return { id: box.id, address: { region: "", city: "" } }
+                })
+
+                const results = await Promise.all(promises)
+
+                results.forEach((result) => {
+                    if (result) {
+                        addressMap[result.id] = result.address
+                    }
+                })
+
+                // 각 배치 후 상태 업데이트
+                setAddressData(addressMap)
+
+                // 너무 빠른 요청으로 인한 API 제한 방지를 위한 지연
+                if (i + batchSize < boxesData.length) {
+                    await new Promise((resolve) => setTimeout(resolve, 300))
+                }
+            }
+        } catch (error) {
+            console.error("주소 변환 중 오류 발생:", error)
+        } finally {
+            setIsAddressLoading(false)
+        }
+    }
 
     useEffect(() => {
         loadBoxes()
@@ -85,7 +183,7 @@ const N_boxAddRemovePage = () => {
     const installStatuses = ["INSTALL_REQUEST", "INSTALL_IN_PROGRESS", "INSTALL_CONFIRMED", "INSTALL_COMPLETED"]
     const removeStatuses = ["REMOVE_REQUEST", "REMOVE_IN_PROGRESS", "REMOVE_CONFIRMED", "REMOVE_COMPLETED"]
 
-    // 선택된 탭에 따라 데이터 필터링
+    // 선택된 탭에 따라 데이터 필터링 - 원본 코드 유지
     const filteredBoxes =
         activeTab === "전체"
             ? boxes
@@ -209,6 +307,33 @@ const N_boxAddRemovePage = () => {
         }))
     }
 
+    // 지역별 필터링된 박스 데이터 계산
+    const getRegionFilteredBoxes = () => {
+        // 먼저 타입에 따라 필터링
+        let filtered =
+            filters.type === "설치"
+                ? boxes.filter((box) => installStatuses.includes(box?.installStatus))
+                : boxes.filter((box) => removeStatuses.includes(box?.installStatus))
+
+        // 지역 필터링
+        if (filters.region !== "광역시/도") {
+            filtered = filtered.filter((box) => {
+                const boxAddress = addressData[box.id]
+                return boxAddress && boxAddress.region === filters.region
+            })
+
+            // 도시 필터링
+            if (filters.city !== "시/군/구") {
+                filtered = filtered.filter((box) => {
+                    const boxAddress = addressData[box.id]
+                    return boxAddress && boxAddress.city === filters.city
+                })
+            }
+        }
+
+        return filtered
+    }
+
     return (
         <div className="flex min-h-screen w-full bg-[#F3F3F5]">
             <Sidebar />
@@ -235,8 +360,8 @@ const N_boxAddRemovePage = () => {
                         </div>
                     </div>
 
-                    {/* filteredBoxes 데이터를 전달 */}
-                    <MapWithSidebar filteredBoxes={filteredBoxes} isAddRemovePage={true} onDataChange={loadBoxes}/>
+                    {/* 원본 코드 그대로 유지 - filteredBoxes 데이터를 전달 */}
+                    <MapWithSidebar filteredBoxes={filteredBoxes} isAddRemovePage={true} onDataChange={loadBoxes} />
 
                     <div className="pt-14 pb-3">
                         <p className="font-bold text-[#272F42] text-xl">지역별 설치 / 제거 상세 현황</p>
@@ -355,10 +480,18 @@ const N_boxAddRemovePage = () => {
                     </div>
 
                     {/* 선택된 타입에 따라 컴포넌트 조건부 렌더링 */}
-                    {filters.type === "설치" ? (
-                        <InstallationStatus statuses={filters.statuses} />
+                    {isAddressLoading ? (
+                        <div className="flex justify-center items-center h-[200px]">
+                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+                        </div>
                     ) : (
-                        <RemoveStatus statuses={filters.statuses} />
+                        <>
+                            {filters.type === "설치" ? (
+                                <InstallationStatus statuses={filters.statuses} />
+                            ) : (
+                                <RemoveStatus statuses={filters.statuses} />
+                            )}
+                        </>
                     )}
 
                     <div className="pb-32" />
