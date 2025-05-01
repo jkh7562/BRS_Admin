@@ -69,22 +69,12 @@ export default function InstallationStatus({ statuses, addressData = {}, process
         )
     }
 
-    if (displayedBoxes.length === 0) {
+    if (displayedBoxes.length === 0 && !searchTerm) {
         return (
             <div className="flex h-[525px] bg-white rounded-2xl shadow-md overflow-hidden justify-center items-center">
                 <div className="text-center">
                     <p className="text-xl font-bold text-gray-700">데이터가 없습니다</p>
-                    <p className="text-gray-500 mt-2">
-                        {searchTerm ? "검색 결과가 없습니다." : "해당 상태의 수거함이 없습니다."}
-                    </p>
-                    {searchTerm && (
-                        <button
-                            className="mt-4 px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
-                            onClick={() => setSearchTerm("")}
-                        >
-                            검색 초기화
-                        </button>
-                    )}
+                    <p className="text-gray-500 mt-2">해당 상태의 수거함이 없습니다.</p>
                 </div>
             </div>
         )
@@ -111,21 +101,17 @@ export default function InstallationStatus({ statuses, addressData = {}, process
 
                 {/* User list with scrollbar */}
                 <div className="overflow-auto flex-1 custom-scrollbar ml-4">
-                    {displayedBoxes.length === 0 ? (
-                        <div className="p-4 text-center text-gray-500">검색 결과가 없습니다</div>
-                    ) : (
-                        displayedBoxes.map((box) => (
-                            <UserListItem
-                                key={box.id}
-                                boxId={box.id}
-                                name={box.user?.name || "미지정"}
-                                status={getStatusText(box.installStatus)}
-                                date={box.createdAt || "정보 없음"}
-                                isActive={selectedBox && selectedBox.id === box.id}
-                                onClick={() => setSelectedBox(box)}
-                            />
-                        ))
-                    )}
+                    {displayedBoxes.map((box) => (
+                        <UserListItem
+                            key={box.id}
+                            boxId={box.id}
+                            name={box.user?.name || "미지정"}
+                            status={getStatusText(box.installStatus)}
+                            date={box.createdAt || "정보 없음"}
+                            isActive={selectedBox && selectedBox.id === box.id}
+                            onClick={() => setSelectedBox(box)}
+                        />
+                    ))}
                 </div>
             </div>
 
