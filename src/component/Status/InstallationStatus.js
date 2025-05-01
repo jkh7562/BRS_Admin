@@ -215,6 +215,19 @@ export default function InstallationStatus({ statuses, addressData = {}, process
 }
 
 function UserListItem({ boxId, name, status, date, isActive, onClick }) {
+    const [copied, setCopied] = useState(false)
+
+    const handleCopy = (e) => {
+        e.stopPropagation()
+        navigator.clipboard.writeText(name)
+        setCopied(true)
+
+        // 1초 후에 체크마크 숨기기
+        setTimeout(() => {
+            setCopied(false)
+        }, 1000)
+    }
+
     return (
         <div
             className={`p-4 border-b flex justify-between cursor-pointer ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}
@@ -227,14 +240,13 @@ function UserListItem({ boxId, name, status, date, isActive, onClick }) {
                     <p className="text-sm text-[#60697E] font-normal text-gray-500">{date}</p>
                 </div>
             </div>
-            <button
-                className="text-gray-400 self-start"
-                onClick={(e) => {
-                    e.stopPropagation()
-                    navigator.clipboard.writeText(name)
-                }}
-            >
+            <button className="text-gray-400 self-start relative" onClick={handleCopy}>
                 <img src={CopyIcon || "/placeholder.svg"} alt="복사" width={16} height={16} />
+                {copied && (
+                    <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full w-3 h-3 flex items-center justify-center text-[8px]">
+                        ✓
+                    </div>
+                )}
             </button>
         </div>
     )
