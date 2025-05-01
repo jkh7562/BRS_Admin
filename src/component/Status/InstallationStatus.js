@@ -13,6 +13,7 @@ export default function InstallationStatus({ statuses }) {
     const [searchTerm, setSearchTerm] = useState("")
     const [addressData, setAddressData] = useState({})
     const [isLoading, setIsLoading] = useState(true)
+    const [alarmData, setAlarmData] = useState({}) // 알람 데이터를 저장할 상태 추가
 
     // 박스 데이터 로드 부분을 수정
     useEffect(() => {
@@ -48,18 +49,33 @@ export default function InstallationStatus({ statuses }) {
 
                 // 알람 데이터 매핑 부분도 로깅을 추가합니다.
                 const alarmsByBoxId = {}
+                const alarmsByBoxIdForState = {} // UserListItem에서 사용할 알람 데이터
+
                 console.log("Processing alarms for box mapping...")
                 alarmData.forEach((alarm, index) => {
-                    if (alarm.box_id) {
-                        if (!alarmsByBoxId[alarm.box_id]) {
-                            alarmsByBoxId[alarm.box_id] = []
+                    if (alarm.boxId) {
+                        if (!alarmsByBoxId[alarm.boxId]) {
+                            alarmsByBoxId[alarm.boxId] = []
                         }
-                        alarmsByBoxId[alarm.box_id].push(alarm)
-                        console.log(`Alarm ${index} mapped to box ${alarm.box_id}, user_id: ${alarm.user_id}`)
+                        alarmsByBoxId[alarm.boxId].push(alarm)
+
+                        // UserListItem에서 사용할 알람 데이터 저장
+                        // 각 박스 ID에 대해 가장 최근 알람만 저장
+                        if (
+                            !alarmsByBoxIdForState[alarm.boxId] ||
+                            new Date(alarm.date) > new Date(alarmsByBoxIdForState[alarm.boxId].date)
+                        ) {
+                            alarmsByBoxIdForState[alarm.boxId] = alarm
+                        }
+
+                        console.log(`Alarm ${index} mapped to box ${alarm.boxId}, userId: ${alarm.userId}`)
                     } else {
-                        console.log(`Alarm ${index} has no box_id:`, alarm)
+                        console.log(`Alarm ${index} has no boxId:`, alarm)
                     }
                 })
+
+                // 알람 데이터를 상태에 저장
+                setAlarmData(alarmsByBoxIdForState)
 
                 // 사용자 정보 처리 부분을 완전히 재작성합니다.
                 // 박스 매핑 부분에서 사용자 정보 처리 로직을 개선합니다.
@@ -90,7 +106,7 @@ export default function InstallationStatus({ statuses }) {
                             console.log(`Latest alarm for box ${id}:`, {
                                 date: latestAlarm.date,
                                 type: latestAlarm.type,
-                                user_id: latestAlarm.user_id,
+                                userId: latestAlarm.userId,
                             })
                         }
 
@@ -116,9 +132,9 @@ export default function InstallationStatus({ statuses }) {
                         let userId = null
 
                         // 알람에서 사용자 정보를 가져오는 경우
-                        if (latestAlarm && latestAlarm.user_id) {
-                            userId = latestAlarm.user_id
-                            console.log(`Box ${id} has user_id ${userId} from alarm`)
+                        if (latestAlarm && latestAlarm.userId) {
+                            userId = latestAlarm.userId
+                            console.log(`Box ${id} has userId ${userId} from alarm`)
 
                             // userMap에서 사용자 정보 조회
                             if (userMap[userId]) {
@@ -372,11 +388,14 @@ export default function InstallationStatus({ statuses }) {
                         filteredBoxes.map((box) => (
                             <UserListItem
                                 key={box.id}
+                                boxId={box.id}
                                 name={box.user.name}
                                 status={getStatusText(box.installStatus)}
                                 date={box.createdAt}
                                 isActive={selectedBox && selectedBox.id === box.id}
                                 onClick={() => setSelectedBox(box)}
+                                alarmData={alarmData[box.id]}
+                                formatDate={formatDate}
                             />
                         ))
                     )}
@@ -477,7 +496,11 @@ export default function InstallationStatus({ statuses }) {
     )
 }
 
-function UserListItem({ name, status, date, isActive, onClick }) {
+function UserListItem({ boxId, name, status, date, isActive, onClick, alarmData, formatDate }) {
+    // alarmData가 없는 경우 기본값 사용
+    const userId = alarmData ? alarmData.userId : "미지정"
+    const alarmDate = alarmData ? formatDate(alarmData.date) : "정보 없음"
+
     return (
         <div
             className={`p-4 border-b flex justify-between cursor-pointer ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}
@@ -485,16 +508,16 @@ function UserListItem({ name, status, date, isActive, onClick }) {
         >
             <div className="flex items-start">
                 <div>
-                    <h3 className="text-base text-[#21262B] font-bold">{name}</h3>
+                    <h3 className="text-base text-[#21262B] font-bold">{userId}</h3>
                     <p className="text-sm text-[#60697E] font-normal text-gray-500 mt-1">{status}</p>
-                    <p className="text-sm text-[#60697E] font-normal text-gray-500">{date}</p>
+                    <p className="text-sm text-[#60697E] font-normal text-gray-500">{alarmDate}</p>
                 </div>
             </div>
             <button
                 className="text-gray-400 self-start"
                 onClick={(e) => {
                     e.stopPropagation()
-                    navigator.clipboard.writeText(name)
+                    navigator.clipboard.writeText(userId)
                 }}
             >
                 <img src={CopyIcon || "/placeholder.svg"} alt="복사" width={16} height={16} />
