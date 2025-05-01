@@ -7,7 +7,7 @@ import MapWithSidebar from "../../component/MapWithSidebar"
 import DownIcon from "../../assets/Down.png"
 import InstallationStatus from "../../component/Status/InstallationStatus"
 import RemoveStatus from "../../component/Status/RemoveStatus"
-import { findAllBox } from "../../api/apiServices"
+import { findAllBox, fetchUnresolvedAlarms, findUserAll } from "../../api/apiServices"
 
 const N_boxAddRemovePage = () => {
     const [activeTab, setActiveTab] = useState("전체")
@@ -15,13 +15,68 @@ const N_boxAddRemovePage = () => {
     const [boxes, setBoxes] = useState([])
     const [addressData, setAddressData] = useState({})
     const [isAddressLoading, setIsAddressLoading] = useState(false)
+    const [alarmData, setAlarmData] = useState({})
+    const [userMap, setUserMap] = useState({})
+    const [processedBoxes, setProcessedBoxes] = useState([])
+    const [isDataLoading, setIsDataLoading] = useState(true)
 
-    const loadBoxes = async () => {
+    // 모든 데이터 로드 (박스, 알람, 사용자)
+    const loadAllData = async () => {
+        setIsDataLoading(true)
         try {
-            const data = await findAllBox()
-            const mappedBoxes = data.map((entry) => {
-                const { id, name, location, volume1, volume2, volume3, fireStatus1, fireStatus2, fireStatus3, installStatus } =
-                    entry.box
+            // 박스 데이터, 알람 데이터, 사용자 데이터를 병렬로 가져오기
+            const [boxData, alarmData, userData] = await Promise.all([findAllBox(), fetchUnresolvedAlarms(), findUserAll()])
+
+            console.log("Box Data:", boxData)
+            console.log("Alarm Data:", alarmData)
+            console.log("User Data:", userData)
+
+            // 사용자 정보 처리
+            const userMapObj = {}
+            userData.forEach((user) => {
+                if (user && user.id) {
+                    userMapObj[user.id] = {
+                        id: user.id,
+                        name: user.name || user.id,
+                        createdAt: user.date ? formatDate(user.date) : "정보 없음",
+                        location: user.location || "정보 없음",
+                        phoneNumber: user.phoneNumber || "정보 없음",
+                        role: user.role || "정보 없음",
+                    }
+                }
+            })
+            setUserMap(userMapObj)
+
+            // 알람 데이터 처리
+            const alarmsByBoxId = {}
+            const alarmsByBoxIdForState = {}
+
+            alarmData.forEach((alarm) => {
+                if (alarm.boxId) {
+                    if (!alarmsByBoxId[alarm.boxId]) {
+                        alarmsByBoxId[alarm.boxId] = []
+                    }
+                    alarmsByBoxId[alarm.boxId].push(alarm)
+
+                    // 각 박스 ID에 대해 가장 최근 알람만 저장
+                    if (
+                        !alarmsByBoxIdForState[alarm.boxId] ||
+                        new Date(alarm.date) > new Date(alarmsByBoxIdForState[alarm.boxId].date)
+                    ) {
+                        alarmsByBoxIdForState[alarm.boxId] = alarm
+                    }
+                }
+            })
+            setAlarmData(alarmsByBoxIdForState)
+
+            // 박스 데이터 처리
+            const mappedBoxes = boxData.map((entry) => {
+                const box = entry.box || entry
+                const id = box.id
+                const name = box.name
+                const location = box.location
+                const installStatus = box.install_status || box.installStatus
+                const removeStatus = box.remove_status || box.removeStatus
 
                 // 위치 파싱 (띄어쓰기 유무 상관없이 처리)
                 let lng = 0
@@ -34,15 +89,122 @@ const N_boxAddRemovePage = () => {
                     }
                 }
 
-                return { id, name, lat, lng, installStatus }
+                // 설치 관련 알람 찾기
+                const boxAlarms = alarmsByBoxId[id] || []
+                const installAlarms = boxAlarms.filter((alarm) => alarm.type && alarm.type.startsWith("INSTALL"))
+                const removeAlarms = boxAlarms.filter((alarm) => alarm.type && alarm.type.startsWith("REMOVE"))
+
+                const latestInstallAlarm =
+                    installAlarms.length > 0 ? installAlarms.sort((a, b) => new Date(b.date) - new Date(a.date))[0] : null
+
+                const latestRemoveAlarm =
+                    removeAlarms.length > 0 ? removeAlarms.sort((a, b) => new Date(b.date) - new Date(a.date))[0] : null
+
+                // 설치 사용자 정보
+                let installUserName = "미지정"
+                let installUserCreatedAt = "정보 없음"
+                let installUserId = null
+
+                if (latestInstallAlarm && latestInstallAlarm.userId) {
+                    installUserId = latestInstallAlarm.userId
+                    if (userMapObj[installUserId]) {
+                        installUserName = userMapObj[installUserId].name
+                        installUserCreatedAt = userMapObj[installUserId].createdAt
+                    } else {
+                        installUserName = installUserId
+                        const matchingUsers = userData.filter((u) => u.id === installUserId)
+                        if (matchingUsers.length > 0 && matchingUsers[0].date) {
+                            installUserCreatedAt = formatDate(matchingUsers[0].date)
+                        }
+                    }
+                }
+
+                // 제거 사용자 정보
+                let removeUserName = "미지정"
+                let removeUserCreatedAt = "정보 없음"
+                let removeUserId = null
+
+                if (latestRemoveAlarm && latestRemoveAlarm.userId) {
+                    removeUserId = latestRemoveAlarm.userId
+                    if (userMapObj[removeUserId]) {
+                        removeUserName = userMapObj[removeUserId].name
+                        removeUserCreatedAt = userMapObj[removeUserId].createdAt
+                    } else {
+                        removeUserName = removeUserId
+                        const matchingUsers = userData.filter((u) => u.id === removeUserId)
+                        if (matchingUsers.length > 0 && matchingUsers[0].date) {
+                            removeUserCreatedAt = formatDate(matchingUsers[0].date)
+                        }
+                    }
+                }
+
+                return {
+                    id,
+                    name,
+                    lat,
+                    lng,
+                    installStatus,
+                    removeStatus,
+                    installInfo: {
+                        createdAt: latestInstallAlarm ? formatDate(latestInstallAlarm.date) : "정보 없음",
+                        alarmDate: latestInstallAlarm ? formatDate(latestInstallAlarm.date) : null,
+                        alarmType: latestInstallAlarm ? latestInstallAlarm.type : null,
+                        user: {
+                            id: installUserId,
+                            name: installUserName,
+                            createdAt: installUserCreatedAt,
+                        },
+                    },
+                    removeInfo: {
+                        createdAt: latestRemoveAlarm ? formatDate(latestRemoveAlarm.date) : "정보 없음",
+                        alarmDate: latestRemoveAlarm ? formatDate(latestRemoveAlarm.date) : null,
+                        alarmType: latestRemoveAlarm ? latestRemoveAlarm.type : null,
+                        user: {
+                            id: removeUserId,
+                            name: removeUserName,
+                            createdAt: removeUserCreatedAt,
+                        },
+                    },
+                }
             })
 
             setBoxes(mappedBoxes)
+            setProcessedBoxes(mappedBoxes)
 
             // 박스 데이터가 로드된 후 카카오 API 로드
             loadKakaoAPI(mappedBoxes)
         } catch (error) {
-            console.error("수거함 정보 로딩 실패:", error)
+            console.error("데이터 로딩 실패:", error)
+        } finally {
+            setIsDataLoading(false)
+        }
+    }
+
+    // 날짜 포맷 함수
+    const formatDate = (dateString) => {
+        if (!dateString) {
+            return "정보 없음"
+        }
+
+        try {
+            const date = new Date(dateString)
+            if (isNaN(date.getTime())) {
+                return "정보 없음"
+            }
+
+            const formatted = date
+                .toLocaleDateString("ko-KR", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                })
+                .replace(/\. /g, ".")
+                .replace(/\.$/, "")
+
+            return formatted
+        } catch (e) {
+            console.error(`Date formatting error for ${dateString}:`, e)
+            return "정보 없음"
         }
     }
 
@@ -139,7 +301,7 @@ const N_boxAddRemovePage = () => {
     }
 
     useEffect(() => {
-        loadBoxes()
+        loadAllData()
     }, [])
 
     // 지역 및 도시 데이터
@@ -182,16 +344,6 @@ const N_boxAddRemovePage = () => {
     // 설치 상태 값 매핑 (API 응답의 installStatus 값에 맞게 수정)
     const installStatuses = ["INSTALL_REQUEST", "INSTALL_IN_PROGRESS", "INSTALL_CONFIRMED", "INSTALL_COMPLETED"]
     const removeStatuses = ["REMOVE_REQUEST", "REMOVE_IN_PROGRESS", "REMOVE_CONFIRMED", "REMOVE_COMPLETED"]
-
-    // 선택된 탭에 따라 데이터 필터링 - 원본 코드 유지
-    const filteredBoxes =
-        activeTab === "전체"
-            ? boxes
-            : activeTab === "설치 상태"
-                ? boxes.filter((box) => installStatuses.includes(box?.installStatus))
-                : activeTab === "제거 상태"
-                    ? boxes.filter((box) => removeStatuses.includes(box?.installStatus))
-                    : []
 
     // 필터 상태
     const [filters, setFilters] = useState({
@@ -307,13 +459,28 @@ const N_boxAddRemovePage = () => {
         }))
     }
 
+    // 선택된 탭에 따라 데이터 필터링
+    const getFilteredBoxesByTab = () => {
+        return activeTab === "전체"
+            ? boxes
+            : activeTab === "설치 상태"
+                ? boxes.filter((box) => installStatuses.includes(box?.installStatus))
+                : activeTab === "제거 상태"
+                    ? boxes.filter((box) => removeStatuses.includes(box?.installStatus))
+                    : []
+    }
+
     // 지역별 필터링된 박스 데이터 계산
     const getRegionFilteredBoxes = () => {
         // 먼저 타입에 따라 필터링
         let filtered =
             filters.type === "설치"
                 ? boxes.filter((box) => installStatuses.includes(box?.installStatus))
-                : boxes.filter((box) => removeStatuses.includes(box?.installStatus))
+                : boxes.filter(
+                    (box) =>
+                        removeStatuses.includes(box?.removeStatus) ||
+                        (box?.removeInfo?.alarmType && box.removeInfo.alarmType.startsWith("REMOVE")),
+                )
 
         // 지역 필터링
         if (filters.region !== "광역시/도") {
@@ -333,6 +500,41 @@ const N_boxAddRemovePage = () => {
 
         return filtered
     }
+
+    // 필터링된 박스 데이터 업데이트
+    useEffect(() => {
+        const filtered = getRegionFilteredBoxes()
+        setProcessedBoxes(filtered)
+    }, [filters, addressData, boxes, activeTab])
+
+    // 맵에 표시할 데이터
+    const mapBoxes = getFilteredBoxesByTab()
+
+    // 설치 상태 컴포넌트에 전달할 데이터
+    const installationBoxes = processedBoxes
+        .filter((box) => installStatuses.includes(box?.installStatus))
+        .map((box) => ({
+            ...box,
+            user: box.installInfo.user,
+            createdAt: box.installInfo.createdAt,
+            alarmDate: box.installInfo.alarmDate,
+            alarmType: box.installInfo.alarmType,
+        }))
+
+    // 제거 상태 컴포넌트에 전달할 데이터
+    const removalBoxes = processedBoxes
+        .filter(
+            (box) =>
+                removeStatuses.includes(box?.removeStatus) ||
+                (box?.removeInfo?.alarmType && box.removeInfo.alarmType.startsWith("REMOVE")),
+        )
+        .map((box) => ({
+            ...box,
+            user: box.removeInfo.user,
+            createdAt: box.removeInfo.createdAt,
+            alarmDate: box.removeInfo.alarmDate,
+            alarmType: box.removeInfo.alarmType,
+        }))
 
     return (
         <div className="flex min-h-screen w-full bg-[#F3F3F5]">
@@ -360,8 +562,13 @@ const N_boxAddRemovePage = () => {
                         </div>
                     </div>
 
-                    {/* 원본 코드 그대로 유지 - filteredBoxes 데이터를 전달 */}
-                    <MapWithSidebar filteredBoxes={filteredBoxes} isAddRemovePage={true} onDataChange={loadBoxes} />
+                    {/* 맵 컴포넌트에 필터링된 데이터 전달 */}
+                    <MapWithSidebar
+                        filteredBoxes={mapBoxes}
+                        isAddRemovePage={true}
+                        onDataChange={loadAllData}
+                        addressData={addressData}
+                    />
 
                     <div className="pt-14 pb-3">
                         <p className="font-bold text-[#272F42] text-xl">지역별 설치 / 제거 상세 현황</p>
@@ -480,16 +687,20 @@ const N_boxAddRemovePage = () => {
                     </div>
 
                     {/* 선택된 타입에 따라 컴포넌트 조건부 렌더링 */}
-                    {isAddressLoading ? (
+                    {isDataLoading || isAddressLoading ? (
                         <div className="flex justify-center items-center h-[200px]">
                             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
                         </div>
                     ) : (
                         <>
                             {filters.type === "설치" ? (
-                                <InstallationStatus statuses={filters.statuses} />
+                                <InstallationStatus
+                                    statuses={filters.statuses}
+                                    addressData={addressData}
+                                    processedBoxes={installationBoxes}
+                                />
                             ) : (
-                                <RemoveStatus statuses={filters.statuses} />
+                                <RemoveStatus statuses={filters.statuses} addressData={addressData} processedBoxes={removalBoxes} />
                             )}
                         </>
                     )}
