@@ -2,9 +2,15 @@
 
 import { useEffect, useState } from "react"
 import NavigationBar from "../component/NavigationBar"
-import { Map, MapMarker, Circle, CustomOverlayMap } from "react-kakao-maps-sdk"
+import { Map, MapMarker, Circle } from "react-kakao-maps-sdk"
 import { fetchFilteredRecommendedBoxes, fetchCoordinates } from "../api/apiServices"
 import axios from "axios"
+
+import pin from "../assets/pin.png"
+
+// 커스텀 아이콘 import
+import child_safety from "../assets/child_safety.png"
+import fire_station from "../assets/fire-station.png"
 
 // 어린이보호구역 반경 (미터)
 const SAFETY_ZONE_RADIUS = 300
@@ -65,9 +71,24 @@ const BoxAddRemovePage = () => {
     // ✅ 어린이보호구역 반경 표시 여부
     const [showSafetyZoneRadius, setShowSafetyZoneRadius] = useState(true)
 
+    // ✅ 선택된 군집 ID 상태 추가
+    const [selectedCluster, setSelectedCluster] = useState(null)
+
+    // 추천 위치 로드 함수에 디버깅 로그 추가
     const loadRecommended = async () => {
         try {
             const data = await fetchFilteredRecommendedBoxes()
+            console.log("✅ 추천 위치 데이터:", data)
+
+            // 데이터 구조 분석 로그 추가
+            if (data && data.length > 0) {
+                console.log("📊 데이터 샘플:", data[0])
+                console.log("📊 군집 유형:", [...new Set(data.map((item) => item.point_type))])
+                console.log("📊 군집 ID 목록:", [
+                    ...new Set(data.filter((item) => item.cluster !== undefined).map((item) => item.cluster)),
+                ])
+            }
+
             setRecommendedLocations(data)
         } catch (err) {
             console.error("❌ 추천 위치 불러오기 실패:", err)
@@ -174,6 +195,29 @@ const BoxAddRemovePage = () => {
             loc.name.includes(search),
     )
 
+    // handleCentroidClick 함수 수정 - 문자열/숫자 타입 문제 해결
+    const handleCentroidClick = (centroid) => {
+        console.log("🎯 중심점 클릭:", centroid)
+
+        // 클릭한 중심점의 군집 ID를 숫자로 확보
+        const clickedClusterId = Number(centroid.cluster)
+
+        if (selectedCluster === clickedClusterId) {
+            console.log("🔄 같은 군집 선택 해제:", clickedClusterId)
+            setSelectedCluster(null)
+        } else {
+            console.log("🔄 새 군집 선택:", clickedClusterId)
+            setSelectedCluster(clickedClusterId)
+        }
+
+        // 상세 정보 표시
+        setSelectedBox({
+            ...centroid,
+            name: `군집 중심점 #${centroid.cluster}`,
+            type: "군집 중심점",
+        })
+    }
+
     return (
         <div className="min-h-screen flex flex-col bg-gray-100 items-center px-4 pb-10">
             <NavigationBar />
@@ -246,6 +290,13 @@ const BoxAddRemovePage = () => {
                 >
                     ⭕ 보호구역 반경 {showSafetyZoneRadius ? "숨기기" : "표시하기"}
                 </button>
+
+                {/* ✅ 선택된 군집 초기화 버튼 */}
+                {selectedCluster !== null && (
+                    <button onClick={() => setSelectedCluster(null)} className="px-3 py-1 rounded bg-purple-600 text-white">
+                        🔄 군집 선택 초기화
+                    </button>
+                )}
             </div>
 
             {/* 지도 */}
@@ -279,26 +330,92 @@ const BoxAddRemovePage = () => {
                             onClick={() => setSelectedBox(loc)}
                         />
                     ))}
-                    {recommendedLocations.map((loc, index) => (
-                        <MapMarker
-                            key={`rec-${index}`}
-                            position={{ lat: loc.lat, lng: loc.lng }}
-                            image={{
-                                src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
-                                size: { width: 24, height: 35 },
-                            }}
-                            onClick={() => setSelectedBox({ ...loc, name: `추천${index + 1}`, type: "추천" })}
-                        />
-                    ))}
 
-                    {/* ✅ 소방서 마커를 이모지로 변경 */}
+                    {/* ✅ 추천 위치 마커 (point_type에 따라 다르게 표시) - MapMarker로 변경 */}
+                    {recommendedLocations
+                        .filter((loc) => loc.point_type === "noise")
+                        .map((loc, index) => (
+                            <MapMarker
+                                key={`noise-${index}`}
+                                position={{ lat: loc.lat, lng: loc.lng }}
+                                image={{
+                                    src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
+                                    size: { width: 24, height: 35 },
+                                }}
+                                onClick={() =>
+                                    setSelectedBox({
+                                        ...loc,
+                                        name: `독립 추천 위치 #${index + 1}`,
+                                        type: "독립 추천 위치",
+                                    })
+                                }
+                            />
+                        ))}
+
+                    {/* ✅ 군집 중심점 마커 - MapMarker로 변경 */}
+                    {recommendedLocations
+                        .filter((loc) => loc.point_type === "centroid")
+                        .map((centroid, index) => {
+                            console.log(`렌더링 중심점 #${centroid.cluster}:`, centroid)
+                            return (
+                                <MapMarker
+                                    key={`centroid-${index}`}
+                                    position={{ lat: centroid.lat, lng: centroid.lng }}
+                                    image={{
+                                        src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png",
+                                        size: { width: 32, height: 35 },
+                                    }}
+                                    onClick={() => {
+                                        console.log(`중심점 #${centroid.cluster} 클릭됨!`)
+                                        handleCentroidClick(centroid)
+                                    }}
+                                />
+                            )
+                        })}
+
+                    {/* ✅ 군집 멤버 마커 (선택된 군집의 멤버만 표시) - 커스텀 핀 아이콘으로 변경 */}
+                    {selectedCluster !== null &&
+                        recommendedLocations
+                            .filter((loc) => {
+                                const isClusterMember = loc.point_type === "cluster_member"
+                                const locCluster = Number(loc.cluster)
+                                const selCluster = Number(selectedCluster)
+                                const matchesSelectedCluster = locCluster === selCluster
+
+                                console.log(
+                                    `멤버 검사: ${loc.point_type} / 클러스터 ${locCluster} vs ${selCluster} = ${matchesSelectedCluster}`,
+                                )
+
+                                return isClusterMember && matchesSelectedCluster
+                            })
+                            .map((member, index) => (
+                                <MapMarker
+                                    key={`member-${index}`}
+                                    position={{ lat: member.lat, lng: member.lng }}
+                                    image={{
+                                        src: pin, // 커스텀 핀 아이콘으로 변경
+                                        size: { width: 32, height: 32 }, // 크기 조정
+                                    }}
+                                    onClick={() =>
+                                        setSelectedBox({
+                                            ...member,
+                                            name: `군집 멤버 #${index + 1}`,
+                                            type: "군집 멤버",
+                                        })
+                                    }
+                                />
+                            ))}
+
+                    {/* ✅ 소방서 마커 - 커스텀 아이콘으로 변경 */}
                     {showFireStations &&
                         fireStations.map((station) => (
-                            <CustomOverlayMap
+                            <MapMarker
                                 key={station.id}
                                 position={{ lat: station.lat, lng: station.lng }}
-                                yAnchor={1}
-                                clickable={true}
+                                image={{
+                                    src: fire_station,
+                                    size: { width: 32, height: 32 },
+                                }}
                                 onClick={() =>
                                     setSelectedBox({
                                         ...station,
@@ -306,21 +423,19 @@ const BoxAddRemovePage = () => {
                                         type: "소방서",
                                     })
                                 }
-                            >
-                                <div className="cursor-pointer text-2xl" style={{ filter: "drop-shadow(0px 0px 2px rgba(0,0,0,0.5))" }}>
-                                    🚒
-                                </div>
-                            </CustomOverlayMap>
+                            />
                         ))}
 
-                    {/* ✅ 어린이보호구역 마커를 이모지로 변경 */}
+                    {/* ✅ 어린이보호구역 마커 - 커스텀 아이콘으로 변경 */}
                     {showSafetyZones &&
                         safetyZones.map((zone) => (
-                            <CustomOverlayMap
+                            <MapMarker
                                 key={zone.id}
                                 position={{ lat: zone.lat, lng: zone.lng }}
-                                yAnchor={1}
-                                clickable={true}
+                                image={{
+                                    src: child_safety,
+                                    size: { width: 32, height: 32 },
+                                }}
                                 onClick={() =>
                                     setSelectedBox({
                                         ...zone,
@@ -328,11 +443,7 @@ const BoxAddRemovePage = () => {
                                         type: "어린이보호구역",
                                     })
                                 }
-                            >
-                                <div className="cursor-pointer text-2xl" style={{ filter: "drop-shadow(0px 0px 2px rgba(0,0,0,0.5))" }}>
-                                    🚸
-                                </div>
-                            </CustomOverlayMap>
+                            />
                         ))}
                 </Map>
             </div>
@@ -350,6 +461,54 @@ const BoxAddRemovePage = () => {
                     </div>
                 </div>
             )}
+
+            {/* ✅ 추천 위치 정보 */}
+            <div className="mt-2 w-3/4 bg-white shadow-md p-3 rounded">
+                <h2 className="text-lg font-semibold mb-1">추천 위치 정보</h2>
+                <div className="flex gap-4 items-center">
+                    <div className="flex items-center">
+            <span className="mr-1">
+              <img
+                  src="https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png"
+                  alt="중심점"
+                  width="16"
+                  height="16"
+              />
+            </span>
+                        <span>군집 중심점</span>
+                    </div>
+                    <div className="flex items-center">
+            <span className="mr-1">
+              <img src={pin || "/placeholder.svg"} alt="군집 멤버" width="16" height="16" />
+            </span>
+                        <span>군집 멤버</span>
+                    </div>
+                    <div className="flex items-center">
+            <span className="mr-1">
+              <img
+                  src="https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"
+                  alt="독립 추천 위치"
+                  width="16"
+                  height="16"
+              />
+            </span>
+                        <span>독립 추천 위치</span>
+                    </div>
+
+                    {selectedCluster !== null && (
+                        <div className="ml-auto text-purple-700 font-semibold">
+                            선택된 군집: #{selectedCluster}
+                            (멤버{" "}
+                            {
+                                recommendedLocations.filter(
+                                    (loc) => loc.point_type === "cluster_member" && Number(loc.cluster) === Number(selectedCluster),
+                                ).length
+                            }
+                            개)
+                        </div>
+                    )}
+                </div>
+            </div>
 
             {/* 필터 UI */}
             <div className="mt-2 w-3/4 flex items-center gap-2 bg-white shadow-md p-3 rounded">
@@ -406,13 +565,60 @@ const BoxAddRemovePage = () => {
                                 <strong>{loc.name}</strong> - {loc.status} ({loc.date})
                             </li>
                         ))}
-                        {filter === "설치" && recommendedLocations.length > 0 && (
-                            <>
-                                <hr className="my-2" />
-                                <li className="text-sm text-gray-500">⭐ 추천 위치 {recommendedLocations.length}개</li>
-                            </>
-                        )}
                     </ul>
+
+                    {/* ✅ 추천 위치 목록 */}
+                    <div className="mt-4">
+                        <h3 className="font-semibold border-b pb-1">🎯 군집 중심점 목록</h3>
+                        <ul className="max-h-40 overflow-y-auto">
+                            {recommendedLocations
+                                .filter((loc) => loc.point_type === "centroid")
+                                .slice(0, 5)
+                                .map((centroid, index) => (
+                                    <li
+                                        key={`centroid-list-${index}`}
+                                        className={`p-1 border-b cursor-pointer ${
+                                            Number(selectedCluster) === Number(centroid.cluster) ? "bg-purple-100" : ""
+                                        }`}
+                                        onClick={() => handleCentroidClick(centroid)}
+                                    >
+                                        <span className="text-red-500">🎯</span> 군집 #{centroid.cluster} 중심점
+                                    </li>
+                                ))}
+                            {recommendedLocations.filter((loc) => loc.point_type === "centroid").length > 5 && (
+                                <li className="text-sm text-gray-500 p-1">
+                                    외 {recommendedLocations.filter((loc) => loc.point_type === "centroid").length - 5}개...
+                                </li>
+                            )}
+                        </ul>
+
+                        <h3 className="font-semibold border-b pb-1 mt-2">📍 독립 추천 위치 목록</h3>
+                        <ul className="max-h-40 overflow-y-auto">
+                            {recommendedLocations
+                                .filter((loc) => loc.point_type === "noise")
+                                .slice(0, 5)
+                                .map((noise, index) => (
+                                    <li
+                                        key={`noise-list-${index}`}
+                                        className="p-1 border-b cursor-pointer"
+                                        onClick={() =>
+                                            setSelectedBox({
+                                                ...noise,
+                                                name: `독립 추천 위치 #${index + 1}`,
+                                                type: "독립 추천 위치",
+                                            })
+                                        }
+                                    >
+                                        <span className="text-green-500">📍</span> 독립 추천 위치 #{index + 1}
+                                    </li>
+                                ))}
+                            {recommendedLocations.filter((loc) => loc.point_type === "noise").length > 5 && (
+                                <li className="text-sm text-gray-500 p-1">
+                                    외 {recommendedLocations.filter((loc) => loc.point_type === "noise").length - 5}개...
+                                </li>
+                            )}
+                        </ul>
+                    </div>
 
                     {/* ✅ 소방서 및 어린이보호구역 정보 추가 */}
                     <div className="mt-4">
@@ -471,25 +677,49 @@ const BoxAddRemovePage = () => {
                         <p>
                             <strong>유형:</strong> {selectedBox.type}
                         </p>
-                        {selectedBox.type !== "추천" && selectedBox.type !== "소방서" && selectedBox.type !== "어린이보호구역" && (
-                            <>
-                                <p>
-                                    <strong>광역시/도:</strong> {selectedBox.region}
-                                </p>
-                                <p>
-                                    <strong>담당 지역:</strong> {selectedBox.district}
-                                </p>
-                                <p>
-                                    <strong>알림 일자:</strong> {selectedBox.date}
-                                </p>
-                                <p>
-                                    <strong>상태:</strong> {selectedBox.status}
-                                </p>
-                            </>
-                        )}
+                        {selectedBox.type !== "추천" &&
+                            selectedBox.type !== "소방서" &&
+                            selectedBox.type !== "어린이보호구역" &&
+                            selectedBox.type !== "군집 중심점" &&
+                            selectedBox.type !== "군집 멤버" &&
+                            selectedBox.type !== "독립 추천 위치" && (
+                                <>
+                                    <p>
+                                        <strong>광역시/도:</strong> {selectedBox.region}
+                                    </p>
+                                    <p>
+                                        <strong>담당 지역:</strong> {selectedBox.district}
+                                    </p>
+                                    <p>
+                                        <strong>알림 일자:</strong> {selectedBox.date}
+                                    </p>
+                                    <p>
+                                        <strong>상태:</strong> {selectedBox.status}
+                                    </p>
+                                </>
+                            )}
                         <p>
                             <strong>좌표:</strong> {selectedBox.lat} / {selectedBox.lng}
                         </p>
+
+                        {/* 군집 관련 정보 표시 */}
+                        {(selectedBox.type === "군집 중심점" || selectedBox.type === "군집 멤버") && (
+                            <p>
+                                <strong>군집 ID:</strong> {selectedBox.cluster}
+                            </p>
+                        )}
+
+                        {selectedBox.type === "군집 중심점" && (
+                            <p>
+                                <strong>군집 멤버 수:</strong>{" "}
+                                {
+                                    recommendedLocations.filter(
+                                        (loc) => loc.point_type === "cluster_member" && Number(loc.cluster) === Number(selectedBox.cluster),
+                                    ).length
+                                }
+                                개
+                            </p>
+                        )}
 
                         {/* 선택한 위치로 지도 중심 이동 버튼 */}
                         <button
@@ -507,6 +737,24 @@ const BoxAddRemovePage = () => {
                         >
                             🔍 지도에서 확대하기
                         </button>
+
+                        {/* 군집 중심점인 경우 군집 멤버 표시/숨기기 버튼 */}
+                        {selectedBox.type === "군집 중심점" && (
+                            <button
+                                onClick={() => {
+                                    if (Number(selectedCluster) === Number(selectedBox.cluster)) {
+                                        setSelectedCluster(null)
+                                    } else {
+                                        setSelectedCluster(Number(selectedBox.cluster))
+                                    }
+                                }}
+                                className={`mt-2 ml-2 px-3 py-1 rounded ${
+                                    Number(selectedCluster) === Number(selectedBox.cluster) ? "bg-purple-600 text-white" : "bg-gray-300"
+                                }`}
+                            >
+                                {Number(selectedCluster) === Number(selectedBox.cluster) ? "👁️ 멤버 숨기기" : "👁️ 멤버 표시하기"}
+                            </button>
+                        )}
                     </div>
                 )}
             </div>
