@@ -332,3 +332,15 @@ export const fetchUnresolvedAlarms = async () => {
         throw error;
     }
 };
+
+// ✅ 소방서 및 어린이보호구역 좌표 데이터 가져오기
+export const fetchCoordinates = async () => {
+    try {
+        const response = await axiosInstance.get("/admin/getCoordinates");
+        console.log("✅ 좌표 데이터 로드 성공:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ 좌표 데이터 로드 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
