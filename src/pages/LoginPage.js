@@ -1,10 +1,9 @@
-import React from "react";
-import { Link } from "react-router-dom"; // React Router의 Link 컴포넌트 import
-import TextAnimation from "../component/TextAnimation"; // TextAnimation 컴포넌트 import
-import useLogin from "../hooks/useLogin"; // ✅ 로그인 훅 import
+import { Link } from "react-router-dom"
+import TextAnimation from "../component/TextAnimation"
+import useLogin from "../hooks/useLogin"
 
 const LoginPage = () => {
-    const { formData, handleChange, handleLogin, errorMessage } = useLogin(); // ✅ 훅 사용
+    const { formData, handleChange, handleLogin, errorMessage } = useLogin()
 
     return (
         <div className="flex justify-center items-center h-screen w-screen bg-gray-100">
@@ -16,9 +15,7 @@ const LoginPage = () => {
                 {/* 오른쪽 영역 */}
                 <div className="flex flex-col justify-center items-center space-y-4 p-4">
                     {/* 이미지 */}
-                    <div className="bg-gray-200 w-24 h-24 flex items-center justify-center">
-                        Image
-                    </div>
+                    <div className="bg-gray-200 w-24 h-24 flex items-center justify-center">Image</div>
 
                     {/* 로그인 입력 폼 */}
                     <form onSubmit={handleLogin} className="w-3/4 space-y-4">
@@ -50,7 +47,9 @@ const LoginPage = () => {
                         {/* 버튼들 */}
                         <div className="grid grid-cols-2 gap-2">
                             <Link to="/signup">
-                                <button className="border rounded py-2 w-full">회원가입</button>
+                                <button type="button" className="border rounded py-2 w-full">
+                                    회원가입
+                                </button>
                             </Link>
                             <button type="submit" className="border rounded py-2 bg-blue-500 text-white hover:bg-blue-600">
                                 로그인
@@ -61,16 +60,20 @@ const LoginPage = () => {
                     {/* 아이디 / 비밀번호 찾기 */}
                     <div className="grid grid-cols-2 gap-2 w-3/4">
                         <Link to="/findid">
-                            <button className="border rounded py-2 w-full">아이디 찾기</button>
+                            <button type="button" className="border rounded py-2 w-full">
+                                아이디 찾기
+                            </button>
                         </Link>
                         <Link to="/findpassword">
-                            <button className="border rounded py-2 w-full">비밀번호 찾기</button>
+                            <button type="button" className="border rounded py-2 w-full">
+                                비밀번호 찾기
+                            </button>
                         </Link>
                     </div>
                 </div>
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default LoginPage;
+export default LoginPage
