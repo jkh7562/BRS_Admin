@@ -1,243 +1,485 @@
-import { useState } from "react"
+"use client"
+
+import { useState, useEffect } from "react"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
-import HomeIcon from "../../assets/Home.png"
-import BellIcon from "../../assets/가입알림.png"
 import SearchIcon from "../../assets/검색.png"
-import DownIcon from "../../assets/Down.png"
-import BottomLine from "../../assets/Line_Bottom.png"
+import CopyIcon from "../../assets/copy.png"
+import { fetchOrderList, fetchOrderItemsByOrderId, fetchOrdersByUserId } from "../../api/apiServices" // API 함수 import
 
 const N_OrderHistoryPage = () => {
-    const [registrations, setRegistrations] = useState([])
-    const [orders, setOrders] = useState([
-        {
-            id: 1,
-            name: "홍길동",
-            phone: "010-0000-0000",
-            date: "2025/03/06",
-            time: "오전 11:29",
-            productCode: "101",
-            productPrice: "5,000원",
-            quantity: 2,
-            totalPrice: "10,000 원",
-            address: "충청남도 아산시 탕정면 선문로 221번길 70",
-            isExpanded: false,
-        },
-        {
-            id: 2,
-            name: "홍길동",
-            phone: "010-0000-0000",
-            date: "2025/03/06",
-            time: "오전 11:29",
-            productCode: "104",
-            productPrice: "5,000원",
-            quantity: 1,
-            totalPrice: "23,000 원",
-            address: "충청남도 아산시 탕정면 선문로 221번길 70",
-            isExpanded: false,
-        },
-        {
-            id: 3,
-            name: "홍길동",
-            phone: "010-0000-0000",
-            date: "2025/03/06",
-            time: "오전 11:29",
-            productCode: "101",
-            productPrice: "5,000원",
-            quantity: 2,
-            totalPrice: "10,000 원",
-            address: "충청남도 아산시 탕정면 선문로 221번길 70",
-            isExpanded: false,
-        },
-        {
-            id: 4,
-            name: "홍길동",
-            phone: "010-0000-0000",
-            date: "2025/03/06",
-            time: "오전 11:29",
-            productCode: "104",
-            productPrice: "5,000원",
-            quantity: 1,
-            totalPrice: "23,000 원",
-            address: "충청남도 아산시 탕정면 선문로 221번길 70",
-            isExpanded: false,
-        },
-        {
-            id: 5,
-            name: "홍길동",
-            phone: "010-0000-0000",
-            date: "2025/03/06",
-            time: "오전 11:29",
-            productCode: "101",
-            productPrice: "5,000원",
-            quantity: 2,
-            totalPrice: "10,000 원",
-            address: "충청남도 아산시 탕정면 선문로 221번길 70",
-            isExpanded: false,
-        },
-    ])
+    // 상태 관리
+    const [users, setUsers] = useState([])
+    const [allOrders, setAllOrders] = useState([])
+    const [userOrders, setUserOrders] = useState([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState(null)
+    const [searchTerm, setSearchTerm] = useState("")
 
-    const toggleOrderDetails = (id: number) => {
-        setOrders(orders.map((order) => (order.id === id ? { ...order, isExpanded: !order.isExpanded } : order)))
+    // 초기 데이터 로딩
+    useEffect(() => {
+        const loadInitialData = async () => {
+            try {
+                setIsLoading(true)
+                setError(null)
+
+                // 모든 주문 내역 가져오기
+                const orderListData = await fetchOrderList()
+                console.log("주문 내역 데이터:", orderListData)
+
+                // 주문 데이터 포맷팅
+                const formattedOrders = formatOrderData(orderListData)
+                setAllOrders(formattedOrders)
+
+                // 사용자 목록 추출 및 포맷팅
+                const uniqueUsers = extractUniqueUsers(orderListData)
+                setUsers(uniqueUsers)
+
+                // 첫 번째 사용자의 주문 내역 로드
+                if (uniqueUsers.length > 0) {
+                    await loadUserOrders(uniqueUsers[0].userId)
+                }
+
+                setIsLoading(false)
+            } catch (err) {
+                console.error("데이터 로딩 실패:", err)
+                setError("주문 내역을 불러오는데 실패했습니다.")
+                setIsLoading(false)
+            }
+        }
+
+        loadInitialData()
+    }, [])
+
+    // 주문 데이터 포맷팅 함수
+    const formatOrderData = (orders) => {
+        return orders.map((order) => {
+            // 날짜 및 시간 포맷팅
+            const dateObj = new Date(order.date)
+            const formattedDate = `${dateObj.getFullYear()}/${String(dateObj.getMonth() + 1).padStart(2, "0")}/${String(dateObj.getDate()).padStart(2, "0")}`
+            const hours = dateObj.getHours()
+            const ampm = hours >= 12 ? "오후" : "오전"
+            const hour12 = hours % 12 || 12
+            const formattedTime = `${ampm} ${hour12}:${String(dateObj.getMinutes()).padStart(2, "0")}:${String(dateObj.getSeconds()).padStart(2, "0")}`
+
+            return {
+                id: order.id,
+                userId: order.userId, // API 응답의 userId 필드 사용
+                date: formattedDate,
+                time: formattedTime,
+                totalAmount: order.totalPrice,
+                state: order.state,
+                items: [],
+                expanded: false,
+                originalDate: order.date, // 정렬을 위해 원본 날짜 보존
+            }
+        })
     }
 
-    // 정렬 상태 추가 (true: 최신순, false: 오래된순)
-    const [isNewest, setIsNewest] = useState(true)
+    // 고유 사용자 추출 함수
+    const extractUniqueUsers = (orders) => {
+        const userMap = new Map()
 
-    const handleApprove = (id: number) => {
-        // 승인 처리 로직
-        console.log(`사용자 ${id} 승인됨`)
+        orders.forEach((order) => {
+            if (!userMap.has(order.userId)) {
+                // userId 필드를 사용하여 사용자 정보 추출
+                userMap.set(order.userId, {
+                    userId: order.userId, // userId 필드 사용
+                    name: `${order.userId}`, // ID: 접두사 없이 userId만 표시
+                    date: "",
+                    time: "",
+                    selected: false,
+                })
+            }
+        })
+
+        // 첫 번째 사용자 선택 상태로 설정
+        const userArray = Array.from(userMap.values())
+        if (userArray.length > 0) {
+            userArray[0].selected = true
+        }
+
+        return userArray
     }
 
-    // 정렬 방식 변경 함수
-    const toggleSortOrder = (newest: boolean) => {
-        setIsNewest(newest)
-        // 여기에 실제 정렬 로직을 추가할 수 있습니다
+    // 사용자별 최근 주문 정보 업데이트 함수
+    const updateUsersWithLatestOrderDates = () => {
+        setUsers((prevUsers) => {
+            return prevUsers.map((user) => {
+                // 해당 사용자의 모든 주문 찾기 (userId로 비교)
+                const userOrders = allOrders.filter((order) => order.userId === user.userId)
+
+                // 주문이 없는 경우 기존 날짜 유지
+                if (userOrders.length === 0) {
+                    return user
+                }
+
+                // 주문을 날짜순으로 정렬 (최신순)
+                const sortedOrders = [...userOrders].sort((a, b) => {
+                    const dateA = new Date(a.originalDate)
+                    const dateB = new Date(b.originalDate)
+                    return dateB - dateA // 내림차순 (최신순)
+                })
+
+                // 가장 최근 주문의 날짜와 시간 가져오기
+                const latestOrder = sortedOrders[0]
+
+                // 사용자 정보 업데이트
+                return {
+                    ...user,
+                    date: latestOrder.date,
+                    time: latestOrder.time,
+                }
+            })
+        })
     }
+
+    // 사용자 주문 내역 로드 함수
+    const loadUserOrders = async (userId) => {
+        try {
+            setIsLoading(true)
+
+            // 사용자별 주문 내역 가져오기
+            const userOrdersData = await fetchOrdersByUserId(userId)
+            console.log(`사용자 ${userId}의 주문 내역:`, userOrdersData)
+
+            // 주문 데이터 포맷팅
+            const formattedUserOrders = formatOrderData(userOrdersData)
+
+            // 각 주문의 상품 정보 가져오기
+            const ordersWithItems = await Promise.all(
+                formattedUserOrders.map(async (order) => {
+                    try {
+                        const orderItems = await fetchOrderItemsByOrderId(order.id)
+                        console.log(`주문 ${order.id}의 상품 정보:`, orderItems)
+
+                        // 상품 정보 포맷팅
+                        const formattedItems = orderItems.map((item) => ({
+                            name: `상품 ID: ${item.itemId || item.item_id || "정보 없음"}`, // itemId 또는 item_id 필드 사용
+                            price: item.price,
+                            quantity: item.count,
+                            totalPrice: item.price * item.count,
+                        }))
+
+                        return {
+                            ...order,
+                            items: formattedItems,
+                            expanded: formattedUserOrders.length === 1, // 주문이 하나만 있으면 자동으로 펼치기
+                        }
+                    } catch (err) {
+                        console.error(`주문 ${order.id}의 상품 정보 로딩 실패:`, err)
+                        return {
+                            ...order,
+                            items: [],
+                            expanded: false,
+                        }
+                    }
+                }),
+            )
+
+            // 날짜순으로 정렬 (최신순)
+            const sortedOrders = [...ordersWithItems].sort((a, b) => {
+                const dateA = new Date(a.originalDate)
+                const dateB = new Date(b.originalDate)
+                return dateB - dateA // 내림차순 (최신순)
+            })
+
+            setUserOrders(sortedOrders)
+            setIsLoading(false)
+        } catch (err) {
+            console.error(`사용자 ${userId}의 주문 내역 로딩 실패:`, err)
+            setError(`사용자 ${userId}의 주문 내역을 불러오는데 실패했습니다.`)
+            setUserOrders([])
+            setIsLoading(false)
+        }
+    }
+
+    // 선택된 사용자 변경 함수
+    const selectUser = async (userId) => {
+        // 이미 선택된 사용자면 무시
+        if (users.find((user) => user.userId === userId && user.selected)) {
+            return
+        }
+
+        // 사용자 선택 상태 업데이트
+        setUsers(
+            users.map((user) => ({
+                ...user,
+                selected: user.userId === userId,
+            })),
+        )
+
+        // 선택된 사용자의 주문 내역 로드
+        await loadUserOrders(userId)
+    }
+
+    // 주문 상세 토글 함수
+    const toggleOrderDetails = (orderId) => {
+        setUserOrders(userOrders.map((order) => (order.id === orderId ? { ...order, expanded: !order.expanded } : order)))
+    }
+
+    // 선택된 사용자
+    const selectedUser = users.find((user) => user.selected) || (users.length > 0 ? users[0] : null)
+
+    // 검색 처리 함수
+    const handleSearch = (e) => {
+        setSearchTerm(e.target.value)
+    }
+
+    // 검색어로 필터링된 사용자 목록
+    const filteredUsers = users.filter((user) => user.name.toLowerCase().includes(searchTerm.toLowerCase()))
+
+    // 주문 상태 텍스트 변환 함수
+    const getOrderStatusText = (state) => {
+        switch (state) {
+            case 1:
+                return "주문 접수"
+            case 2:
+                return "처리 중"
+            case 3:
+                return "배송 중"
+            case 4:
+                return "배송 완료"
+            case 5:
+                return "취소됨"
+            default:
+                return "상태 미정"
+        }
+    }
+
+    // 주문 상태에 따른 배지 색상 클래스
+    const getOrderStatusBadgeClass = (state) => {
+        switch (state) {
+            case 1:
+                return "bg-blue-100 text-blue-800"
+            case 2:
+                return "bg-yellow-100 text-yellow-800"
+            case 3:
+                return "bg-purple-100 text-purple-800"
+            case 4:
+                return "bg-green-100 text-green-800"
+            case 5:
+                return "bg-red-100 text-red-800"
+            default:
+                return "bg-gray-100 text-gray-800"
+        }
+    }
+
+    // 사용자 데이터와 주문 데이터가 로드되면 사용자별 최근 주문 정보 업데이트
+    useEffect(() => {
+        if (allOrders.length > 0 && users.length > 0) {
+            updateUsersWithLatestOrderDates()
+        }
+    }, [allOrders])
 
     return (
         <div className="flex min-h-screen w-full bg-[#F3F3F5]">
+            {/* 스크롤바 스타일 */}
+            <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+            height: 50px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+      `}</style>
             <Sidebar />
             <div className="flex-1 relative">
                 <Topbar />
-                <main className="pt-24 px-24 pb-6 space-y-6">
-                    <p className="font-bold text-[#272F42] text-xl">주문내역</p>
-                    <div>
-                        <div className="bg-white shadow rounded-2xl flex items-center mb-3 px-8 py-1">
-                            <div className="flex items-center font-nomal text-[#7A7F8A] mr-auto">
-                                <img src={BellIcon || "/placeholder.svg"} alt="Bell"
-                                     className="w-[13.49px] h-[15.65px] mr-2"/>
-                                <span>총 {orders.length}건의 새로운 주문내역이 있습니다</span>
-                            </div>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="사용자 이름, 전화번호 검색"
-                                    className="w-[370px] h-[40px] px-6 py-2 pr-10 border rounded-2xl font-nomal text-sm focus:outline-none text-gray-900 placeholder:text-[#D5D8DE]"
-                                />
-                                <img
-                                    src={SearchIcon || "/placeholder.svg"}
-                                    alt="Search"
-                                    className="absolute right-6 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
-                                />
-                            </div>
-                            <div className="flex ml-8">
-                                <button className="px-2 py-1 mr-2 flex items-center"
-                                        onClick={() => toggleSortOrder(false)}>
-                                        <span
-                                            className={`w-2 h-2 ${!isNewest ? "bg-[#21262B]" : "bg-gray-400"} rounded-full mr-2`}></span>
-                                    <span
-                                        className={!isNewest ? "text-[#21262B] font-medium" : "text-[#60697E]"}>오래된순</span>
-                                </button>
-                                <button className="px-2 py-1 flex items-center" onClick={() => toggleSortOrder(true)}>
-                                        <span
-                                            className={`w-2 h-2 ${isNewest ? "bg-[#21262B]" : "bg-gray-400"} rounded-full mr-2`}></span>
-                                    <span
-                                        className={isNewest ? "text-[#21262B] font-medium" : "text-[#60697E]"}>최신순</span>
-                                </button>
-                            </div>
+                <main className="pt-24 px-24 pb-6">
+                    <p className="font-bold text-[#272F42] text-xl mb-6">주문내역</p>
+
+                    {error && (
+                        <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-4">
+                            {error}
+                            <button
+                                className="ml-2 underline"
+                                onClick={() => {
+                                    setError(null)
+                                    window.location.reload()
+                                }}
+                            >
+                                다시 시도
+                            </button>
                         </div>
+                    )}
 
-                        <div className="space-y-1.5">
-                            {orders.map((order) => (
-                                <div key={order.id} className="bg-white shadow rounded-2xl overflow-hidden">
-                                    <div className="flex justify-between pt-10 pb-4 bg-white px-8">
-                                        <div className="flex space-x-28">
-                                            <div className="space-y-1">
-                                                <div className="flex gap-1">
-                                                    <span className="text-[#7A7F8A] w-16">이름</span>
-                                                    <span className="text-[#21262B] font-bold">{order.name}</span>
-                                                </div>
-                                                <div className="flex gap-1">
-                                                    <span className="text-gray-500 w-16">전화번호</span>
-                                                    <span className="text-[#21262B] font-bold">{order.phone}</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-1">
-                                                <div className="flex gap-1">
-                                                    <span className="text-[#7A7F8A] w-16">주문 일자</span>
-                                                    <span className="font-bold">{order.date}</span>
-                                                </div>
-                                                <div className="flex gap-1">
-                                                    <span className="text-[#7A7F8A] w-16"></span>
-                                                    <span className="font-bold">{order.time}</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-1">
-                                                <div className="flex gap-1">
-                                                    <span className="text-[#7A7F8A] w-16">상품코드</span>
-                                                    <span className="font-bold">
-                                {order.productCode} ({order.productPrice})
-                              </span>
-                                                </div>
-                                                <div className="flex gap-1">
-                                                    <span className="text-[#7A7F8A] w-16">수량</span>
-                                                    <span className="font-bold">{order.quantity}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center justify-end">
-                                            <div className="text-right font-bold text-xl">{order.totalPrice}</div>
-                                        </div>
+                    {isLoading && users.length === 0 ? (
+                        <div className="flex justify-center items-center h-64">
+                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#21262B]"></div>
+                        </div>
+                    ) : (
+                        <div className="flex h-[calc(100vh-200px)]">
+                            {/* 좌측 사용자 목록 */}
+                            <div className="w-[390px] bg-white shadow overflow-hidden rounded-l-2xl h-full">
+                                <div className="p-4 h-full flex flex-col">
+                                    <div className="relative mb-4">
+                                        <input
+                                            type="text"
+                                            value={searchTerm}
+                                            onChange={handleSearch}
+                                            placeholder="이름 검색"
+                                            className="w-full h-[40px] px-4 py-2 pr-10 border rounded-lg font-normal text-sm focus:outline-none text-gray-900 placeholder:text-[#D5D8DE]"
+                                        />
+                                        <img
+                                            src={SearchIcon || "/placeholder.svg"}
+                                            alt="Search"
+                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                                        />
                                     </div>
 
-                                    <div className="w-full bg-white px-6">
-                                        <img src={BottomLine || "/placeholder.svg"} alt="Bottom Line"
-                                             className="w-full h-[1px]"/>
-                                    </div>
-
-                                    <div className="p-6 bg-white flex items-center justify-between">
-                                        <div className="flex items-center text-[#7A7F8A]">
-                                            <img src={HomeIcon || "/placeholder.svg"} alt="Home"
-                                                 className="w-[17px] h-[15px] mr-2"/>
-                                            <span>{order.address}</span>
-                                        </div>
-                                        <button
-                                            className="flex items-center text-[#60697E] hover:text-gray-700"
-                                            onClick={() => toggleOrderDetails(order.id)}
-                                        >
-                                            <span>주문내역 상세보기</span>
-                                            <img
-                                                src={DownIcon || "/placeholder.svg"}
-                                                alt="Down"
-                                                className={`w-3 h-2 ml-2 transition-transform ${order.isExpanded ? "rotate-180" : ""}`}
-                                            />
-                                        </button>
-                                    </div>
-
-                                    {order.isExpanded && (
-                                        <div className="px-8 py-6 bg-white border-t">
-                                            <h3 className="font-bold mb-4">주문 상세 정보</h3>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div>
-                                                    <p className="text-[#7A7F8A]">주문 번호</p>
-                                                    <p className="font-medium">
-                                                        ORD-{order.id}-{new Date().getFullYear()}
-                                                    </p>
+                                    <div className="flex-grow overflow-y-auto custom-scrollbar">
+                                        {filteredUsers.length > 0 ? (
+                                            filteredUsers.map((user) => (
+                                                <div
+                                                    key={user.userId}
+                                                    onClick={() => selectUser(user.userId)}
+                                                    className={`flex justify-between items-center p-3 cursor-pointer mb-2 rounded ${
+                                                        user.selected ? "bg-[#F0F7FF]" : "hover:bg-gray-50"
+                                                    }`}
+                                                >
+                                                    <div>
+                                                        <p className="font-medium text-[#21262B]">{user.name}</p>
+                                                        {user.date && user.time ? (
+                                                            <>
+                                                                <p className="text-xs text-[#7A7F8A]">{user.date}</p>
+                                                                <p className="text-xs text-[#7A7F8A]">{user.time}</p>
+                                                            </>
+                                                        ) : (
+                                                            <p className="text-xs text-[#7A7F8A]">주문 내역 없음</p>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-gray-400">
+                                                        <img src={CopyIcon || "/placeholder.svg"} alt="Copy" className="w-4 h-5" />
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-[#7A7F8A]">결제 방법</p>
-                                                    <p className="font-medium">신용카드</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[#7A7F8A]">주문 상태</p>
-                                                    <p className="font-medium">배송 준비중</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[#7A7F8A]">배송 예정일</p>
-                                                    <p className="font-medium">2025/03/08</p>
-                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-8 text-[#7A7F8A]">
+                                                {searchTerm ? "검색 결과가 없습니다." : "사용자가 없습니다."}
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
-                            ))}
+                            </div>
+
+                            {/* 우측 주문 상세 */}
+                            <div className="flex-1 h-full">
+                                <div className="bg-white shadow p-6 rounded-r-2xl h-full flex flex-col">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h2 className="font-bold text-lg">주문 상세 내역</h2>
+                                        {selectedUser && (
+                                            <span className="text-sm text-[#7A7F8A]">
+                        {selectedUser.name}님의 주문 내역 ({userOrders.length}건)
+                      </span>
+                                        )}
+                                    </div>
+
+                                    <div className="flex-grow overflow-y-auto custom-scrollbar">
+                                        {isLoading ? (
+                                            <div className="flex justify-center items-center h-64">
+                                                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#21262B]"></div>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-4">
+                                                {userOrders.length > 0 ? (
+                                                    userOrders.map((order) => (
+                                                        <div key={order.id} className="border rounded-lg overflow-hidden">
+                                                            <div className="p-4 bg-white">
+                                                                <div className="flex justify-between items-center mb-2">
+                                                                    <div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <h3 className="font-medium">주문번호 - {order.id}</h3>
+                                                                            <span
+                                                                                className={`text-xs px-2 py-1 rounded-full ${getOrderStatusBadgeClass(order.state)}`}
+                                                                            >
+                                        {getOrderStatusText(order.state)}
+                                      </span>
+                                                                        </div>
+                                                                        <p className="text-sm text-[#7A7F8A]">
+                                                                            주문일자 - {order.date} {order.time}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className="flex items-center">
+                                                                        <span className="text-sm text-[#7A7F8A] mr-2">주문 상품</span>
+                                                                        <button
+                                                                            onClick={() => toggleOrderDetails(order.id)}
+                                                                            className="text-[#60697E] flex items-center"
+                                                                        >
+                                                                            <span className="mr-1">{order.expanded ? "접기" : "펼치기"}</span>
+                                                                            <svg
+                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                width="12"
+                                                                                height="12"
+                                                                                viewBox="0 0 24 24"
+                                                                                fill="none"
+                                                                                stroke="currentColor"
+                                                                                strokeWidth="2"
+                                                                                strokeLinecap="round"
+                                                                                strokeLinejoin="round"
+                                                                                className={`transition-transform ${order.expanded ? "rotate-180" : ""}`}
+                                                                            >
+                                                                                <polyline points="6 9 12 15 18 9"></polyline>
+                                                                            </svg>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+
+                                                                {order.expanded && (
+                                                                    <div className="border rounded-lg p-4 bg-[#FAFAFA]">
+                                                                        {order.items.length > 0 ? (
+                                                                            <div className="space-y-4">
+                                                                                {order.items.map((item, index) => (
+                                                                                    <div key={index} className="flex justify-between items-center">
+                                                                                        <div className="flex items-center">
+                                                                                            <div className="w-12 h-12 bg-[#E8F1F7] rounded flex items-center justify-center mr-4">
+                                                                                                <span className="text-xs">이미지</span>
+                                                                                            </div>
+                                                                                            <div>
+                                                                                                <p className="font-medium">{item.name}</p>
+                                                                                                <p className="text-sm text-[#7A7F8A]">
+                                                                                                    가격: {item.price} P 수량: {item.quantity}
+                                                                                                </p>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div className="font-bold">소계: {item.totalPrice} P</div>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        ) : (
+                                                                            <p className="text-center text-[#7A7F8A] py-4">상품 정보가 없습니다.</p>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+
+                                                                <div className="flex justify-start mt-4">
+                                                                    <div className="font-bold text-lg">총액: {order.totalAmount} P</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="text-center py-8 text-[#7A7F8A]">주문 내역이 없습니다.</div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div className="pb-32"/>
-                    </div>`
+                    )}
                 </main>
             </div>
         </div>
