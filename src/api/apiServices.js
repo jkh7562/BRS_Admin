@@ -195,6 +195,21 @@ export const approveUserRequest = async (userId) => {
     }
 };
 
+// 가입 신청 반려 API
+export const rejectUserJoin = async (userId: string) => {
+    try {
+        const response = await axiosInstance.patch(`/admin/noJoin/${userId}`, null, {
+            withCredentials: true, // 인증 정보 포함
+        });
+
+        console.log("✅ 가입 신청 반려 성공:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("🚨 가입 신청 반려 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
 // ✅ 모든 사용자 주문 내역 조회 API
 export const fetchOrderList = async () => {
     try {
