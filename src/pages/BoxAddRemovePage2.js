@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import NavigationBar from "../component/NavigationBar"
-import { Map, MapMarker, Circle } from "react-kakao-maps-sdk"
+import { Map, MapMarker, Circle, CustomOverlayMap } from "react-kakao-maps-sdk"
 import { fetchFilteredRecommendedBoxes, fetchCoordinates } from "../api/apiServices"
 import axios from "axios"
 
@@ -195,6 +195,13 @@ const BoxAddRemovePage = () => {
             loc.name.includes(search),
     )
 
+    // 군집별 멤버 수 계산 함수
+    const getClusterMemberCount = (clusterId) => {
+        return recommendedLocations.filter(
+            (loc) => loc.point_type === "cluster_member" && Number(loc.cluster) === Number(clusterId),
+        ).length
+    }
+
     // handleCentroidClick 함수 수정 - 문자열/숫자 타입 문제 해결
     const handleCentroidClick = (centroid) => {
         console.log("🎯 중심점 클릭:", centroid)
@@ -352,24 +359,41 @@ const BoxAddRemovePage = () => {
                             />
                         ))}
 
-                    {/* ✅ 군집 중심점 마커 - MapMarker로 변경 */}
+                    {/* ✅ 군집 중심점 마커 - MapMarker와 CustomOverlayMap 조합으로 변경 */}
                     {recommendedLocations
                         .filter((loc) => loc.point_type === "centroid")
                         .map((centroid, index) => {
                             console.log(`렌더링 중심점 #${centroid.cluster}:`, centroid)
+                            const memberCount = getClusterMemberCount(centroid.cluster)
+
                             return (
-                                <MapMarker
-                                    key={`centroid-${index}`}
-                                    position={{ lat: centroid.lat, lng: centroid.lng }}
-                                    image={{
-                                        src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png",
-                                        size: { width: 32, height: 35 },
-                                    }}
-                                    onClick={() => {
-                                        console.log(`중심점 #${centroid.cluster} 클릭됨!`)
-                                        handleCentroidClick(centroid)
-                                    }}
-                                />
+                                <>
+                                    {/* 별 모양 마커 */}
+                                    <MapMarker
+                                        key={`centroid-marker-${index}`}
+                                        position={{ lat: centroid.lat, lng: centroid.lng }}
+                                        image={{
+                                            src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
+                                            size: { width: 24, height: 35 },
+                                        }}
+                                        onClick={() => {
+                                            console.log(`중심점 #${centroid.cluster} 클릭됨!`)
+                                            handleCentroidClick(centroid)
+                                        }}
+                                    />
+
+                                    {/* 멤버 수 배지 */}
+                                    <CustomOverlayMap
+                                        key={`centroid-badge-${index}`}
+                                        position={{ lat: centroid.lat, lng: centroid.lng }}
+                                        xAnchor={-0.2}
+                                        yAnchor={2}
+                                    >
+                                        <div className="bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-md">
+                                            {memberCount}
+                                        </div>
+                                    </CustomOverlayMap>
+                                </>
                             )
                         })}
 
@@ -467,15 +491,18 @@ const BoxAddRemovePage = () => {
                 <h2 className="text-lg font-semibold mb-1">추천 위치 정보</h2>
                 <div className="flex gap-4 items-center">
                     <div className="flex items-center">
-            <span className="mr-1">
+            <span className="mr-1 relative">
               <img
-                  src="https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png"
+                  src="https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"
                   alt="중심점"
                   width="16"
                   height="16"
               />
+              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[8px] rounded-full w-3 h-3 flex items-center justify-center">
+                n
+              </span>
             </span>
-                        <span>군집 중심점</span>
+                        <span>군집 중심점 (n: 멤버 수)</span>
                     </div>
                     <div className="flex items-center">
             <span className="mr-1">
@@ -583,6 +610,9 @@ const BoxAddRemovePage = () => {
                                         onClick={() => handleCentroidClick(centroid)}
                                     >
                                         <span className="text-red-500">🎯</span> 군집 #{centroid.cluster} 중심점
+                                        <span className="ml-1 text-sm text-gray-500">
+                      (멤버 {getClusterMemberCount(centroid.cluster)}개)
+                    </span>
                                     </li>
                                 ))}
                             {recommendedLocations.filter((loc) => loc.point_type === "centroid").length > 5 && (
