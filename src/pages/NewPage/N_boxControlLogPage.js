@@ -221,7 +221,7 @@ const N_boxControlLogPage = () => {
                     <p className="font-bold text-[#272F42] text-xl">수거함 현황 / 제어</p>
                     <div className="flex">
                         {/* Collection Box Control Interface - Left and Center sections */}
-                        <div className="flex w-[1100px] h-[520px] bg-white rounded-2xl shadow-md overflow-hidden">
+                        <div className="flex w-full h-[520px] bg-white rounded-2xl shadow-md overflow-hidden">
                             {/* Left Sidebar - Box List */}
                             <div className="w-[350px] h-full flex flex-col border-r">
                                 <div>
@@ -277,7 +277,7 @@ const N_boxControlLogPage = () => {
                         </div>
 
                         {/* Right Sidebar - Box Info - Now as a separate element */}
-                        <div className="w-[280px] space-y-4 pl-6">
+                        <div className="w-[320px] space-y-4 pl-6">
                             {/* 건전지 (Battery Boxes) */}
                             <div className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
@@ -444,7 +444,7 @@ const N_boxControlLogPage = () => {
                                 className={`w-full py-6 ${isBoxBlocked ? "bg-red-600" : "bg-[#21262B]"} text-white rounded-2xl font-medium flex items-center justify-start pl-6 hover:${isBoxBlocked ? "bg-red-700" : "bg-[#1a1f23]"} transition-colors`}
                             >
                                 수거함 차단
-                                <div className="pl-[80px]">{isBoxBlocked ? "차단됨" : "차단"}</div>
+                                <div className="pl-[60px]">{isBoxBlocked ? "차단됨" : "차단"}</div>
                                 <div
                                     className={`w-4 h-4 rounded-full ml-2 ${isBoxBlocked ? "bg-white" : "border-2 border-white"}`}
                                 ></div>
