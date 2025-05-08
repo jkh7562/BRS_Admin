@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useEffect, useState, useRef, useMemo, useCallback, memo } from "react"
 import { Map, MapMarker, CustomOverlayMap, Circle } from "react-kakao-maps-sdk"
 import ArrowLeftIcon from "../assets/arrow_left.png"
@@ -89,10 +87,18 @@ const PinOverlay = memo(({ position, title, children, onClose, zIndex = 3, yAnch
             <div
                 className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 w-64"
                 onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                onMouseUp={(e) => e.stopPropagation()}
             >
                 <div className="flex justify-between items-center mb-3">
                     <h3 className="font-bold text-lg">{title}</h3>
-                    <button className="text-gray-500 hover:text-gray-700" onClick={onClose}>
+                    <button
+                        className="text-gray-500 hover:text-gray-700"
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            onClose && onClose(e)
+                        }}
+                    >
                         ✕
                     </button>
                 </div>
@@ -106,7 +112,16 @@ PinOverlay.displayName = "PinOverlay"
 // 메모이제이션된 버튼 컴포넌트
 const ActionButton = memo(({ onClick, className, disabled, children }) => {
     return (
-        <button className={className} onClick={onClick} disabled={disabled}>
+        <button
+            className={className}
+            onClick={(e) => {
+                e.stopPropagation()
+                onClick && onClick(e)
+            }}
+            disabled={disabled}
+            onMouseDown={(e) => e.stopPropagation()}
+            onMouseUp={(e) => e.stopPropagation()}
+        >
             {children}
         </button>
     )
@@ -613,11 +628,13 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
     }, [])
 
     // 버튼 클릭 핸들러 - 지도 클릭 이벤트 일시적으로 비활성화
-    const handleButtonMouseDown = useCallback(() => {
+    const handleButtonMouseDown = useCallback((e) => {
+        e.stopPropagation()
         setMapClickEnabled(false)
     }, [])
 
-    const handleButtonMouseUp = useCallback(() => {
+    const handleButtonMouseUp = useCallback((e) => {
+        e.stopPropagation()
         // 약간의 지연 후 지도 클릭 이벤트 다시 활성화
         setTimeout(() => {
             setMapClickEnabled(true)
@@ -828,7 +845,8 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
     // 설치 요청 처리
     const handleInstallRequest = useCallback(
         async (e) => {
-            e.stopPropagation() // 이벤트 전파 방지
+            e.preventDefault()
+            e.stopPropagation()
 
             if (!newBoxName || !newBoxIpAddress || !newPinPosition) {
                 alert("수거함 이름과 IP 주소를 모두 입력해주세요.")
@@ -866,7 +884,8 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
     // 제거 요청 처리
     const handleRemoveRequest = useCallback(
         async (e) => {
-            e.stopPropagation() // 이벤트 전파 방지
+            e.preventDefault()
+            e.stopPropagation()
 
             if (!selectedBoxId) return
 
@@ -977,7 +996,7 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
             {/* 지도 */}
             <div className="absolute top-0 left-0 w-full h-full z-0">
                 <Map
-                    center={{ lat: 36.8082, lng: 127.009 }}
+                    center={{ lat: 36.8, lng: 127.0729 }}
                     style={{ width: "100%", height: "100%" }}
                     level={mapLevel}
                     onCreate={setMap}
