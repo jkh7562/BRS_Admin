@@ -1,8 +1,6 @@
 "use client"
 
-import React from "react"
-
-import { useEffect, useState, useRef, useMemo, useCallback, memo } from "react"
+import React, { useEffect, useState, useRef, useMemo, useCallback, memo } from "react"
 import { Map, MapMarker, CustomOverlayMap, Circle } from "react-kakao-maps-sdk"
 import ArrowLeftIcon from "../assets/arrow_left.png"
 import ArrowRightIcon from "../assets/arrow_right.png"
@@ -115,6 +113,28 @@ const ActionButton = memo(({ onClick, className, disabled, children }) => {
 })
 ActionButton.displayName = "ActionButton"
 
+// 지역 필터 컴포넌트 - 광역시/도 단위만 표시
+const RegionFilter = memo(({ region, setRegion, regions }) => {
+    return (
+        <div className="flex items-center gap-2 p-2 bg-white rounded-md shadow-sm">
+            <label className="text-sm font-medium">지역:</label>
+            <select
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                className="border border-gray-300 rounded px-2 py-1 text-sm"
+            >
+                <option value="전체">전체</option>
+                {Object.keys(regions).map((r) => (
+                    <option key={r} value={r}>
+                        {r}
+                    </option>
+                ))}
+            </select>
+        </div>
+    )
+})
+RegionFilter.displayName = "RegionFilter"
+
 const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = false, onDataChange = () => {} }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true)
     const [selectedBoxId, setSelectedBoxId] = useState(0)
@@ -163,6 +183,169 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
     // 어린이보호구역 반경 (미터)
     const SAFETY_ZONE_RADIUS = 300
 
+    // 지역 필터링 상태 - 광역시/도 단위만 사용
+    const [region, setRegion] = useState("전체")
+
+    // 지역별 좌표 범위 (대략적인 값)
+    const regionBounds = useMemo(
+        () => ({
+            서울특별시: {
+                minLat: 37.413294,
+                maxLat: 37.715133,
+                minLng: 126.734086,
+                maxLng: 127.269311,
+            },
+            부산광역시: {
+                minLat: 34.8799,
+                maxLat: 35.3839,
+                minLng: 128.7369,
+                maxLng: 129.372,
+            },
+            대구광역시: {
+                minLat: 35.7392,
+                maxLat: 36.051,
+                minLng: 128.4159,
+                maxLng: 128.8292,
+            },
+            인천광역시: {
+                minLat: 37.2769,
+                maxLat: 37.7687,
+                minLng: 126.3489,
+                maxLng: 126.8086,
+            },
+            광주광역시: {
+                minLat: 35.0292,
+                maxLat: 35.2846,
+                minLng: 126.6541,
+                maxLng: 127.0097,
+            },
+            대전광역시: {
+                minLat: 36.1234,
+                maxLat: 36.4894,
+                minLng: 127.2535,
+                maxLng: 127.5329,
+            },
+            울산광역시: {
+                minLat: 35.4469,
+                maxLat: 35.7366,
+                minLng: 129.0756,
+                maxLng: 129.4729,
+            },
+            세종특별자치시: {
+                minLat: 36.4367,
+                maxLat: 36.8151,
+                minLng: 127.1292,
+                maxLng: 127.3495,
+            },
+            경기도: {
+                minLat: 36.890079,
+                maxLat: 38.300631,
+                minLng: 126.26233,
+                maxLng: 127.845784,
+            },
+            강원도: {
+                minLat: 37.0473,
+                maxLat: 38.6107,
+                minLng: 127.0673,
+                maxLng: 129.3722,
+            },
+            충청북도: {
+                minLat: 36.002005,
+                maxLat: 37.217596,
+                minLng: 127.254456,
+                maxLng: 128.69931,
+            },
+            충청남도: {
+                minLat: 35.975345,
+                maxLat: 37.028473,
+                minLng: 125.778875,
+                maxLng: 127.852089,
+            },
+            전라북도: {
+                minLat: 35.0568,
+                maxLat: 36.0189,
+                minLng: 126.3344,
+                maxLng: 127.8658,
+            },
+            전라남도: {
+                minLat: 33.8991,
+                maxLat: 35.4945,
+                minLng: 125.0664,
+                maxLng: 127.9748,
+            },
+            경상북도: {
+                minLat: 35.7142,
+                maxLat: 37.3808,
+                minLng: 127.8114,
+                maxLng: 129.6994,
+            },
+            경상남도: {
+                minLat: 34.5567,
+                maxLat: 35.6729,
+                minLng: 127.4661,
+                maxLng: 129.2909,
+            },
+            제주특별자치도: {
+                minLat: 33.0618,
+                maxLat: 33.5975,
+                minLng: 126.1143,
+                maxLng: 126.9849,
+            },
+        }),
+        [],
+    )
+
+    // 지역 데이터 - 광역시/도 단위만 사용
+    const regions = useMemo(
+        () => ({
+            서울특별시: [],
+            부산광역시: [],
+            대구광역시: [],
+            인천광역시: [],
+            광주광역시: [],
+            대전광역시: [],
+            울산광역시: [],
+            세종특별자치시: [],
+            경기도: [],
+            강원도: [],
+            충청북도: [],
+            충청남도: [],
+            전라북도: [],
+            전라남도: [],
+            경상북도: [],
+            경상남도: [],
+            제주특별자치도: [],
+        }),
+        [],
+    )
+
+    // 지역 정보 추출 함수 (주소에서 시/도만 추출)
+    const extractRegionInfo = useCallback((address) => {
+        if (!address) return { region: null }
+
+        // 주소에서 시/도 추출 (예: "서울특별시 강남구 테헤란로...")
+        const parts = address.split(" ")
+        if (parts.length < 1) return { region: null }
+
+        // 첫 번째 부분이 시/도
+        return {
+            region: parts[0],
+        }
+    }, [])
+
+    // 좌표가 특정 지역 내에 있는지 확인하는 함수
+    const isCoordinateInRegion = useCallback(
+        (lat, lng, regionName) => {
+            if (!regionName || regionName === "전체") return true
+
+            const bounds = regionBounds[regionName]
+            if (!bounds) return true
+
+            return lat >= bounds.minLat && lat <= bounds.maxLat && lng >= bounds.minLng && lng <= bounds.maxLng
+        },
+        [regionBounds],
+    )
+
     // 표시할 박스 필터링 함수 - useMemo로 최적화
     const shouldDisplayBox = useCallback(
         (box) => {
@@ -178,16 +361,61 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
 
     // 검색 및 필터링된 박스 - useMemo로 최적화
     const displayedBoxes = useMemo(() => {
+        // 기본 필터링 (상태 기준)
+        let filtered = filteredBoxes.filter(shouldDisplayBox)
+
+        // 검색어 필터링
         if (searchTerm) {
-            return filteredBoxes.filter((box) => {
+            filtered = filtered.filter((box) => {
                 const nameMatch = box.name.toLowerCase().includes(searchTerm.toLowerCase())
                 const address = addressMap[box.id] || ""
                 const addressMatch = address.toLowerCase().includes(searchTerm.toLowerCase())
-                return (nameMatch || addressMatch) && shouldDisplayBox(box)
+                return nameMatch || addressMatch
             })
         }
-        return filteredBoxes.filter(shouldDisplayBox)
-    }, [filteredBoxes, searchTerm, addressMap, shouldDisplayBox])
+
+        // 지역 필터링 - 광역시/도 단위만 적용
+        if (region !== "전체") {
+            filtered = filtered.filter((box) => {
+                // 주소 기반 필터링
+                const address = addressMap[box.id] || ""
+                const { region: boxRegion } = extractRegionInfo(address)
+
+                // 주소가 없거나 지역이 일치하지 않으면 좌표 기반으로 확인
+                if (!boxRegion || boxRegion !== region) {
+                    return isCoordinateInRegion(box.lat, box.lng, region)
+                }
+
+                return boxRegion === region
+            })
+        }
+
+        return filtered
+    }, [filteredBoxes, searchTerm, addressMap, shouldDisplayBox, region, extractRegionInfo, isCoordinateInRegion])
+
+    // 지역 필터링된 추천 위치
+    const filteredRecommendedLocations = useMemo(() => {
+        if (region === "전체" || !showRecommendedLocations) return recommendedLocations
+
+        // 좌표 기반으로 필터링
+        return recommendedLocations.filter((loc) => isCoordinateInRegion(loc.lat, loc.lng, region))
+    }, [recommendedLocations, region, showRecommendedLocations, isCoordinateInRegion])
+
+    // 지역 필터링된 소방서
+    const filteredFireStations = useMemo(() => {
+        if (region === "전체" || !showFireStations) return fireStations
+
+        // 좌표 기반으로 필터링
+        return fireStations.filter((station) => isCoordinateInRegion(station.lat, station.lng, region))
+    }, [fireStations, region, showFireStations, isCoordinateInRegion])
+
+    // 지역 필터링된 어린이보호구역
+    const filteredSafetyZones = useMemo(() => {
+        if (region === "전체" || !showSafetyZones) return safetyZones
+
+        // 좌표 기반으로 필터링
+        return safetyZones.filter((zone) => isCoordinateInRegion(zone.lat, zone.lng, region))
+    }, [safetyZones, region, showSafetyZones, isCoordinateInRegion])
 
     const addressFetchedRef = useRef(false)
     const geocoderRef = useRef(null)
@@ -263,27 +491,19 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
 
     // 토글 함수 수정 - 추천 위치 ON/OFF 전환
     const toggleRecommendedLocations = useCallback(() => {
-        setShowRecommendedLocations((prev) => {
-            const newState = !prev
-            // ON으로 변경될 때만 데이터 로드
-            if (newState && !dataLoadedRef.current) {
-                loadAllData()
-            }
-            return newState
-        })
-    }, [loadAllData])
+        setShowRecommendedLocations((prev) => !prev)
+    }, [])
 
     // 군집 멤버 수 가져오기 - 직접 필터링 방식으로 변경하여 성능 개선
     const getClusterMemberCount = useCallback(
         (clusterId) => {
             if (clusterId === undefined) return 0
 
-            // 직접 필터링하여 카운트 (메모이제이션 없이 직접 계산)
-            return recommendedLocations.filter(
+            return filteredRecommendedLocations.filter(
                 (loc) => loc.point_type === "cluster_member" && Number(loc.cluster) === Number(clusterId),
             ).length
         },
-        [recommendedLocations],
+        [filteredRecommendedLocations],
     )
 
     // 중심점 클릭 핸들러 - useCallback으로 최적화
@@ -683,90 +903,17 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
         return filteredBoxes.find((box) => box.id === selectedBoxId) || null
     }, [filteredBoxes, selectedBoxId])
 
-    // 지도 확대 레벨에 따라 표시할 마커 필터링
-    const visibleFireStations = useMemo(() => {
-        if (!showRecommendedLocations || !showFireStations || !isAddRemovePage) return []
-
-        // 확대 레벨이 높을수록(숫자가 작을수록) 더 많은 마커 표시
-        if (mapLevel <= 3) {
-            return fireStations
-        } else if (mapLevel <= 5) {
-            // 중간 확대 레벨에서는 일부만 표시
-            return fireStations.filter((_, index) => index % 2 === 0)
-        } else {
-            // 축소 레벨에서는 더 적게 표시
-            return fireStations.filter((_, index) => index % 4 === 0)
-        }
-    }, [fireStations, showFireStations, isAddRemovePage, mapLevel, showRecommendedLocations])
-
-    // 지도 확대 레벨에 따라 표시할 어린이보호구역 필터링
-    const visibleSafetyZones = useMemo(() => {
-        if (!showRecommendedLocations || !showSafetyZones || !isAddRemovePage) return []
-
-        if (mapLevel <= 3) {
-            return safetyZones
-        } else if (mapLevel <= 5) {
-            return safetyZones.filter((_, index) => index % 2 === 0)
-        } else {
-            return safetyZones.filter((_, index) => index % 4 === 0)
-        }
-    }, [safetyZones, showSafetyZones, isAddRemovePage, mapLevel, showRecommendedLocations])
-
     // 지도 확대 레벨 변경 핸들러
     const handleZoomChanged = useCallback((map) => {
         setMapLevel(map.getLevel())
     }, [])
 
-    // 군집 중심점 마커 메모이제이션
-    const centroidMarkers = useMemo(() => {
-        if (!isAddRemovePage || !showRecommendedLocations) return []
-
-        return recommendedLocations
-            .filter((loc) => loc.point_type === "centroid")
-            .map((centroid, index) => {
-                const memberCount = getClusterMemberCount(centroid.cluster)
-                return {
-                    centroid,
-                    memberCount,
-                    key: `centroid-${centroid.cluster}-${index}`,
-                }
-            })
-    }, [isAddRemovePage, showRecommendedLocations, recommendedLocations, getClusterMemberCount])
-
-    // 독립 추천 위치 마커 메모이제이션
-    const noiseMarkers = useMemo(() => {
-        if (!isAddRemovePage || !showRecommendedLocations) return []
-
-        return recommendedLocations.filter((loc) => loc.point_type === "noise")
-    }, [isAddRemovePage, showRecommendedLocations, recommendedLocations])
-
-    // 선택된 군집의 멤버 마커 메모이제이션
-    const clusterMemberMarkers = useMemo(() => {
-        if (!isAddRemovePage || !showRecommendedLocations || selectedCluster === null) return []
-
-        return recommendedLocations.filter(
-            (loc) => loc.point_type === "cluster_member" && Number(loc.cluster) === Number(selectedCluster),
-        )
-    }, [isAddRemovePage, showRecommendedLocations, recommendedLocations, selectedCluster])
-
-    // 마커 렌더링 최적화 - 화면에 보이는 영역만 렌더링
-    const [mapBounds, setMapBounds] = useState(null)
-
-    // 지도 이동 시 바운드 업데이트
-    const handleMapDragEnd = useCallback((map) => {
-        setMapBounds(map.getBounds())
-        setIsDragging(false)
-    }, [])
-
-    // 화면에 보이는 마커만 필터링
-    const visibleBoxMarkers = useMemo(() => {
-        if (!mapBounds) return displayedBoxes
-
-        return displayedBoxes.filter((box) => {
-            const position = new window.kakao.maps.LatLng(box.lat, box.lng)
-            return mapBounds.contain(position)
-        })
-    }, [displayedBoxes, mapBounds])
+    // 컴포넌트 마운트 시 즉시 데이터 로드하도록 변경
+    useEffect(() => {
+        if (isAddRemovePage && !dataLoadedRef.current) {
+            loadAllData()
+        }
+    }, [isAddRemovePage, loadAllData])
 
     return (
         <div className="flex bg-white rounded-2xl shadow-md overflow-hidden h-[570px] relative">
@@ -802,8 +949,13 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                         />
                     </div>
 
+                    {/* 지역 필터 */}
+                    <div className="mx-2 px-3">
+                        <RegionFilter region={region} setRegion={setRegion} regions={regions} />
+                    </div>
+
                     {/* 리스트 */}
-                    <div className="overflow-y-auto h-[calc(100%-60px)] ml-4 custom-scrollbar">
+                    <div className="overflow-y-auto h-[calc(100%-120px)] ml-4 mt-2 custom-scrollbar">
                         {displayedBoxes.map((box) => (
                             <BoxListItem
                                 key={box.id}
@@ -836,10 +988,10 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                         dragStartTimeRef.current = Date.now()
                         setIsDragging(true)
                     }}
-                    onDragEnd={handleMapDragEnd}
+                    onDragEnd={() => setIsDragging(false)}
                 >
                     {/* 기존 마커들 - 필터링하여 표시 */}
-                    {visibleBoxMarkers.map((box) => {
+                    {displayedBoxes.map((box) => {
                         const icon = getMarkerIcon(box)
                         // 아이콘이 null이 아닌 경우에만 마커 렌더링
                         return icon ? (
@@ -871,7 +1023,7 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                             {/* 어린이보호구역 반경 원 */}
                             {showSafetyZones &&
                                 showSafetyZoneRadius &&
-                                visibleSafetyZones.map((zone) => (
+                                filteredSafetyZones.map((zone) => (
                                     <Circle
                                         key={`circle-${zone.id}`}
                                         center={{
@@ -880,7 +1032,7 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                                         }}
                                         radius={SAFETY_ZONE_RADIUS} // 300미터 반경
                                         strokeWeight={2} // 외곽선 두께
-                                        strokeColor={"#FFCC00"} // 외곽선 색상 (��란색)
+                                        strokeColor={"#FFCC00"} // 외곽선 색상 (노란색)
                                         strokeOpacity={0.5} // 외곽선 투명도
                                         strokeStyle={"solid"} // 외곽선 스타일
                                         fillColor={"#FFCC00"} // 내부 색상 (노란색)
@@ -890,7 +1042,7 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
 
                             {/* 어린이보호구역 마커 */}
                             {showSafetyZones &&
-                                visibleSafetyZones.map((zone) => (
+                                filteredSafetyZones.map((zone) => (
                                     <MapMarker
                                         key={zone.id}
                                         position={{ lat: zone.lat, lng: zone.lng }}
@@ -910,7 +1062,7 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
 
                             {/* 소방서 마커 */}
                             {showFireStations &&
-                                visibleFireStations.map((station) => (
+                                filteredFireStations.map((station) => (
                                     <MapMarker
                                         key={station.id}
                                         position={{ lat: station.lat, lng: station.lng }}
@@ -934,52 +1086,64 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
                     {isAddRemovePage && showRecommendedLocations && (
                         <>
                             {/* 독립 추천 위치 마커 */}
-                            {noiseMarkers.map((loc, index) => (
-                                <MapMarker
-                                    key={`noise-${index}`}
-                                    position={{ lat: loc.lat, lng: loc.lng }}
-                                    image={{
-                                        src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
-                                        size: { width: 24, height: 35 },
-                                    }}
-                                    onClick={() => handleRecommendedLocationClick(loc)}
-                                />
-                            ))}
-
-                            {/* 군집 중심점 마커 */}
-                            {centroidMarkers.map(({ centroid, memberCount, key }) => (
-                                <React.Fragment key={key}>
-                                    {/* 별 모양 마커 */}
+                            {filteredRecommendedLocations
+                                .filter((loc) => loc.point_type === "noise")
+                                .map((loc, index) => (
                                     <MapMarker
-                                        position={{ lat: centroid.lat, lng: centroid.lng }}
+                                        key={`noise-${index}`}
+                                        position={{ lat: loc.lat, lng: loc.lng }}
                                         image={{
                                             src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
                                             size: { width: 24, height: 35 },
                                         }}
-                                        onClick={() => handleCentroidClick(centroid)}
+                                        onClick={() => handleRecommendedLocationClick(loc)}
                                     />
+                                ))}
 
-                                    {/* 멤버 수 배지 */}
-                                    <CustomOverlayMap position={{ lat: centroid.lat, lng: centroid.lng }} xAnchor={-0.2} yAnchor={2}>
-                                        <div className="bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-md">
-                                            {memberCount}
-                                        </div>
-                                    </CustomOverlayMap>
-                                </React.Fragment>
-                            ))}
+                            {/* 군집 중심점 마커 */}
+                            {filteredRecommendedLocations
+                                .filter((loc) => loc.point_type === "centroid")
+                                .map((centroid, index) => {
+                                    const memberCount = getClusterMemberCount(centroid.cluster)
+                                    return (
+                                        <React.Fragment key={`centroid-${index}`}>
+                                            {/* 별 모양 마커 */}
+                                            <MapMarker
+                                                position={{ lat: centroid.lat, lng: centroid.lng }}
+                                                image={{
+                                                    src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
+                                                    size: { width: 24, height: 35 },
+                                                }}
+                                                onClick={() => handleCentroidClick(centroid)}
+                                            />
+
+                                            {/* 멤버 수 배지 */}
+                                            <CustomOverlayMap position={{ lat: centroid.lat, lng: centroid.lng }} xAnchor={-0.2} yAnchor={2}>
+                                                <div className="bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-md">
+                                                    {memberCount}
+                                                </div>
+                                            </CustomOverlayMap>
+                                        </React.Fragment>
+                                    )
+                                })}
 
                             {/* 군집 멤버 마커 (선택된 군집의 멤버만 표시) */}
-                            {clusterMemberMarkers.map((member, index) => (
-                                <MapMarker
-                                    key={`member-${index}`}
-                                    position={{ lat: member.lat, lng: member.lng }}
-                                    image={{
-                                        src: pin, // 커스텀 핀 아이콘
-                                        size: { width: 32, height: 32 },
-                                    }}
-                                    onClick={() => handleRecommendedLocationClick(member)}
-                                />
-                            ))}
+                            {selectedCluster !== null &&
+                                filteredRecommendedLocations
+                                    .filter(
+                                        (loc) => loc.point_type === "cluster_member" && Number(loc.cluster) === Number(selectedCluster),
+                                    )
+                                    .map((member, index) => (
+                                        <MapMarker
+                                            key={`member-${index}`}
+                                            position={{ lat: member.lat, lng: member.lng }}
+                                            image={{
+                                                src: pin, // 커스텀 핀 아이콘
+                                                size: { width: 32, height: 32 },
+                                            }}
+                                            onClick={() => handleRecommendedLocationClick(member)}
+                                        />
+                                    ))}
                         </>
                     )}
 
@@ -1135,25 +1299,25 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
             </div>
             {/* 스크롤바 스타일 */}
             <style jsx>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
 
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: #f1f1f1;
-                    border-radius: 10px;
-                }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
 
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #c1c1c1;
-                    border-radius: 10px;
-                    height: 50px;
-                }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #c1c1c1;
+          border-radius: 10px;
+          height: 50px;
+        }
 
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #a1a1a1;
-                }
-            `}</style>
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #a1a1a1;
+        }
+      `}</style>
         </div>
     )
 }
