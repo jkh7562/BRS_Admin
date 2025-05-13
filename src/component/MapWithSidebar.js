@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useEffect, useState, useRef, useMemo, useCallback, memo } from "react"
 import { Map, MapMarker, CustomOverlayMap, Circle } from "react-kakao-maps-sdk"
 import ArrowLeftIcon from "../assets/arrow_left.png"
@@ -42,6 +44,15 @@ BoxMarker.displayName = "BoxMarker"
 // 메모이제이션된 리스트 아이템 컴포넌트
 const BoxListItem = memo(
     ({ box, isSelected, address, formatInstallStatus, isAddRemovePage, handleClick, handleCopy, copiedId }) => {
+        if (!isAddRemovePage) {
+            console.log(`Box ${box.id} coordinates:`, {
+                lat: box.lat,
+                lng: box.lng,
+                latType: typeof box.lat,
+                lngType: typeof box.lng
+            });
+        }
+
         return (
             <div
                 className={`border-b border-gray-100 p-3 cursor-pointer ${isSelected ? "bg-blue-50" : "hover:bg-gray-50"}`}
@@ -150,7 +161,7 @@ const RegionFilter = memo(({ region, setRegion, regions }) => {
 })
 RegionFilter.displayName = "RegionFilter"
 
-const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = false, onDataChange = () => {} }) => {
+const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange = () => {} }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true)
     const [selectedBoxId, setSelectedBoxId] = useState(0)
     const [searchTerm, setSearchTerm] = useState("")
@@ -366,7 +377,7 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
         (box) => {
             return (
                 isAddRemovePage ||
-                box.installStatus === "INSTALL_CONFIRME" ||
+                box.installStatus === "INSTALL_CONFIRMED" ||
                 box.installStatus === "REMOVE_REQUEST" ||
                 box.installStatus === "REMOVE_IN_PROGRESS"
             )
@@ -405,6 +416,14 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
             })
         }
 
+        console.log("displayedBoxes:", filtered.map(box => ({
+            id: box.id,
+            name: box.name,
+            lat: box.lat,
+            lng: box.lng,
+            installStatus: box.installStatus
+        })));
+
         return filtered
     }, [filteredBoxes, searchTerm, addressMap, shouldDisplayBox, region, extractRegionInfo, isCoordinateInRegion])
 
@@ -441,6 +460,84 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
             geocoderRef.current = new window.kakao.maps.services.Geocoder()
         }
     }, [])
+
+    // 주소 변환 로직 수정 - 완전히 새로운 접근 방식
+    useEffect(() => {
+        // filteredBoxes가 비어있거나 지오코더가 없으면 실행하지 않음
+        if (filteredBoxes.length === 0 || !geocoderRef.current) {
+            return
+        }
+
+        // 주소 변환 함수 최적화 - 배치 처리
+        const fetchAddresses = async () => {
+            const newAddressMap = {}
+            const existingAddresses = { ...addressMap }
+
+            // 주소 변환이 필요한 박스만 필터링
+            // 추천 위치 제외 - point_type 속성이 있는 객체는 추천 위치로 간주
+            const boxesNeedingAddress = filteredBoxes.filter(
+                (box) =>
+                    !existingAddresses[box.id] &&
+                    box.lat &&
+                    box.lng &&
+                    !box.point_type && // 추천 위치 제외
+                    box.type !== "fireStation" && // 소방서 위치 제외
+                    box.type !== "safetyZone", // 어린이보호구역 제외
+            )
+
+            // 배치 크기 설정 (한 번에 처리할 박스 수)
+            const batchSize = 5
+
+            for (let i = 0; i < boxesNeedingAddress.length; i += batchSize) {
+                const batch = boxesNeedingAddress.slice(i, i + batchSize)
+
+                // 병렬 처리를 위한 Promise 배열
+                const promises = batch.map(
+                    (box) =>
+                        new Promise((resolve) => {
+                            geocoderRef.current.coord2Address(box.lng, box.lat, (result, status) => {
+                                if (status === window.kakao.maps.services.Status.OK) {
+                                    newAddressMap[box.id] = result[0].road_address
+                                        ? result[0].road_address.address_name
+                                        : result[0].address.address_name
+                                } else {
+                                    newAddressMap[box.id] = "주소 변환 실패"
+                                }
+                                resolve()
+                            })
+                        }),
+                )
+
+                // 배치 내의 모든 Promise 완료 대기
+                await Promise.all(promises)
+
+                // 각 배치 처리 후 상태 업데이트 - 점진적 UI 업데이트
+                if (Object.keys(newAddressMap).length > 0) {
+                    setAddressMap((prev) => ({ ...prev, ...newAddressMap }))
+                }
+            }
+
+            // 기존 주소가 있는 박스들의 주소 유지
+            filteredBoxes.forEach((box) => {
+                if (existingAddresses[box.id] && !newAddressMap[box.id]) {
+                    newAddressMap[box.id] = existingAddresses[box.id]
+                }
+            })
+
+            // 주소 변환 완료 플래그 설정 제거 - 항상 주소 변환이 실행되도록 함
+        }
+
+        fetchAddresses()
+    }, [filteredBoxes, addressMap])
+
+    // 기존 주소 변환 로직 제거 (아래 코드 삭제)
+    // useEffect(() => {
+    //   // 이미 주소를 가져왔거나 filteredBoxes가 비어있거나 지오코더가 없으면 실행하지 않음
+    //   if (addressFetchedRef.current || filteredBoxes.length === 0 || !geocoderRef.current) {
+    //     return;
+    //   }
+    //   ...
+    // }, [filteredBoxes, addressMap]);
 
     // 모든 데이터 로드 함수 - useCallback으로 최적화
     const loadAllData = useCallback(async () => {
@@ -547,73 +644,6 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
     )
 
     // 주소 변환 로직 최적화 - 추천 위치 제외
-    useEffect(() => {
-        // 이미 주소를 가져왔거나 filteredBoxes가 비어있거나 지오코더가 없으면 실행하지 않음
-        if (addressFetchedRef.current || filteredBoxes.length === 0 || !geocoderRef.current) {
-            return
-        }
-
-        // 주소 변환 함수 최적화 - 배치 처리
-        const fetchAddresses = async () => {
-            const newAddressMap = {}
-            const existingAddresses = { ...addressMap }
-
-            // 주소 변환이 필요한 박스만 필터링
-            // 추천 위치 제외 - point_type 속성이 있는 객체는 추천 위치로 간주
-            const boxesNeedingAddress = filteredBoxes.filter(
-                (box) =>
-                    !existingAddresses[box.id] &&
-                    box.lat &&
-                    box.lng &&
-                    !box.point_type && // 추천 위치 제외
-                    box.type !== "fireStation" && // 소방서 위치 제외
-                    box.type !== "safetyZone", // 어린이보호구역 제외
-            )
-
-            // 배치 크기 설정 (한 번에 처리할 박스 수)
-            const batchSize = 5
-
-            for (let i = 0; i < boxesNeedingAddress.length; i += batchSize) {
-                const batch = boxesNeedingAddress.slice(i, i + batchSize)
-
-                // 병렬 처리를 위한 Promise 배열
-                const promises = batch.map(
-                    (box) =>
-                        new Promise((resolve) => {
-                            geocoderRef.current.coord2Address(box.lng, box.lat, (result, status) => {
-                                if (status === window.kakao.maps.services.Status.OK) {
-                                    newAddressMap[box.id] = result[0].road_address
-                                        ? result[0].road_address.address_name
-                                        : result[0].address.address_name
-                                } else {
-                                    newAddressMap[box.id] = "주소 변환 실패"
-                                }
-                                resolve()
-                            })
-                        }),
-                )
-
-                // 배치 내의 모든 Promise 완료 대기
-                await Promise.all(promises)
-
-                // 각 배치 처리 후 상태 업데이트 - 점진적 UI 업데이트
-                if (Object.keys(newAddressMap).length > 0) {
-                    setAddressMap((prev) => ({ ...prev, ...newAddressMap }))
-                }
-            }
-
-            // 기존 주소가 있는 박스들의 주소 유지
-            filteredBoxes.forEach((box) => {
-                if (existingAddresses[box.id] && !newAddressMap[box.id]) {
-                    newAddressMap[box.id] = existingAddresses[box.id]
-                }
-            })
-
-            addressFetchedRef.current = true
-        }
-
-        fetchAddresses()
-    }, [filteredBoxes, addressMap])
 
     // 입력 필드 클릭 핸들러 - 지도 클릭 이벤트 일시적으로 비활성화
     const handleInputFocus = useCallback(() => {
@@ -647,10 +677,22 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
             // 기존 핀 오버레이가 열려있으면 닫기
             setShowExistingPinOverlay(false)
 
+            // 좌표 파싱 부분 확인
+            // 위치 파싱 (띄어쓰기 유무 상관없이 처리)
+            let lng = 0
+            let lat = 0
+            if (location) {
+                const coordsMatch = location.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/)
+                if (coordsMatch) {
+                    lng = Number.parseFloat(coordsMatch[1])
+                    lat = Number.parseFloat(coordsMatch[2])
+                }
+            }
+
             // 클릭한 추천 위치에 새 핀 생성
             setNewPinPosition({
-                lat: location.lat,
-                lng: location.lng,
+                lat: lat || location.lat,
+                lng: lng || location.lng,
             })
             setShowNewPinOverlay(true)
 
@@ -667,7 +709,7 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
             INSTALL_REQUEST: "설치 요청 중",
             INSTALL_IN_PROGRESS: "설치 진행 중",
             INSTALL_COMPLETED: "설치 완료",
-            INSTALL_CONFIRME: "설치 확정",
+            INSTALL_CONFIRMED: "설치 확정",
             REMOVE_REQUEST: "제거 요청 중",
             REMOVE_IN_PROGRESS: "제거 진행 중",
             REMOVE_COMPLETED: "제거 완료",
@@ -720,7 +762,7 @@ const MapWithSidebar = ({ filteredBoxes, isMainPage = false, isAddRemovePage = f
             } else {
                 // 설치 확정, 제거 요청 중, 제거 진행 중 상태 확인을 먼저
                 if (
-                    box.installStatus === "INSTALL_CONFIRME" ||
+                    box.installStatus === "INSTALL_CONFIRMED" ||
                     box.installStatus === "REMOVE_REQUEST" ||
                     box.installStatus === "REMOVE_IN_PROGRESS"
                 ) {

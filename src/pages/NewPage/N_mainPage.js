@@ -142,7 +142,7 @@ const N_mainPage = () => {
                     let lng = 0
                     let lat = 0
                     if (location) {
-                        const coordsMatch = location.match(/POINT\s*$$\s*([-\d.]+)\s+([-\d.]+)\s*$$/)
+                        const coordsMatch = location.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/)
                         if (coordsMatch) {
                             lng = Number.parseFloat(coordsMatch[1])
                             lat = Number.parseFloat(coordsMatch[2])
@@ -470,7 +470,7 @@ const N_mainPage = () => {
                         </div>
                     </div>
 
-                    <MapWithSidebar filteredBoxes={filteredBoxes} isMainPage={true} />
+                    <MapWithSidebar filteredBoxes={filteredBoxes}/>
                     <div className="pb-8"></div>
 
                     {/* 배출량, 수거량 탭 */}
