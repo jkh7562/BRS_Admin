@@ -1,5 +1,7 @@
+"use client"
+
 import { useEffect, useState } from "react"
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import MapWithSidebar from "../../component/MapWithSidebar"
@@ -16,7 +18,7 @@ import FireInfoIcon from "../../assets/FireInfo.png"
 import { fetchEmployeeRequests, getBoxLog, findAllBox } from "../../api/apiServices"
 
 const N_mainPage = () => {
-    const navigate = useNavigate();
+    const navigate = useNavigate()
     const tabs = ["전체 수거함", "건전지", "방전 배터리", "잔여 용량 배터리"]
     const [selectedEmissionTab, setSelectedEmissionTab] = useState("전체 수거함")
     const [selectedCollectionTab, setSelectedCollectionTab] = useState("전체 수거함")
@@ -29,6 +31,43 @@ const N_mainPage = () => {
     const [todayDischargeTotal, setTodayDischargeTotal] = useState(0)
     const [todayCollectionTotal, setTodayCollectionTotal] = useState(0)
     const [todayUserCount, setTodayUserCount] = useState(0)
+
+    // 툴팁 상태 관리
+    const [tooltips, setTooltips] = useState({
+        discharge: false,
+        collection: false,
+        users: false,
+        userInquiry: false,
+        collectorInquiry: false,
+        generalInquiry: false,
+        fire: false,
+    })
+
+    // 툴팁 토글 함수
+    const toggleTooltip = (name, e) => {
+        e.stopPropagation() // 이벤트 버블링 방지
+        setTooltips((prev) => ({
+            ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}), // 모든 툴팁 닫기
+            [name]: !prev[name], // 선택한 툴팁만 토글
+        }))
+    }
+
+    // 툴팁 외부 클릭 시 닫기 함수
+    const handleClickOutside = (e) => {
+        if (!e.target.closest(".tooltip-container")) {
+            setTooltips((prev) => Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}))
+        }
+    }
+
+    // 컴포넌트가 마운트될 때 document에 이벤트 리스너 추가
+    useEffect(() => {
+        document.addEventListener("mousedown", handleClickOutside)
+
+        // 컴포넌트 언마운트 시 이벤트 리스너 제거
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+        }
+    }, [])
 
     useEffect(() => {
         const loadEmployeeRequests = async () => {
@@ -48,7 +87,7 @@ const N_mainPage = () => {
 
                 if (Array.isArray(boxLogData)) {
                     const today = new Date()
-                    const todayDateStr = today.toISOString().split('T')[0]
+                    const todayDateStr = today.toISOString().split("T")[0]
 
                     let dischargeSum = 0
                     let collectionSum = 0
@@ -59,7 +98,7 @@ const N_mainPage = () => {
                         if (!boxLog) return
 
                         const logDate = new Date(boxLog.date)
-                        const logDateStr = logDate.toISOString().split('T')[0]
+                        const logDateStr = logDate.toISOString().split("T")[0]
 
                         if (logDateStr === todayDateStr) {
                             if (boxLog.type === "분리") {
@@ -84,40 +123,51 @@ const N_mainPage = () => {
 
         const loadBoxes = async () => {
             try {
-                const data = await findAllBox();
+                const data = await findAllBox()
                 const mappedBoxes = data.map((entry) => {
-                    const { id, name, location, volume1, volume2, volume3, fireStatus1, fireStatus2, fireStatus3, installStatus } = entry.box;
+                    const {
+                        id,
+                        name,
+                        location,
+                        volume1,
+                        volume2,
+                        volume3,
+                        fireStatus1,
+                        fireStatus2,
+                        fireStatus3,
+                        installStatus,
+                    } = entry.box
 
                     // 위치 파싱 (띄어쓰기 유무 상관없이 처리)
-                    let lng = 0;
-                    let lat = 0;
+                    let lng = 0
+                    let lat = 0
                     if (location) {
-                        const coordsMatch = location.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/);
+                        const coordsMatch = location.match(/POINT\s*$$\s*([-\d.]+)\s+([-\d.]+)\s*$$/)
                         if (coordsMatch) {
-                            lng = parseFloat(coordsMatch[1]);
-                            lat = parseFloat(coordsMatch[2]);
+                            lng = Number.parseFloat(coordsMatch[1])
+                            lat = Number.parseFloat(coordsMatch[2])
                         }
                     }
 
                     // 상태 계산
-                    let status = "normal";
-                    const fireDetected = [fireStatus1, fireStatus2, fireStatus3].includes("FIRE");
-                    const volumeThresholdExceeded = [volume1, volume2, volume3].some((v) => v >= 81);
+                    let status = "normal"
+                    const fireDetected = [fireStatus1, fireStatus2, fireStatus3].includes("FIRE")
+                    const volumeThresholdExceeded = [volume1, volume2, volume3].some((v) => v >= 81)
 
                     if (fireDetected) {
-                        status = "fire";
+                        status = "fire"
                     } else if (volumeThresholdExceeded) {
-                        status = "need-collect";
+                        status = "need-collect"
                     }
 
-                    return { id, name, lat, lng, status, installStatus, volume1, volume2, volume3 };
-                });
+                    return { id, name, lat, lng, status, installStatus, volume1, volume2, volume3 }
+                })
 
-                setBoxes(mappedBoxes);
+                setBoxes(mappedBoxes)
             } catch (error) {
-                console.error("수거함 정보 로딩 실패:", error);
+                console.error("수거함 정보 로딩 실패:", error)
             }
-        };
+        }
 
         loadEmployeeRequests()
         loadBoxLog()
@@ -127,13 +177,28 @@ const N_mainPage = () => {
     const filteredBoxes =
         selectedTab === "전체 수거함"
             ? boxes
-            : boxes.filter((box) =>
-                selectedTab === "수거 필요" ? box.status === "need-collect" : box.status === "fire",
-            )
+            : boxes.filter((box) => (selectedTab === "수거 필요" ? box.status === "need-collect" : box.status === "fire"))
 
     const goToApprovalPage = () => {
-        navigate('/n_UserApprovalPage'); // React Router를 사용하는 경우
-    };
+        navigate("/n_UserApprovalPage") // React Router를 사용하는 경우
+    }
+
+    // 툴팁 컴포넌트
+    const Tooltip = ({ isVisible, content, position = "right" }) => {
+        if (!isVisible) return null
+
+        const positionClass = position === "right" ? "right-0 mt-2" : position === "left" ? "left-0 mt-2" : "right-0 mt-2"
+
+        // 화살표 위치 클래스 추가
+        const arrowPositionClass = position === "left" ? "left-1" : "right-1"
+
+        return (
+            <div className={`absolute ${positionClass} w-64 bg-white text-gray-800 rounded-md shadow-lg p-4 z-50`}>
+                <div className={`absolute -top-2 ${arrowPositionClass} w-4 h-4 bg-white transform rotate-45`}></div>
+                {content}
+            </div>
+        )
+    }
 
     return (
         <div className="flex min-h-screen w-full bg-[#F3F3F5]">
@@ -145,15 +210,14 @@ const N_mainPage = () => {
 
                     <div className="flex gap-4">
                         {/* 신규 수거자 가입신청 */}
-                        <div className="w-[19%] bg-[#21262B] rounded-2xl p-4 shadow cursor-pointer"
-                             onClick={goToApprovalPage}>
+                        <div className="w-[19%] bg-[#21262B] rounded-2xl p-4 shadow cursor-pointer" onClick={goToApprovalPage}>
                             <div className="flex items-center gap-2 mt-4 ml-4 mr-4 mb-4">
-                                <img src={joinIcon} alt="신규 수거자" className="w-6 h-6"/>
+                                <img src={joinIcon || "/placeholder.svg"} alt="신규 수거자" className="w-6 h-6" />
                                 <h2 className="font-bold text-xl text-white whitespace-nowrap">신규 수거자 가입신청</h2>
                             </div>
                             <p className="text-sm text-[#A5ACBA] ml-4 mr-4 mb-6">
-                                가입신청이 들어왔어요! 여기를 눌러 <span
-                                className="text-blue-400 underline cursor-pointer">확인</span> 해주세요!
+                                가입신청이 들어왔어요! 여기를 눌러 <span className="text-blue-400 underline cursor-pointer">확인</span>{" "}
+                                해주세요!
                             </p>
                             <p className="font-bold text-[22px] text-white mt-3 ml-4">{employeeRequestCount}건</p>
                         </div>
@@ -162,7 +226,7 @@ const N_mainPage = () => {
                         <div className="flex-1 bg-white rounded-2xl p-4 shadow">
                             <div className="flex items-center justify-between mb-14">
                                 <div className="flex items-center gap-2 mt-4 ml-6">
-                                    <img src={dayIcon} alt="일간" className="w-5 h-5"/>
+                                    <img src={dayIcon || "/placeholder.svg"} alt="일간" className="w-5 h-5" />
                                     <h2 className="pl-1 text-xl font-bold text-[#21262B]">일간 이용 현황</h2>
                                 </div>
                                 <p className="text-sm font-medium text-[#7A7F8A] pr-3 mt-4">마지막 업데이트 2025.03.31</p>
@@ -173,35 +237,83 @@ const N_mainPage = () => {
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
                                         <p className="text-gray-500">일간 배출량</p>
-                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
+                                        <div className="tooltip-container relative">
+                                            <img
+                                                src={infoIcon || "/placeholder.svg"}
+                                                alt="info"
+                                                className="w-4 h-4 cursor-pointer"
+                                                onClick={(e) => toggleTooltip("discharge", e)}
+                                            />
+                                            <Tooltip
+                                                isVisible={tooltips.discharge}
+                                                content={
+                                                    <>
+                                                        <h3 className="font-bold text-sm mb-2">일간 배출량</h3>
+                                                        <p className="text-xs">오늘 하루 동안 수거함에 배출된 배터리의 총량입니다.</p>
+                                                    </>
+                                                }
+                                            />
+                                        </div>
                                     </div>
                                     <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayDischargeTotal}</p>
                                 </div>
 
                                 {/* 구분선 */}
                                 <div className="hidden md:flex justify-center px-4">
-                                    <img src={lineIcon} alt="line" className="h-8"/>
+                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8" />
                                 </div>
 
                                 {/* 일간 수거량 */}
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
                                         <p className="text-gray-500">일간 수거량</p>
-                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
+                                        <div className="tooltip-container relative">
+                                            <img
+                                                src={infoIcon || "/placeholder.svg"}
+                                                alt="info"
+                                                className="w-4 h-4 cursor-pointer"
+                                                onClick={(e) => toggleTooltip("collection", e)}
+                                            />
+                                            <Tooltip
+                                                isVisible={tooltips.collection}
+                                                content={
+                                                    <>
+                                                        <h3 className="font-bold text-sm mb-2">일간 수거량</h3>
+                                                        <p className="text-xs">오늘 하루 동안 수거함에서 수거된 배터리의 총량입니다.</p>
+                                                    </>
+                                                }
+                                            />
+                                        </div>
                                     </div>
                                     <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayCollectionTotal}</p>
                                 </div>
 
                                 {/* 구분선 */}
                                 <div className="hidden md:flex justify-center px-4">
-                                    <img src={lineIcon} alt="line" className="h-8"/>
+                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8" />
                                 </div>
 
                                 {/* 일간 이용자수 */}
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
                                         <p className="text-gray-500">일간 이용자</p>
-                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
+                                        <div className="tooltip-container relative">
+                                            <img
+                                                src={infoIcon || "/placeholder.svg"}
+                                                alt="info"
+                                                className="w-4 h-4 cursor-pointer"
+                                                onClick={(e) => toggleTooltip("users", e)}
+                                            />
+                                            <Tooltip
+                                                isVisible={tooltips.users}
+                                                content={
+                                                    <>
+                                                        <h3 className="font-bold text-sm mb-2">일간 이용자</h3>
+                                                        <p className="text-xs">오늘 하루 동안 수거함을 이용한 고유 사용자 수입니다.</p>
+                                                    </>
+                                                }
+                                            />
+                                        </div>
                                     </div>
                                     <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayUserCount}명</p>
                                 </div>
@@ -212,7 +324,7 @@ const N_mainPage = () => {
                         <div className="flex-1 bg-white rounded-2xl p-4 shadow">
                             <div className="flex items-center justify-between mb-14">
                                 <div className="flex items-center gap-2 mt-4 ml-6">
-                                    <img src={customerIcon} alt="고객 관리" className="w-5 h-5"/>
+                                    <img src={customerIcon || "/placeholder.svg"} alt="고객 관리" className="w-5 h-5" />
                                     <h2 className="text-xl font-bold text-[#21262B]">고객 관리</h2>
                                 </div>
                                 <p className="text-sm font-medium text-[#7A7F8A] pr-3 mt-4">마지막 업데이트 2025.03.31</p>
@@ -222,31 +334,82 @@ const N_mainPage = () => {
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
                                         <p className="text-gray-500">사용자 문의</p>
-                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
+                                        <div className="tooltip-container relative">
+                                            <img
+                                                src={infoIcon || "/placeholder.svg"}
+                                                alt="info"
+                                                className="w-4 h-4 cursor-pointer"
+                                                onClick={(e) => toggleTooltip("userInquiry", e)}
+                                            />
+                                            <Tooltip
+                                                isVisible={tooltips.userInquiry}
+                                                content={
+                                                    <>
+                                                        <h3 className="font-bold text-sm mb-2">사용자 문의</h3>
+                                                        <p className="text-xs">일반 사용자로부터 접수된 문의 건수입니다.</p>
+                                                        <p className="text-xs mt-2">미처리 상태인 문의만 표시됩니다.</p>
+                                                    </>
+                                                }
+                                            />
+                                        </div>
                                     </div>
                                     <p className="font-bold text-[22px] text-[#21262B] mt-2">13건</p>
                                 </div>
 
                                 <div className="hidden md:flex justify-center px-4">
-                                    <img src={lineIcon} alt="line" className="h-8"/>
+                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8" />
                                 </div>
 
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
                                         <p className="text-gray-500">수거자 문의</p>
-                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
+                                        <div className="tooltip-container relative">
+                                            <img
+                                                src={infoIcon || "/placeholder.svg"}
+                                                alt="info"
+                                                className="w-4 h-4 cursor-pointer"
+                                                onClick={(e) => toggleTooltip("collectorInquiry", e)}
+                                            />
+                                            <Tooltip
+                                                isVisible={tooltips.collectorInquiry}
+                                                content={
+                                                    <>
+                                                        <h3 className="font-bold text-sm mb-2">수거자 문의</h3>
+                                                        <p className="text-xs">수거자로부터 접수된 문의 건수입니다.</p>
+                                                        <p className="text-xs mt-2">미처리 상태인 문의만 표시됩니다.</p>
+                                                    </>
+                                                }
+                                            />
+                                        </div>
                                     </div>
                                     <p className="font-bold text-[22px] text-[#21262B] mt-2">5건</p>
                                 </div>
 
                                 <div className="hidden md:flex justify-center px-4">
-                                    <img src={lineIcon} alt="line" className="h-8"/>
+                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8" />
                                 </div>
 
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
                                         <p className="text-gray-500">일반 민원</p>
-                                        <img src={infoIcon} alt="info" className="w-4 h-4"/>
+                                        <div className="tooltip-container relative">
+                                            <img
+                                                src={infoIcon || "/placeholder.svg"}
+                                                alt="info"
+                                                className="w-4 h-4 cursor-pointer"
+                                                onClick={(e) => toggleTooltip("generalInquiry", e)}
+                                            />
+                                            <Tooltip
+                                                isVisible={tooltips.generalInquiry}
+                                                content={
+                                                    <>
+                                                        <h3 className="font-bold text-sm mb-2">일반 민원</h3>
+                                                        <p className="text-xs">외부 기관이나 비회원으로부터 접수된 민원 건수입니다.</p>
+                                                        <p className="text-xs mt-2">미처리 상태인 민원만 표시됩니다.</p>
+                                                    </>
+                                                }
+                                            />
+                                        </div>
                                     </div>
                                     <p className="font-bold text-[22px] text-[#21262B] mt-2">0건</p>
                                 </div>
@@ -258,7 +421,7 @@ const N_mainPage = () => {
                     <div className="pt-12 mb-4">
                         <h3 className="text-xl font-bold mb-4 text-[#272F42]">수거함 현황</h3>
                         <div className="relative mb-9">
-                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200"/>
+                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200" />
                             <div className="flex items-center gap-6">
                                 {["전체 수거함", "수거 필요", "화재감지"].map((tab) => (
                                     <button
@@ -278,7 +441,28 @@ const N_mainPage = () => {
                                     >
                                         {tab}
                                         {tab === "화재감지" && (
-                                            <img src={FireInfoIcon} alt="화재" className="w-4 h-4 ml-1"/>
+                                            <div className="tooltip-container relative">
+                                                <img
+                                                    src={FireInfoIcon || "/placeholder.svg"}
+                                                    alt="화재"
+                                                    className="w-4 h-4 ml-1 cursor-pointer"
+                                                    onClick={(e) => toggleTooltip("fire", e)}
+                                                />
+                                                <Tooltip
+                                                    isVisible={tooltips.fire}
+                                                    content={
+                                                        <>
+                                                            <h3 className="font-bold text-sm mb-2 text-[#940000]">화재 감지 정보</h3>
+                                                            <p className="text-xs">수거함 내부에 화재가 감지된 수거함 목록입니다.</p>
+                                                            <p className="text-xs mt-2">화재 감지 시 즉시 알림이 발송됩니다.</p>
+                                                            <p className="text-xs mt-2 font-semibold text-[#940000]">
+                                                                화재 감지 수거함은 긴급 조치가 필요합니다!
+                                                            </p>
+                                                        </>
+                                                    }
+                                                    position="left"
+                                                />
+                                            </div>
                                         )}
                                     </button>
                                 ))}
@@ -286,18 +470,18 @@ const N_mainPage = () => {
                         </div>
                     </div>
 
-                    <MapWithSidebar filteredBoxes={filteredBoxes} isMainPage={true}/>
+                    <MapWithSidebar filteredBoxes={filteredBoxes} isMainPage={true} />
                     <div className="pb-8"></div>
 
                     {/* 배출량, 수거량 탭 */}
                     <div className="grid grid-cols-2 gap-6">
                         <div>
                             <h3 className="text-[#272F42] text-xl font-bold mb-3">배출량</h3>
-                            <DischargeChart/>
+                            <DischargeChart />
                         </div>
                         <div>
                             <h3 className="text-[#272F42] text-xl font-bold mb-3">수거량</h3>
-                            <CollectionChart/>
+                            <CollectionChart />
                         </div>
                     </div>
 
@@ -305,7 +489,7 @@ const N_mainPage = () => {
                     <div className="pt-8 pb-6">
                         <h3 className="text-xl font-bold text-[#272F42] mb-4">회원 정보 검색</h3>
                         <div className="relative">
-                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200"/>
+                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200" />
                             <div className="flex gap-6">
                                 {memberTabs.map((tab) => (
                                     <button
@@ -324,9 +508,9 @@ const N_mainPage = () => {
                         </div>
                     </div>
 
-                    {memberselectedTab === "사용자" ? <UserInfoSection/> : <CollectorInfoSection/>}
+                    {memberselectedTab === "사용자" ? <UserInfoSection /> : <CollectorInfoSection />}
 
-                    <div className="pb-32"/>
+                    <div className="pb-32" />
                 </main>
             </div>
         </div>
@@ -334,4 +518,3 @@ const N_mainPage = () => {
 }
 
 export default N_mainPage
-

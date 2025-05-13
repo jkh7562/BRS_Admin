@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"  // useEffect 추가
 import { useNavigate, useLocation } from "react-router-dom"
 import { logout } from "../api/apiServices"
 import logoImage from "../assets/로고.png"
@@ -33,10 +33,36 @@ const Sidebar = () => {
         react: true,
         flask: true,
     })
+    // 툴팁 표시 여부를 관리하는 상태 추가
+    const [showTooltip, setShowTooltip] = useState(false)
 
     const toggleSection = (key) => {
         setOpenSection((prev) => ({ ...prev, [key]: !prev[key] }))
     }
+
+    // 툴팁 토글 함수
+    const toggleTooltip = (e) => {
+        e.stopPropagation() // 이벤트 버블링 방지
+        setShowTooltip(!showTooltip)
+    }
+
+    // 툴팁 외부 클릭 시 닫기 함수
+    const handleClickOutside = (e) => {
+        if (showTooltip && !e.target.closest('.tooltip-container')) {
+            setShowTooltip(false)
+        }
+    }
+
+    // 컴포넌트가 마운트될 때 document에 이벤트 리스너 추가 (useState -> useEffect로 수정)
+    useEffect(() => {
+        // 이벤트 리스너 추가
+        document.addEventListener('mousedown', handleClickOutside)
+
+        // 컴포넌트 언마운트 시 이벤트 리스너 제거
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+        }
+    }, [showTooltip]) // showTooltip이 변경될 때마다 이펙트 재실행
 
     const menuList = [
         {
@@ -136,9 +162,31 @@ const Sidebar = () => {
                 </ul>
 
                 <div className="mt-12 pt-4 text-base space-y-2 pl-6">
-                    <div className="flex items-center gap-44 text-[#A5ACBA]">
+                    <div className="flex items-center gap-44 text-[#A5ACBA] relative">
                         <p>서버 관리</p>
-                        <img src={infoIcon || "/placeholder.svg"} alt="info" className="w-4 h-4"/>
+                        {/* 툴팁 컨테이너 */}
+                        <div className="tooltip-container relative">
+                            <img
+                                src={infoIcon || "/placeholder.svg"}
+                                alt="info"
+                                className="w-4 h-4 cursor-pointer"
+                                onClick={toggleTooltip}
+                            />
+
+                            {/* 툴팁 말풍선 */}
+                            {showTooltip && (
+                                <div className="absolute right-0 mt-2 w-64 bg-white text-gray-800 rounded-md shadow-lg p-4 z-50">
+                                    <div className="absolute -top-2 right-1 w-4 h-4 bg-white transform rotate-45"></div>
+                                    <h3 className="font-bold text-sm mb-2">서버 관리 안내</h3>
+                                    <p className="text-xs mb-2">각 서버의 상태를 확인할 수 있습니다.</p>
+                                    <ul className="text-xs list-disc pl-4">
+                                        <li>초록색 점: 정상 작동 중</li>
+                                        <li>빨간색 점: 오류 발생</li>
+                                    </ul>
+                                    <p className="text-xs mt-2">각 항목을 클릭하면 세부 정보를 확인할 수 있습니다.</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Spring Boot */}
