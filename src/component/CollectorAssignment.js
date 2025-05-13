@@ -68,6 +68,58 @@ export default function CollectorAssignment() {
     const [selectedPeriod, setSelectedPeriod] = useState("일")
     const [selectedRegion, setSelectedRegion] = useState("충청남도")
 
+    // 툴팁 상태 관리 추가
+    const [tooltips, setTooltips] = useState({
+        province: false,
+        city: false,
+    })
+
+    // 툴팁 토글 함수
+    const toggleTooltip = (name, e) => {
+        e.stopPropagation() // 이벤트 버블링 방지
+        setTooltips((prev) => ({
+            ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}), // 모든 툴팁 닫기
+            [name]: !prev[name], // 선택한 툴팁만 토글
+        }))
+    }
+
+    // 툴팁 외부 클릭 시 닫기 함수
+    const handleClickOutside = (e) => {
+        if (!e.target.closest(".tooltip-container")) {
+            setTooltips((prev) => Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}))
+        }
+    }
+
+    // 컴포넌트가 마운트될 때 document에 이벤트 리스너 추가
+    useEffect(() => {
+        document.addEventListener("mousedown", handleClickOutside)
+
+        // 컴포넌트 언마운트 시 이벤트 리스너 제거
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+        }
+    }, [])
+
+    // 툴팁 컴포넌트
+    const Tooltip = ({ isVisible, content, position = "right" }) => {
+        if (!isVisible) return null
+
+        const positionClass = position === "right" ? "right-0 mt-2" : position === "left" ? "left-0 mt-2" : "right-0 mt-2"
+
+        // 화살표 위치 클래스 추가
+        const arrowPositionClass = position === "left" ? "left-1" : "right-1"
+
+        return (
+            <div
+                className={`absolute ${positionClass} w-64 bg-white text-gray-800 rounded-md shadow-lg p-4`}
+                style={{ zIndex: 99999 }}
+            >
+                <div className={`absolute -top-2 ${arrowPositionClass} w-4 h-4 bg-white transform rotate-45`}></div>
+                {content}
+            </div>
+        )
+    }
+
     // 지역 및 도시 데이터
     const regionData = {
         "광역시/도": [], // 전체 선택 옵션
@@ -142,7 +194,7 @@ export default function CollectorAssignment() {
                             <div className="mr-4">
                                 <div className="w-14 h-14 rounded-full bg-gray-200 overflow-hidden">
                                     <img
-                                        src={UserIcon}
+                                        src={UserIcon || "/placeholder.svg"}
                                         alt="프로필 이미지"
                                         className="w-full h-full object-cover"
                                     />
@@ -163,12 +215,30 @@ export default function CollectorAssignment() {
 
                         {/* Stats Cards */}
                         <div className="flex flex-col md:flex-row items-start md:items-center mt-6 mb-6">
-                            <div className="py-4">
+                            <div className="py-4 relative">
                                 <div className="flex items-center justify-start gap-2 mb-2">
                                     <span className="text-sm font-normal text-[#60697E]">광역시/도</span>
-                                    <span>
-                    <img src={InfoIcon || "/placeholder.svg"} alt="정보" className="w-4 h-4 object-contain" />
-                  </span>
+                                    <div className="tooltip-container relative">
+                                        <img
+                                            src={InfoIcon || "/placeholder.svg"}
+                                            alt="정보"
+                                            className="w-4 h-4 object-contain cursor-pointer"
+                                            onClick={(e) => toggleTooltip("province", e)}
+                                        />
+                                        {tooltips.province && (
+                                            <Tooltip
+                                                isVisible={tooltips.province}
+                                                position="left"
+                                                content={
+                                                    <>
+                                                        <h3 className="font-bold text-sm mb-2">광역시/도</h3>
+                                                        <p className="text-xs">수거자가 담당하는 광역시/도를 선택합니다.</p>
+                                                        <p className="text-xs mt-2">선택한 광역시/도에 따라 시/군/구 목록이 변경됩니다.</p>
+                                                    </>
+                                                }
+                                            />
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="dropdown-container">
                                     <CustomDropdown
@@ -183,12 +253,29 @@ export default function CollectorAssignment() {
                             {/* Added spacing between the two sections */}
                             <div className="w-8 md:w-4"></div>
 
-                            <div className="py-4">
+                            <div className="py-4 relative">
                                 <div className="flex items-center justify-start gap-2 mb-2">
                                     <span className="text-sm font-normal text-[#60697E]">시/군/구</span>
-                                    <span>
-                    <img src={InfoIcon || "/placeholder.svg"} alt="정보" className="w-4 h-4 object-contain" />
-                  </span>
+                                    <div className="tooltip-container relative">
+                                        <img
+                                            src={InfoIcon || "/placeholder.svg"}
+                                            alt="정보"
+                                            className="w-4 h-4 object-contain cursor-pointer"
+                                            onClick={(e) => toggleTooltip("city", e)}
+                                        />
+                                        {tooltips.city && (
+                                            <Tooltip
+                                                isVisible={tooltips.city}
+                                                content={
+                                                    <>
+                                                        <h3 className="font-bold text-sm mb-2">시/군/구</h3>
+                                                        <p className="text-xs">수거자가 담당하는 시/군/구를 선택합니다.</p>
+                                                        <p className="text-xs mt-2">선택한 지역의 수거함을 담당하게 됩니다.</p>
+                                                    </>
+                                                }
+                                            />
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="dropdown-container">
                                     <CustomDropdown
