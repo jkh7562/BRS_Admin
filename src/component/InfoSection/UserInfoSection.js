@@ -4,7 +4,7 @@ import CopyIcon from "../../assets/copy.png"
 import InfoIcon from "../../assets/추가정보2.png"
 import LineIcon from "../../assets/구분선.png"
 import VectorIcon from "../../assets/Vector.png"
-import UserIcon from "../../assets/user.png";
+import UserIcon from "../../assets/user.png"
 import { findUserAll, getBoxLog, fetchOrdersByUserId } from "../../api/apiServices" // API 임포트
 
 export default function UserInfoSection() {
@@ -18,6 +18,40 @@ export default function UserInfoSection() {
         orders: false,
     })
     const [boxLogs, setBoxLogs] = useState(null)
+
+    // 툴팁 상태 관리 추가
+    const [tooltips, setTooltips] = useState({
+        totalDisposal: false,
+        totalPoints: false,
+        usedPoints: false,
+        remainingPoints: false,
+    })
+
+    // 툴팁 토글 함수
+    const toggleTooltip = (name, e) => {
+        e.stopPropagation() // 이벤트 버블링 방지
+        setTooltips((prev) => ({
+            ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}), // 모든 툴팁 닫기
+            [name]: !prev[name], // 선택한 툴팁만 토글
+        }))
+    }
+
+    // 툴팁 외부 클릭 시 닫기 함수
+    const handleClickOutside = (e) => {
+        if (!e.target.closest(".tooltip-container")) {
+            setTooltips((prev) => Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}))
+        }
+    }
+
+    // 컴포넌트가 마운트될 때 document에 이벤트 리스너 추가
+    useEffect(() => {
+        document.addEventListener("mousedown", handleClickOutside)
+
+        // 컴포넌트 언마운트 시 이벤트 리스너 제거
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+        }
+    }, [])
 
     // 사용자 목록 불러오기
     useEffect(() => {
@@ -92,6 +126,26 @@ export default function UserInfoSection() {
         return userLogs.reduce((total, log) => total + (log.amount || 0), 0)
     }
 
+    // 툴팁 컴포넌트
+    const Tooltip = ({ isVisible, content, position = "right" }) => {
+        if (!isVisible) return null
+
+        const positionClass = position === "right" ? "right-0 mt-2" : position === "left" ? "left-0 mt-2" : "right-0 mt-2"
+
+        // 화살표 위치 클래스 추가
+        const arrowPositionClass = position === "left" ? "left-1" : "right-1"
+
+        return (
+            <div
+                className={`absolute ${positionClass} w-64 bg-white text-gray-800 rounded-md shadow-lg p-4`}
+                style={{ zIndex: 99999 }}
+            >
+                <div className={`absolute -top-2 ${arrowPositionClass} w-4 h-4 bg-white transform rotate-45`}></div>
+                {content}
+            </div>
+        )
+    }
+
     return (
         <div className="flex flex-col md:flex-row bg-white h-[525px] rounded-2xl shadow-md overflow-hidden">
             {/* Left Sidebar - User List */}
@@ -152,7 +206,11 @@ export default function UserInfoSection() {
                             <div className="flex">
                                 <div className="mr-4">
                                     <div className="w-14 h-14 rounded-full bg-gray-200 overflow-hidden">
-                                        <img src={UserIcon} alt="프로필 이미지" className="w-full h-full object-cover" />
+                                        <img
+                                            src={UserIcon || "/placeholder.svg"}
+                                            alt="프로필 이미지"
+                                            className="w-full h-full object-cover"
+                                        />
                                     </div>
                                 </div>
                                 <div>
@@ -192,15 +250,54 @@ export default function UserInfoSection() {
 
                             {/* Stats Cards */}
                             <div className="flex items-center mt-6 mb-6">
-                                <StatCard title="총 배출량" value={`${getUserTotalDisposal(selectedUser.id) || 0}g`} number="1" />
+                                <StatCard
+                                    title="총 배출량"
+                                    value={`${getUserTotalDisposal(selectedUser.id) || 0}g`}
+                                    number="1"
+                                    tooltipVisible={tooltips.totalDisposal}
+                                    onTooltipToggle={(e) => toggleTooltip("totalDisposal", e)}
+                                    tooltipContent={
+                                        <>
+                                            <h3 className="font-bold text-sm mb-2">총 배출량</h3>
+                                            <p className="text-xs">사용자가 지금까지 배출한 배터리의 총량입니다.</p>
+                                        </>
+                                    }
+                                    tooltipPosition="left"
+                                />
                                 <div className="h-12 flex items-center">
                                     <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
                                 </div>
-                                <StatCard title="누적 마일리지" value={`${selectedUser.point || 0}p`} number="1" />
+                                <StatCard
+                                    title="누적 마일리지"
+                                    value={`${selectedUser.point || 0}p`}
+                                    number="1"
+                                    tooltipVisible={tooltips.totalPoints}
+                                    onTooltipToggle={(e) => toggleTooltip("totalPoints", e)}
+                                    tooltipContent={
+                                        <>
+                                            <h3 className="font-bold text-sm mb-2">누적 마일리지</h3>
+                                            <p className="text-xs">사용자가 지금까지 적립한 총 마일리지입니다.</p>
+                                            <p className="text-xs mt-2">배터리 배출로 적립됩니다.</p>
+                                        </>
+                                    }
+                                />
                                 <div className="h-12 flex items-center">
                                     <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
                                 </div>
-                                <StatCard title="사용 마일리지" value={`${calculateUsedPoints(userOrders)}p`} number="1" />
+                                <StatCard
+                                    title="사용 마일리지"
+                                    value={`${calculateUsedPoints(userOrders)}p`}
+                                    number="1"
+                                    tooltipVisible={tooltips.usedPoints}
+                                    onTooltipToggle={(e) => toggleTooltip("usedPoints", e)}
+                                    tooltipContent={
+                                        <>
+                                            <h3 className="font-bold text-sm mb-2">사용 마일리지</h3>
+                                            <p className="text-xs">사용자가 지금까지 사용한 마일리지 총량입니다.</p>
+                                            <p className="text-xs mt-2">상품 구매에 사용된 마일리지만 포함됩니다.</p>
+                                        </>
+                                    }
+                                />
                                 <div className="h-12 flex items-center">
                                     <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
                                 </div>
@@ -208,6 +305,15 @@ export default function UserInfoSection() {
                                     title="잔여 마일리지"
                                     value={`${(selectedUser.point || 0) - calculateUsedPoints(userOrders)}p`}
                                     number="1"
+                                    tooltipVisible={tooltips.remainingPoints}
+                                    onTooltipToggle={(e) => toggleTooltip("remainingPoints", e)}
+                                    tooltipContent={
+                                        <>
+                                            <h3 className="font-bold text-sm mb-2">잔여 마일리지</h3>
+                                            <p className="text-xs">현재 사용 가능한 마일리지 잔액입니다.</p>
+                                            <p className="text-xs mt-2">누적 마일리지에서 사용 마일리지를 뺀 금액입니다.</p>
+                                        </>
+                                    }
                                 />
                             </div>
 
@@ -425,15 +531,39 @@ function ActivityItem({ status, date, time, code, amount }) {
     )
 }
 
-// 통계 카드 컴포넌트
-function StatCard({ title, value, number }) {
+// 통계 카드 컴포넌트 - 툴팁 기능 추가
+function StatCard({
+                      title,
+                      value,
+                      number,
+                      tooltipVisible,
+                      onTooltipToggle,
+                      tooltipContent,
+                      tooltipPosition = "right",
+                  }) {
     return (
-        <div className="py-4">
+        <div className="py-4 relative">
             <div className="flex items-center justify-start gap-2 mb-2">
                 <span className="text-sm font-normal text-[#60697E]">{title}</span>
-                <span>
-          <img src={InfoIcon || "/placeholder.svg"} alt="정보" className="w-4 h-4 object-contain" />
-        </span>
+                <div className="tooltip-container relative">
+                    <img
+                        src={InfoIcon || "/placeholder.svg"}
+                        alt="정보"
+                        className="w-4 h-4 object-contain cursor-pointer"
+                        onClick={onTooltipToggle}
+                    />
+                    {tooltipVisible && (
+                        <div
+                            className={`absolute ${tooltipPosition === "left" ? "left-0" : "right-0"} mt-2 w-64 bg-white text-gray-800 rounded-md shadow-lg p-4`}
+                            style={{ zIndex: 99999, position: "absolute" }}
+                        >
+                            <div
+                                className={`absolute -top-2 ${tooltipPosition === "left" ? "left-1" : "right-1"} w-4 h-4 bg-white transform rotate-45`}
+                            ></div>
+                            {tooltipContent}
+                        </div>
+                    )}
+                </div>
             </div>
             <div className="text-[22px] text-[#21262B] font-bold">{value}</div>
         </div>

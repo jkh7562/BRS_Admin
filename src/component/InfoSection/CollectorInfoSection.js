@@ -4,7 +4,7 @@ import CopyIcon from "../../assets/copy.png"
 import InfoIcon from "../../assets/추가정보2.png"
 import LineIcon from "../../assets/구분선.png"
 import VectorIcon from "../../assets/Vector.png"
-import UserIcon from "../../assets/user.png";
+import UserIcon from "../../assets/user.png"
 import { findUserAll, getBoxLog, findAllBox } from "../../api/apiServices" // API 임포트
 
 export default function CollectorInfoSection() {
@@ -19,6 +19,39 @@ export default function CollectorInfoSection() {
         boxLogs: true,
         boxData: true,
     })
+
+    // 툴팁 상태 관리 추가
+    const [tooltips, setTooltips] = useState({
+        totalCollection: false,
+        province: false,
+        city: false,
+    })
+
+    // 툴팁 토글 함수
+    const toggleTooltip = (name, e) => {
+        e.stopPropagation() // 이벤트 버블링 방지
+        setTooltips((prev) => ({
+            ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}), // 모든 툴팁 닫기
+            [name]: !prev[name], // 선택한 툴팁만 토글
+        }))
+    }
+
+    // 툴팁 외부 클릭 시 닫기 함수
+    const handleClickOutside = (e) => {
+        if (!e.target.closest(".tooltip-container")) {
+            setTooltips((prev) => Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}))
+        }
+    }
+
+    // 컴포넌트가 마운트될 때 document에 이벤트 리스너 추가
+    useEffect(() => {
+        document.addEventListener("mousedown", handleClickOutside)
+
+        // 컴포넌트 언마운트 시 이벤트 리스너 제거
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+        }
+    }, [])
 
     // 수거자 목록 불러오기 (ROLE_EMPLOYEE만 필터링)
     useEffect(() => {
@@ -217,6 +250,26 @@ export default function CollectorInfoSection() {
             .slice(0, 10) // 최근 10개만
     }
 
+    // 툴팁 컴포넌트
+    const Tooltip = ({ isVisible, content, position = "right" }) => {
+        if (!isVisible) return null
+
+        const positionClass = position === "right" ? "right-0 mt-2" : position === "left" ? "left-0 mt-2" : "right-0 mt-2"
+
+        // 화살표 위치 클래스 추가
+        const arrowPositionClass = position === "left" ? "left-1" : "right-1"
+
+        return (
+            <div
+                className={`absolute ${positionClass} w-64 bg-white text-gray-800 rounded-md shadow-lg p-4`}
+                style={{ zIndex: 99999 }}
+            >
+                <div className={`absolute -top-2 ${arrowPositionClass} w-4 h-4 bg-white transform rotate-45`}></div>
+                {content}
+            </div>
+        )
+    }
+
     const region = getCollectorRegion()
     const chartData = generateChartData()
     const notifications = generateNotifications()
@@ -274,7 +327,11 @@ export default function CollectorInfoSection() {
                             <div className="flex">
                                 <div className="mr-4">
                                     <div className="w-14 h-14 rounded-full bg-gray-200 overflow-hidden">
-                                        <img src={UserIcon} alt="프로필 이미지" className="w-full h-full object-cover" />
+                                        <img
+                                            src={UserIcon || "/placeholder.svg"}
+                                            alt="프로필 이미지"
+                                            className="w-full h-full object-cover"
+                                        />
                                     </div>
                                 </div>
                                 <div>
@@ -295,15 +352,51 @@ export default function CollectorInfoSection() {
 
                             {/* Stats Cards */}
                             <div className="flex items-center mt-6 mb-6">
-                                <StatCard title="총 수거량" value={getCollectorTotalAmount()} />
+                                <StatCard
+                                    title="총 수거량"
+                                    value={getCollectorTotalAmount()}
+                                    tooltipVisible={tooltips.totalCollection}
+                                    onTooltipToggle={(e) => toggleTooltip("totalCollection", e)}
+                                    tooltipContent={
+                                        <>
+                                            <h3 className="font-bold text-sm mb-2">총 수거량</h3>
+                                            <p className="text-xs">수거자가 지금까지 수거한 배터리의 총량입니다.</p>
+                                        </>
+                                    }
+                                    tooltipPosition="left"
+                                />
                                 <div className="h-12 flex items-center">
                                     <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
                                 </div>
-                                <StatCard title="광역시/도" value={region.province} />
+                                <StatCard
+                                    title="광역시/도"
+                                    value={region.province}
+                                    tooltipVisible={tooltips.province}
+                                    onTooltipToggle={(e) => toggleTooltip("province", e)}
+                                    tooltipContent={
+                                        <>
+                                            <h3 className="font-bold text-sm mb-2">광역시/도</h3>
+                                            <p className="text-xs">수거자가 담당하는 광역시/도 정보입니다.</p>
+                                            <p className="text-xs mt-2">담당 지역은 관리자가 수정할 수 있습니다.</p>
+                                        </>
+                                    }
+                                />
                                 <div className="h-12 flex items-center">
                                     <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
                                 </div>
-                                <StatCard title="시/군/구" value={region.city} />
+                                <StatCard
+                                    title="시/군/구"
+                                    value={region.city}
+                                    tooltipVisible={tooltips.city}
+                                    onTooltipToggle={(e) => toggleTooltip("city", e)}
+                                    tooltipContent={
+                                        <>
+                                            <h3 className="font-bold text-sm mb-2">시/군/구</h3>
+                                            <p className="text-xs">수거자가 담당하는 시/군/구 정보입니다.</p>
+                                            <p className="text-xs mt-2">담당 지역은 관리자가 수정할 수 있습니다.</p>
+                                        </>
+                                    }
+                                />
                                 <div className="h-12 flex items-center ml-[100px]">
                                     <button
                                         className="bg-[#E8F1F7] text-[#21262B] px-6 py-2 rounded-2xl hover:bg-gray-200 transition-colors"
@@ -496,15 +589,31 @@ function ChartBar({ height, date }) {
     )
 }
 
-// 통계 카드 컴포넌트
-function StatCard({ title, value }) {
+// 통계 카드 컴포넌트 - 툴팁 기능 추가
+function StatCard({ title, value, tooltipVisible, onTooltipToggle, tooltipContent, tooltipPosition = "right" }) {
     return (
-        <div className="py-4">
+        <div className="py-4 relative">
             <div className="flex items-center justify-start gap-2 mb-2">
                 <span className="text-sm font-normal text-[#60697E]">{title}</span>
-                <span>
-          <img src={InfoIcon || "/placeholder.svg"} alt="정보" className="w-4 h-4 object-contain" />
-        </span>
+                <div className="tooltip-container relative">
+                    <img
+                        src={InfoIcon || "/placeholder.svg"}
+                        alt="정보"
+                        className="w-4 h-4 object-contain cursor-pointer"
+                        onClick={onTooltipToggle}
+                    />
+                    {tooltipVisible && (
+                        <div
+                            className={`absolute ${tooltipPosition === "left" ? "left-0" : "right-0"} mt-2 w-64 bg-white text-gray-800 rounded-md shadow-lg p-4`}
+                            style={{ zIndex: 99999, position: "absolute" }}
+                        >
+                            <div
+                                className={`absolute -top-2 ${tooltipPosition === "left" ? "left-1" : "right-1"} w-4 h-4 bg-white transform rotate-45`}
+                            ></div>
+                            {tooltipContent}
+                        </div>
+                    )}
+                </div>
             </div>
             <div className="text-[22px] text-[#21262B] font-bold">{value}</div>
         </div>
