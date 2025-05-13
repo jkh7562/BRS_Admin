@@ -73,7 +73,7 @@ export const findUserId = async (name, phoneNumber) => {
     }
 };
 
-// 비밀번호 변경 API
+// 비밀번호 변경 API - 비밀번호 변경 페이지
 export const resetPassword = async (id, name, phoneNumber, newPassword) => {
     try {
         const response = await axiosInstance.post("/findPw", {

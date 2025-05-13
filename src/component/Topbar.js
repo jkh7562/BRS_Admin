@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import AlarmIcon from "../assets/알림.png"
@@ -8,7 +6,7 @@ import FireInfoIcon from "../assets/FireInfo.png"
 import BoxIcon from "../assets/수거함Black.png"
 import PlusIcon from "../assets/가입신청Black.png"
 import UserIcon from "../assets/user.png"
-import { getMyInfo, logout, fetchEmployeeRequests, findAllBox } from "../api/apiServices"
+import { getMyInfo, logout, fetchEmployeeRequests, findAllBox, checkPassword, updatePassword } from "../api/apiServices"
 
 const Topbar = () => {
     const navigate = useNavigate()
@@ -20,6 +18,16 @@ const Topbar = () => {
         newPassword: "",
         confirmPassword: "",
     })
+    // 비밀번호 변경 관련 오류 메시지 상태 추가
+    const [passwordErrors, setPasswordErrors] = useState({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+        general: ""
+    })
+    // 비밀번호 변경 성공 메시지 상태 추가
+    const [passwordSuccess, setPasswordSuccess] = useState("")
+
     const [userInfo, setUserInfo] = useState({ name: "", id: "" })
     const [alarms, setAlarms] = useState([])
     const [employeeRequests, setEmployeeRequests] = useState([])
@@ -243,6 +251,14 @@ const Topbar = () => {
     }
 
     const openPasswordForm = () => {
+        // 폼 열 때 오류 메시지와 성공 메시지 초기화
+        setPasswordErrors({
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+            general: ""
+        })
+        setPasswordSuccess("")
         setShowPasswordForm(true)
     }
 
@@ -253,6 +269,14 @@ const Topbar = () => {
             newPassword: "",
             confirmPassword: "",
         })
+        // 폼 닫을 때 오류 메시지와 성공 메시지 초기화
+        setPasswordErrors({
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+            general: ""
+        })
+        setPasswordSuccess("")
     }
 
     const handlePasswordChange = (e) => {
@@ -261,20 +285,107 @@ const Topbar = () => {
             ...prev,
             [name]: value,
         }))
+
+        // 입력 시 해당 필드의 오류 메시지 초기화
+        setPasswordErrors(prev => ({
+            ...prev,
+            [name]: ""
+        }))
     }
 
-    const handlePasswordSubmit = (e) => {
+    // 비밀번호 변경 로직 구현 - 오류 메시지를 alert 대신 상태로 관리
+    const handlePasswordSubmit = async (e) => {
         e.preventDefault()
-        console.log("Password change submitted:", passwordForm)
 
-        setIsProfileDropdownOpen(false)
-        setShowPasswordForm(false)
-        setPasswordForm({
+        // 오류 메시지 초기화
+        setPasswordErrors({
             currentPassword: "",
             newPassword: "",
             confirmPassword: "",
+            general: ""
         })
-        alert("비밀번호가 변경되었습니다.")
+        setPasswordSuccess("")
+
+        // 1. 입력값 검증
+        let hasError = false
+        const newErrors = {
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+            general: ""
+        }
+
+        if (!passwordForm.currentPassword) {
+            newErrors.currentPassword = "현재 비밀번호를 입력해주세요."
+            hasError = true
+        }
+
+        if (!passwordForm.newPassword) {
+            newErrors.newPassword = "새 비밀번호를 입력해주세요."
+            hasError = true
+        }
+
+        if (!passwordForm.confirmPassword) {
+            newErrors.confirmPassword = "비밀번호 확인을 입력해주세요."
+            hasError = true
+        }
+
+        // 2. 새 비밀번호와 확인 비밀번호 일치 여부 확인
+        if (passwordForm.newPassword && passwordForm.confirmPassword &&
+            passwordForm.newPassword !== passwordForm.confirmPassword) {
+            newErrors.confirmPassword = "새 비밀번호와 확인 비밀번호가 일치하지 않습니다."
+            hasError = true
+        }
+
+        if (hasError) {
+            setPasswordErrors(newErrors)
+            return
+        }
+
+        try {
+            // 3. 현재 비밀번호 확인
+            const checkResult = await checkPassword(passwordForm.currentPassword)
+
+            if (checkResult !== "Success") {
+                setPasswordErrors({
+                    ...newErrors,
+                    currentPassword: "현재 비밀번호가 일치하지 않습니다."
+                })
+                return
+            }
+
+            // 4. 새 비밀번호로 변경
+            const updateResult = await updatePassword(passwordForm.newPassword)
+
+            if (updateResult === "Success") {
+                // 성공 메시지 설정
+                setPasswordSuccess("비밀번호가 성공적으로 변경되었습니다.")
+
+                // 3초 후 폼 닫기
+                setTimeout(() => {
+                    // 폼 초기화 및 드롭다운 닫기
+                    setIsProfileDropdownOpen(false)
+                    setShowPasswordForm(false)
+                    setPasswordForm({
+                        currentPassword: "",
+                        newPassword: "",
+                        confirmPassword: "",
+                    })
+                    setPasswordSuccess("")
+                }, 3000)
+            } else {
+                setPasswordErrors({
+                    ...newErrors,
+                    general: "비밀번호 변경에 실패했습니다. 다시 시도해주세요."
+                })
+            }
+        } catch (error) {
+            console.error("비밀번호 변경 중 오류 발생:", error)
+            setPasswordErrors({
+                ...newErrors,
+                general: "서버 오류로 비밀번호 변경에 실패했습니다. 다시 시도해주세요."
+            })
+        }
     }
 
     const handleLogoutClick = async () => {
@@ -458,7 +569,7 @@ const Topbar = () => {
                             <div className="profile-dropdown absolute top-full right-0 mt-2 w-80 bg-white rounded-md shadow-lg z-50 overflow-hidden">
                                 <div className="p-4 flex items-center gap-3">
                                     <img
-                                        src={UserIcon}
+                                        src={UserIcon || "/placeholder.svg"}
                                         alt="profile"
                                         className="w-14 h-14 rounded-full"
                                     />
@@ -487,33 +598,58 @@ const Topbar = () => {
                                     <div className="p-4">
                                         <form onSubmit={handlePasswordSubmit}>
                                             <div className="space-y-3">
-                                                <input
-                                                    type="password"
-                                                    name="currentPassword"
-                                                    value={passwordForm.currentPassword}
-                                                    onChange={handlePasswordChange}
-                                                    placeholder="현재 비밀번호"
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                                    required
-                                                />
-                                                <input
-                                                    type="password"
-                                                    name="newPassword"
-                                                    value={passwordForm.newPassword}
-                                                    onChange={handlePasswordChange}
-                                                    placeholder="새 비밀번호"
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                                    required
-                                                />
-                                                <input
-                                                    type="password"
-                                                    name="confirmPassword"
-                                                    value={passwordForm.confirmPassword}
-                                                    onChange={handlePasswordChange}
-                                                    placeholder="새 비밀번호 확인"
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                                    required
-                                                />
+                                                <div>
+                                                    <input
+                                                        type="password"
+                                                        name="currentPassword"
+                                                        value={passwordForm.currentPassword}
+                                                        onChange={handlePasswordChange}
+                                                        placeholder="현재 비밀번호"
+                                                        className={`w-full px-3 py-2 border ${passwordErrors.currentPassword ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                                                        required
+                                                    />
+                                                    {passwordErrors.currentPassword && (
+                                                        <p className="text-red-500 text-xs mt-1">{passwordErrors.currentPassword}</p>
+                                                    )}
+                                                </div>
+
+                                                <div>
+                                                    <input
+                                                        type="password"
+                                                        name="newPassword"
+                                                        value={passwordForm.newPassword}
+                                                        onChange={handlePasswordChange}
+                                                        placeholder="새 비밀번호"
+                                                        className={`w-full px-3 py-2 border ${passwordErrors.newPassword ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                                                        required
+                                                    />
+                                                    {passwordErrors.newPassword && (
+                                                        <p className="text-red-500 text-xs mt-1">{passwordErrors.newPassword}</p>
+                                                    )}
+                                                </div>
+
+                                                <div>
+                                                    <input
+                                                        type="password"
+                                                        name="confirmPassword"
+                                                        value={passwordForm.confirmPassword}
+                                                        onChange={handlePasswordChange}
+                                                        placeholder="새 비밀번호 확인"
+                                                        className={`w-full px-3 py-2 border ${passwordErrors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                                                        required
+                                                    />
+                                                    {passwordErrors.confirmPassword && (
+                                                        <p className="text-red-500 text-xs mt-1">{passwordErrors.confirmPassword}</p>
+                                                    )}
+                                                </div>
+
+                                                {passwordErrors.general && (
+                                                    <p className="text-red-500 text-sm">{passwordErrors.general}</p>
+                                                )}
+
+                                                {passwordSuccess && (
+                                                    <p className="text-green-500 text-sm font-medium">{passwordSuccess}</p>
+                                                )}
                                             </div>
 
                                             <div className="flex gap-2 mt-4">
