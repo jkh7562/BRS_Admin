@@ -1,46 +1,68 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import bgImage from "../../assets/Login_Background.jpg";
-import { loginUser } from "../../api/apiServices"; // ✅ 로그인 API import 추가
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import bgImage from "../../assets/Login_Background.jpg"
+import { loginUser } from "../../api/apiServices" // ✅ 로그인 API import 추가
 
 const N_LoginPage = () => {
-    const navigate = useNavigate();
+    const navigate = useNavigate()
 
-    const [userId, setUserId] = useState("");
-    const [userPw, setUserPw] = useState("");
-    const [loginMessage, setLoginMessage] = useState({ text: "", isSuccess: null });
+    const [userId, setUserId] = useState("")
+    const [userPw, setUserPw] = useState("")
+    const [loginMessage, setLoginMessage] = useState({ text: "", isSuccess: null })
+    const [saveId, setSaveId] = useState(false) // 아이디 저장 상태
+
+    // 컴포넌트 마운트 시 localStorage에서 저장된 아이디 불러오기
+    useEffect(() => {
+        const savedId = localStorage.getItem("savedUserId")
+        if (savedId) {
+            setUserId(savedId)
+            setSaveId(true)
+        }
+    }, [])
 
     const handleSignupClick = () => {
-        navigate("/n_SignupPage");
-    };
+        navigate("/n_SignupPage")
+    }
 
     const handleFindidClick = () => {
-        navigate("/n_FindIdPage");
-    };
+        navigate("/n_FindIdPage")
+    }
 
     const handleFindapasswordClick = () => {
-        navigate("/n_FindPasswordPage");
-    };
+        navigate("/n_FindPasswordPage")
+    }
 
     const handleLogin = async () => {
         if (!userId || !userPw) {
-            setLoginMessage({ text: "아이디와 비밀번호를 입력해 주세요.", isSuccess: false });
-            return;
+            setLoginMessage({ text: "아이디와 비밀번호를 입력해 주세요.", isSuccess: false })
+            return
+        }
+
+        // 아이디 저장 처리
+        if (saveId) {
+            localStorage.setItem("savedUserId", userId)
+        } else {
+            localStorage.removeItem("savedUserId")
         }
 
         try {
-            const result = await loginUser(userId, userPw);
-            console.log("✅ 로그인 결과:", result);
+            const result = await loginUser(userId, userPw)
+            console.log("✅ 로그인 결과:", result)
 
             if (result === "Success") {
-                navigate("/n_MainPage");
+                navigate("/n_MainPage")
             } else {
-                setLoginMessage({ text: "로그인 실패: 아이디 또는 비밀번호를 확인하세요.", isSuccess: false });
+                setLoginMessage({ text: "로그인 실패: 아이디 또는 비밀번호를 확인하세요.", isSuccess: false })
             }
         } catch (error) {
-            setLoginMessage({ text: "서버 오류로 로그인에 실패했습니다.", isSuccess: false });
+            setLoginMessage({ text: "서버 오류로 로그인에 실패했습니다.", isSuccess: false })
         }
-    };
+    }
+
+    // 아이디 저장 체크박스 상태 변경 핸들러
+    const handleSaveIdChange = (e) => {
+        setSaveId(e.target.checked)
+    }
 
     return (
         <div
@@ -75,13 +97,17 @@ const N_LoginPage = () => {
 
                 <div className="flex items-center justify-between mb-6 text-[14px]">
                     <label className="flex items-center font-[Pretendard]">
-                        <input type="checkbox" className="mr-2 accent-green-600" />
+                        <input type="checkbox" className="mr-2 accent-green-600" checked={saveId} onChange={handleSaveIdChange} />
                         아이디 저장
                     </label>
                     <div className="space-x-2 text-gray-500">
-                        <button onClick={handleFindidClick} className="hover:underline font-[Pretendard]">아이디 찾기</button>
+                        <button onClick={handleFindidClick} className="hover:underline font-[Pretendard]">
+                            아이디 찾기
+                        </button>
                         <span>•</span>
-                        <button onClick={handleFindapasswordClick} className="hover:underline font-[Pretendard]">비밀번호 찾기</button>
+                        <button onClick={handleFindapasswordClick} className="hover:underline font-[Pretendard]">
+                            비밀번호 찾기
+                        </button>
                     </div>
                 </div>
 
@@ -110,7 +136,7 @@ const N_LoginPage = () => {
                 </div>
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default N_LoginPage;
+export default N_LoginPage
