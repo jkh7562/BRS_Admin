@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useEffect, useState, useRef, useMemo, useCallback, memo } from "react"
 import { Map, MapMarker, CustomOverlayMap, Circle } from "react-kakao-maps-sdk"
 import ArrowLeftIcon from "../assets/arrow_left.png"
@@ -49,8 +47,9 @@ const BoxListItem = memo(
                 lat: box.lat,
                 lng: box.lng,
                 latType: typeof box.lat,
-                lngType: typeof box.lng
-            });
+                lngType: typeof box.lat,
+                lngType: typeof box.lng,
+            })
         }
 
         return (
@@ -212,7 +211,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     // 지역 필터링 상태 - 광역시/도 단위만 사용
     const [region, setRegion] = useState("전체")
 
-    // 지역별 좌표 범위 (대략적인 값)
+    // ��역별 좌표 범위 (대략적인 값)
     const regionBounds = useMemo(
         () => ({
             서울특별시: {
@@ -416,13 +415,16 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
             })
         }
 
-        console.log("displayedBoxes:", filtered.map(box => ({
-            id: box.id,
-            name: box.name,
-            lat: box.lat,
-            lng: box.lng,
-            installStatus: box.installStatus
-        })));
+        console.log(
+            "displayedBoxes:",
+            filtered.map((box) => ({
+                id: box.id,
+                name: box.name,
+                lat: box.lat,
+                lng: box.lng,
+                installStatus: box.installStatus,
+            })),
+        )
 
         return filtered
     }, [filteredBoxes, searchTerm, addressMap, shouldDisplayBox, region, extractRegionInfo, isCoordinateInRegion])
@@ -601,10 +603,16 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
         }
     }, [isAddRemovePage])
 
-    // 토글 함수 수정 - 추천 위치 ON/OFF 전환
+    // 토글 함수 수정 - 추천 위치 ON/OFF 전환 및 데이터 로드
     const toggleRecommendedLocations = useCallback(() => {
-        setShowRecommendedLocations((prev) => !prev)
-    }, [])
+        const newState = !showRecommendedLocations
+        setShowRecommendedLocations(newState)
+
+        // 추천 위치를 ON으로 변경할 때만 데이터 로드
+        if (newState && isAddRemovePage && !dataLoadedRef.current) {
+            loadAllData()
+        }
+    }, [showRecommendedLocations, isAddRemovePage, loadAllData, dataLoadedRef])
 
     // 군집 멤버 수 가져오기 - 직접 필터링 방식으로 변경하여 성능 개선
     const getClusterMemberCount = useCallback(
@@ -682,7 +690,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
             let lng = 0
             let lat = 0
             if (location) {
-                const coordsMatch = location.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/)
+                const coordsMatch = location.match(/POINT\s*$$\s*([-\d.]+)\s+([-\d.]+)\s*$$/)
                 if (coordsMatch) {
                     lng = Number.parseFloat(coordsMatch[1])
                     lat = Number.parseFloat(coordsMatch[2])
@@ -970,11 +978,6 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     }, [])
 
     // 컴포넌트 마운트 시 즉시 데이터 로드하도록 변경
-    useEffect(() => {
-        if (isAddRemovePage && !dataLoadedRef.current) {
-            loadAllData()
-        }
-    }, [isAddRemovePage, loadAllData])
 
     return (
         <div className="flex bg-white rounded-2xl shadow-md overflow-hidden h-[570px] relative">
