@@ -18,6 +18,25 @@ export default function UserInfoSection() {
         orders: false,
     })
     const [boxLogs, setBoxLogs] = useState(null)
+    const [copiedId, setCopiedId] = useState(null);
+
+    const handleCopy = (e, userId, text) => {
+        e.stopPropagation(); // 이벤트 버블링 방지
+
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                // 복사된 항목 ID 저장
+                setCopiedId(userId);
+
+                // 1.5초 후 상태 초기화
+                setTimeout(() => {
+                    setCopiedId(null);
+                }, 1500);
+            })
+            .catch((err) => {
+                console.error("복사 실패:", err);
+            });
+    };
 
     // 툴팁 상태 관리 추가
     const [tooltips, setTooltips] = useState({
@@ -163,7 +182,7 @@ export default function UserInfoSection() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                         <div className="absolute right-5 top-2 text-gray-400">
-                            <img src={SearchIcon || "/placeholder.svg"} alt="검색" className="w-5 h-5" />
+                            <img src={SearchIcon || "/placeholder.svg"} alt="검색" className="w-5 h-5"/>
                         </div>
                     </div>
                 </div>
@@ -178,6 +197,7 @@ export default function UserInfoSection() {
                         filteredUsers.map((user) => (
                             <UserListItem
                                 key={user.id}
+                                userId={user.id}  // userId prop 추가
                                 name={user.name}
                                 points={user.point || 0}
                                 date={new Date(user.date)
@@ -190,6 +210,8 @@ export default function UserInfoSection() {
                                     .replace(/\.$/, "")}
                                 isActive={selectedUser && selectedUser.id === user.id}
                                 onClick={() => handleUserSelect(user)}
+                                handleCopy={handleCopy}  // handleCopy 함수 전달
+                                copiedId={copiedId}  // 복사 상태 전달
                             />
                         ))
                     )}
@@ -214,7 +236,7 @@ export default function UserInfoSection() {
                                     </div>
                                 </div>
                                 <div>
-                                    <h2 className="font-bold text-[#21262B] text-lg">{selectedUser.name}</h2>
+                                <h2 className="font-bold text-[#21262B] text-lg">{selectedUser.name}</h2>
                                     <div className="flex">
                                         <p className="text-sm text-[#60697E]">
                                             <span className="font-bold">가입일자</span>{" "}
@@ -470,7 +492,7 @@ export default function UserInfoSection() {
 }
 
 // 사용자 목록 아이템 컴포넌트
-function UserListItem({ name, points, date, isActive, onClick }) {
+function UserListItem({ userId, name, points, date, isActive, onClick, handleCopy, copiedId }) {
     return (
         <div
             className={`p-4 border-b flex items-center justify-between hover:bg-[#D1E3EE] hover:bg-opacity-50 cursor-pointer ${isActive ? "bg-[#D1E3EE] bg-opacity-50" : ""}`}
@@ -481,11 +503,18 @@ function UserListItem({ name, points, date, isActive, onClick }) {
                 <p className="text-sm text-[#60697E] font-normal text-gray-500 mt-1">총 배출량 {points}</p>
                 <p className="text-sm text-[#60697E] font-normal text-gray-500">{date}</p>
             </div>
-            <button className="pb-10 text-gray-400">
-                <img src={CopyIcon || "/placeholder.svg"} alt="복사" className="w-4 h-5" />
-            </button>
+            <div className="pb-10 text-gray-400 relative">
+                <button onClick={(e) => handleCopy(e, userId, name)}>
+                    <img src={CopyIcon || "/placeholder.svg"} alt="복사" className="w-4 h-5" />
+                </button>
+                {copiedId === userId && (
+                    <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full w-3 h-3 flex items-center justify-center text-[8px]">
+                        ✓
+                    </div>
+                )}
+            </div>
         </div>
-    )
+    );
 }
 
 // 차트 바 컴포넌트
