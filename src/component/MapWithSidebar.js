@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useEffect, useState, useRef, useMemo, useCallback, memo } from "react"
 import { Map, MapMarker, CustomOverlayMap, Circle } from "react-kakao-maps-sdk"
 import ArrowLeftIcon from "../assets/arrow_left.png"
@@ -211,7 +213,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     // 지역 필터링 상태 - 광역시/도 단위만 사용
     const [region, setRegion] = useState("전체")
 
-    // ��역별 좌표 범위 (대략적인 값)
+    // 역별 좌표 범위 (대략적인 값)
     const regionBounds = useMemo(
         () => ({
             서울특별시: {
@@ -614,6 +616,9 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
         }
     }, [showRecommendedLocations, isAddRemovePage, loadAllData, dataLoadedRef])
 
+    // Add a new state variable to track if we're showing an overlay for a recommended location
+    const [isRecommendedLocationOverlay, setIsRecommendedLocationOverlay] = useState(false)
+
     // 군집 멤버 수 가져오기 - 직접 필터링 방식으로 변경하여 성능 개선
     const getClusterMemberCount = useCallback(
         (clusterId) => {
@@ -637,18 +642,42 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
             if (selectedCluster === clickedClusterId) {
                 console.log("🔄 같은 군집 선택 해제:", clickedClusterId)
                 setSelectedCluster(null)
+
+                // 군집 선택 해제 시 설치 요청 오버레이도 닫기
+                setShowNewPinOverlay(false)
+                setNewPinPosition(null)
+                setIsRecommendedLocationOverlay(false)
             } else {
                 console.log("🔄 새 군집 선택:", clickedClusterId)
                 setSelectedCluster(clickedClusterId)
+
+                // 군집 선택 시 설치 요청 오버레이 표시
+                // 기존 핀 오버레이가 열려있으면 닫기
+                setShowExistingPinOverlay(false)
+
+                // 중심점 위치에 설치 요청 오버레이 표시 (핀은 표시하지 않음)
+                setNewPinPosition({
+                    lat: centroid.lat,
+                    lng: centroid.lng,
+                })
+                setIsRecommendedLocationOverlay(true)
+                setShowNewPinOverlay(true)
+
+                // 입력 필드 초기화
+                setNewBoxName("")
+                setNewBoxIpAddress("")
             }
 
             // 상세 정보 표시
             setSelectedBoxId(null) // 기존 선택 해제
-            setShowExistingPinOverlay(false)
-            setShowNewPinOverlay(false)
-            setNewPinPosition(null)
         },
-        [selectedCluster, setShowExistingPinOverlay, setShowNewPinOverlay, setNewPinPosition],
+        [
+            selectedCluster,
+            setShowExistingPinOverlay,
+            setShowNewPinOverlay,
+            setNewPinPosition,
+            setIsRecommendedLocationOverlay,
+        ],
     )
 
     // 주소 변환 로직 최적화 - 추천 위치 제외
@@ -679,36 +708,50 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
         }, 100)
     }, [])
 
+    // Add a new state variable to track if we're showing an overlay for a recommended location
+    // const [isRecommendedLocationOverlay, setIsRecommendedLocationOverlay] = useState(false)
+
     // 추천 위치 마커 클릭 핸들러 추가
     const handleRecommendedLocationClick = useCallback(
         (location) => {
             // 기존 핀 오버레이가 열려있으면 닫기
             setShowExistingPinOverlay(false)
 
-            // 좌표 파싱 부분 확인
-            // 위치 파싱 (띄어쓰기 유무 상관없이 처리)
-            let lng = 0
-            let lat = 0
-            if (location) {
-                const coordsMatch = location.match(/POINT\s*$$\s*([-\d.]+)\s+([-\d.]+)\s*$$/)
+            // 좌표 파싱 - location이 객체인 경우와 문자열인 경우 모두 처리
+            let lat = location.lat
+            let lng = location.lng
+
+            // POINT 형식 문자열인 경우 파싱
+            if (typeof location.lat === "undefined" && location.geometry) {
+                const coordsMatch = location.geometry.match(/POINT\s*$$\s*([-\d.]+)\s+([-\d.]+)\s*$$/)
                 if (coordsMatch) {
                     lng = Number.parseFloat(coordsMatch[1])
                     lat = Number.parseFloat(coordsMatch[2])
                 }
             }
 
-            // 클릭한 추천 위치에 새 핀 생성
+            // 클릭한 추천 위치에 새 핀 생성 (좌표만 저장하고 핀은 표시하지 않음)
             setNewPinPosition({
-                lat: lat || location.lat,
-                lng: lng || location.lng,
+                lat: lat,
+                lng: lng,
             })
+
+            // 추천 위치 오버레이 플래그 설정
+            setIsRecommendedLocationOverlay(true)
+
+            // 설치 요청 오버레이 표시
             setShowNewPinOverlay(true)
 
             // 입력 필드 초기화
             setNewBoxName("")
             setNewBoxIpAddress("")
+
+            // 선택된 박스 ID 초기화
+            setSelectedBoxId(null)
+
+            console.log("추천 위치 클릭:", { lat, lng })
         },
-        [setShowExistingPinOverlay, setNewPinPosition, setShowNewPinOverlay],
+        [setShowExistingPinOverlay, setNewPinPosition, setShowNewPinOverlay, setSelectedBoxId],
     )
 
     // 상태 포맷 함수 - useMemo로 최적화
@@ -855,7 +898,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
         [isAddRemovePage, map, setShowExistingPinOverlay, setShowNewPinOverlay, setNewPinPosition],
     )
 
-    // 지도 클릭 이벤트 핸들러
+    // Update the handleMapClick function to reset the recommended location flag
     const handleMapClick = useCallback(
         (_, mouseEvent) => {
             // 지도 클릭이 비활성화된 경우 무시
@@ -883,6 +926,10 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
                 lat: latlng.getLat(),
                 lng: latlng.getLng(),
             })
+
+            // 일반 지도 클릭이므로 추천 위치 오버레이 플래그 해제
+            setIsRecommendedLocationOverlay(false)
+
             setShowNewPinOverlay(true)
 
             // 입력 필드 초기화
@@ -892,7 +939,19 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
         [mapClickEnabled, isDragging, isAddRemovePage, setShowExistingPinOverlay, setNewPinPosition, setShowNewPinOverlay],
     )
 
-    // 설치 요청 처리
+    // Update the closeOverlays function to reset the recommended location flag
+    const closeOverlays = useCallback(
+        (e) => {
+            e.stopPropagation() // 이벤트 전파 방지
+            setShowNewPinOverlay(false)
+            setShowExistingPinOverlay(false)
+            setNewPinPosition(null)
+            setIsRecommendedLocationOverlay(false) // 추천 위치 오버레이 플래그 초기화
+        },
+        [setShowNewPinOverlay, setShowExistingPinOverlay, setNewPinPosition],
+    )
+
+    // Update the handleInstallRequest function to reset the recommended location flag
     const handleInstallRequest = useCallback(
         async (e) => {
             e.preventDefault()
@@ -920,6 +979,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
                 setShowNewPinOverlay(false)
                 setNewBoxName("")
                 setNewBoxIpAddress("")
+                setIsRecommendedLocationOverlay(false) // 추천 위치 오버레이 플래그 초기화
 
                 onDataChange()
             } catch (error) {
@@ -931,33 +991,8 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
         [newBoxName, newBoxIpAddress, newPinPosition, onDataChange, setShowNewPinOverlay, setNewPinPosition],
     )
 
-    // 제거 요청 처리
-    const handleRemoveRequest = useCallback(
-        async (e) => {
-            e.preventDefault()
-            e.stopPropagation()
-
-            if (!selectedBoxId) return
-
-            setIsSubmitting(true)
-
-            try {
-                await requestRemoveBox(selectedBoxId)
-                alert("제거 요청이 성공적으로 전송되었습니다.")
-                setShowExistingPinOverlay(false)
-
-                onDataChange()
-            } catch (error) {
-                alert("제거 요청 중 오류가 발생했습니다: " + (error.message || "알 수 없는 오류"))
-            } finally {
-                setIsSubmitting(false)
-            }
-        },
-        [selectedBoxId, onDataChange, setShowExistingPinOverlay],
-    )
-
     // 오버레이 닫기
-    const closeOverlays = useCallback(
+    const closeOverlaysOriginal = useCallback(
         (e) => {
             e.stopPropagation() // 이벤트 전파 방지
             setShowNewPinOverlay(false)
@@ -978,6 +1013,38 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     }, [])
 
     // 컴포넌트 마운트 시 즉시 데이터 로드하도록 변경
+
+    // 제거 요청 핸들러
+    const handleRemoveRequest = useCallback(
+        async (e) => {
+            e.preventDefault()
+            e.stopPropagation()
+
+            if (!selectedBoxId) {
+                alert("제거할 수거함을 선택해주세요.")
+                return
+            }
+
+            setIsSubmitting(true)
+
+            try {
+                await requestRemoveBox(selectedBoxId)
+
+                alert("제거 요청이 성공적으로 전송되었습니다.")
+
+                // 상태 초기화
+                setSelectedBoxId(null)
+                setShowExistingPinOverlay(false)
+
+                onDataChange()
+            } catch (error) {
+                alert("제거 요청 중 오류가 발생했습니다: " + (error.message || "알 수 없는 오류"))
+            } finally {
+                setIsSubmitting(false)
+            }
+        },
+        [selectedBoxId, onDataChange, setShowExistingPinOverlay],
+    )
 
     return (
         <div className="flex bg-white rounded-2xl shadow-md overflow-hidden h-[570px] relative">
@@ -1070,7 +1137,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
                     })}
 
                     {/* 새로운 핀 */}
-                    {isAddRemovePage && newPinPosition && (
+                    {isAddRemovePage && newPinPosition && !isRecommendedLocationOverlay && (
                         <MapMarker
                             position={newPinPosition}
                             image={{
