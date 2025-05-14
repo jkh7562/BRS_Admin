@@ -1001,7 +1001,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
                     <div className="relative mx-2 mt-4 p-3">
                         <input
                             type="text"
-                            placeholder="장소, 주소, 수거함 코드 검색"
+                            placeholder="수거함 이름 검색"
                             className="w-full py-2 pl-4 rounded-2xl border border-black/20 text-sm focus:outline-none"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}

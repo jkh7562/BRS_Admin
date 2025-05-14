@@ -13,6 +13,7 @@ const N_OrderHistoryPage = () => {
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState(null)
     const [searchTerm, setSearchTerm] = useState("")
+    const [copiedUserId, setCopiedUserId] = useState(null)
 
     // 초기 데이터 로딩
     useEffect(() => {
@@ -211,6 +212,26 @@ const N_OrderHistoryPage = () => {
         await loadUserOrders(userId)
     }
 
+    // 사용자 ID 복사 함수
+    const handleCopyUserId = (e, userId) => {
+        e.stopPropagation() // 이벤트 버블링 방지 (사용자 선택 방지)
+
+        navigator.clipboard
+            .writeText(userId)
+            .then(() => {
+                // 복사 성공 시 상태 업데이트
+                setCopiedUserId(userId)
+
+                // 1.5초 후 복사 상태 초기화
+                setTimeout(() => {
+                    setCopiedUserId(null)
+                }, 1500)
+            })
+            .catch((err) => {
+                console.error("복사 실패:", err)
+            })
+    }
+
     // 주문 상세 토글 함수
     const toggleOrderDetails = (orderId) => {
         setUserOrders(userOrders.map((order) => (order.id === orderId ? { ...order, expanded: !order.expanded } : order)))
@@ -328,7 +349,7 @@ const N_OrderHistoryPage = () => {
                                             type="text"
                                             value={searchTerm}
                                             onChange={handleSearch}
-                                            placeholder="이름 검색"
+                                            placeholder="사용자 ID 검색"
                                             className="w-full h-[40px] px-4 py-2 pr-10 border rounded-lg font-normal text-sm focus:outline-none text-gray-900 placeholder:text-[#D5D8DE]"
                                         />
                                         <img
@@ -359,8 +380,15 @@ const N_OrderHistoryPage = () => {
                                                             <p className="text-xs text-[#7A7F8A]">주문 내역 없음</p>
                                                         )}
                                                     </div>
-                                                    <div className="text-gray-400">
-                                                        <img src={CopyIcon || "/placeholder.svg"} alt="Copy" className="w-4 h-5" />
+                                                    <div className="text-gray-400 relative">
+                                                        <button onClick={(e) => handleCopyUserId(e, user.userId)}>
+                                                            <img src={CopyIcon || "/placeholder.svg"} alt="Copy" className="w-4 h-5" />
+                                                            {copiedUserId === user.userId && (
+                                                                <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full w-3 h-3 flex items-center justify-center text-[8px]">
+                                                                    ✓
+                                                                </div>
+                                                            )}
+                                                        </button>
                                                     </div>
                                                 </div>
                                             ))
