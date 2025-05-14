@@ -211,7 +211,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     // 지역 필터링 상태 - 광역시/도 단위만 사용
     const [region, setRegion] = useState("전체")
 
-    // ��별 좌표 범위 (대략적인 값)
+    // �� 좌표 범위 (대략적인 값)
     const regionBounds = useMemo(
         () => ({
             서울특별시: {
@@ -366,6 +366,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
             const bounds = regionBounds[regionName]
             if (!bounds) return true
 
+            // More strict bounds checking
             return lat >= bounds.minLat && lat <= bounds.maxLat && lng >= bounds.minLng && lng <= bounds.maxLng
         },
         [regionBounds],
@@ -402,16 +403,16 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
         // 지역 필터링 - 광역시/도 단위만 적용
         if (region !== "전체") {
             filtered = filtered.filter((box) => {
-                // 주소 기반 필터링
+                // 주소 기반 필터링 - 주소가 있는 경우만 적용
                 const address = addressMap[box.id] || ""
-                const { region: boxRegion } = extractRegionInfo(address)
-
-                // 주소가 없거나 지역이 일치하지 않으면 좌표 기반으로 확인
-                if (!boxRegion || boxRegion !== region) {
-                    return isCoordinateInRegion(box.lat, box.lng, region)
+                if (address) {
+                    // 주소의 첫 부분이 선택한 지역과 일치하는지 확인
+                    // 예: "서울특별시"로 시작하는 주소는 "서울특별시" 지역에만 표시
+                    return address.startsWith(region)
                 }
 
-                return boxRegion === region
+                // 주소가 없는 경우에는 좌표 기반으로 확인
+                return isCoordinateInRegion(box.lat, box.lng, region)
             })
         }
 
@@ -423,11 +424,12 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
                 lat: box.lat,
                 lng: box.lng,
                 installStatus: box.installStatus,
+                address: addressMap[box.id] || "주소 없음",
             })),
         )
 
         return filtered
-    }, [filteredBoxes, searchTerm, addressMap, shouldDisplayBox, region, extractRegionInfo, isCoordinateInRegion])
+    }, [filteredBoxes, searchTerm, addressMap, shouldDisplayBox, region, isCoordinateInRegion])
 
     // 지역 필터링된 추천 위치
     const filteredRecommendedLocations = useMemo(() => {
@@ -700,7 +702,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
 
     const handleButtonMouseUp = useCallback((e) => {
         e.stopPropagation()
-        // 약간의 지연 후 지도 클릭 이벤트 다시 활성화
+        // 약간의 지연 후 ��도 클릭 이벤트 다시 활성화
         setTimeout(() => {
             setMapClickEnabled(true)
         }, 100)
