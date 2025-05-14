@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Map, MapMarker } from "react-kakao-maps-sdk"
 import SearchIcon from "../../assets/검색.png"
@@ -39,6 +37,7 @@ export default function RemoveStatus({ statuses, addressData = {}, processedBoxe
     useEffect(() => {
         if (!processedBoxes || processedBoxes.length === 0) {
             console.log("RemoveStatus - 검색 필터링: 원본 데이터 없음")
+            setDisplayedBoxes([])
             return
         }
 
@@ -131,15 +130,33 @@ export default function RemoveStatus({ statuses, addressData = {}, processedBoxe
         )
     }
 
-    // 데이터가 없는 경우 메시지 표시
-    if (!displayedBoxes || displayedBoxes.length === 0) {
+    // 데이터가 없는 경우에도 UI 구조는 유지하고 리스트만 비움
+    if (!processedBoxes || processedBoxes.length === 0) {
         return (
-            <div className="flex h-[525px] bg-white rounded-2xl shadow-md overflow-hidden justify-center items-center">
-                <div className="text-center">
-                    <p className="text-xl font-bold text-gray-700">데이터가 없습니다</p>
-                    <p className="text-gray-500 mt-2">표시할 박스가 없습니다.</p>
-                    <p className="text-gray-500 mt-2">원본 데이터 수: {processedBoxes?.length || 0}</p>
+            <div className="flex h-[525px] bg-white rounded-2xl shadow-md overflow-hidden">
+                {/* Left Sidebar - User List (Empty) */}
+                <div className="w-[350px] h-full flex flex-col border-r">
+                    <div>
+                        <div className="relative mx-2 my-4 p-3">
+                            <input
+                                type="text"
+                                placeholder="ID 검색"
+                                className="w-full py-2 pl-4 rounded-2xl border border-black/20 text-sm focus:outline-none"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                            <div className="absolute right-8 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
+                                <img src={SearchIcon || "/placeholder.svg"} alt="검색" />
+                            </div>
+                        </div>
+                    </div>
+                    {/* Empty list area */}
+                    <div className="overflow-auto flex-1 custom-scrollbar ml-4"></div>
                 </div>
+
+                {/* Empty center and right sections */}
+                <div className="flex-1"></div>
+                <div className="w-[290px] border-l"></div>
             </div>
         )
     }
@@ -165,17 +182,19 @@ export default function RemoveStatus({ statuses, addressData = {}, processedBoxe
 
                 {/* User list with scrollbar */}
                 <div className="overflow-auto flex-1 custom-scrollbar ml-4">
-                    {displayedBoxes.map((box) => (
-                        <UserListItem
-                            key={box.id}
-                            boxId={box.id}
-                            name={box.user?.name || box.name || "미지정"}
-                            status={getStatusText(box.installStatus)}
-                            date={box.removeInfo?.createdAt || box.installInfo?.createdAt || box.createdAt || "정보 없음"}
-                            isActive={selectedBox && selectedBox.id === box.id}
-                            onClick={() => setSelectedBox(box)}
-                        />
-                    ))}
+                    {displayedBoxes.length > 0
+                        ? displayedBoxes.map((box) => (
+                            <UserListItem
+                                key={box.id}
+                                boxId={box.id}
+                                name={box.user?.name || box.name || "미지정"}
+                                status={getStatusText(box.installStatus)}
+                                date={box.removeInfo?.createdAt || box.installInfo?.createdAt || box.createdAt || "정보 없음"}
+                                isActive={selectedBox && selectedBox.id === box.id}
+                                onClick={() => setSelectedBox(box)}
+                            />
+                        ))
+                        : searchTerm.trim() !== "" && <div className="p-4"></div>}
                 </div>
             </div>
 
@@ -188,7 +207,7 @@ export default function RemoveStatus({ statuses, addressData = {}, processedBoxe
                             [{getStatusText(selectedBox.installStatus || "상태 없음")}] {selectedBox.name}
                         </h2>
                         <p className="text-[#60697E]">
-                            <span className="font-bold pr-2">제거 주소</span>{" "}
+                            <span className="font-bold">제거 주소</span>{" "}
                             <span className="font-normal cursor-pointer hover:text-blue-500" onClick={copyAddress}>
                 {addressText}
               </span>
@@ -251,6 +270,12 @@ export default function RemoveStatus({ statuses, addressData = {}, processedBoxe
                             <span className="font-bold w-[70px]">알림일자</span>
                             <span className="font-nomal">
                 {selectedBox.removeInfo?.alarmDate || selectedBox.removeInfo?.createdAt || "정보 없음"}
+              </span>
+                        </div>
+                        <div className="flex items-center">
+                            <span className="font-bold w-[70px]">좌표</span>
+                            <span className="font-nomal">
+                {selectedBox.lat} / {selectedBox.lng}
               </span>
                         </div>
                     </div>

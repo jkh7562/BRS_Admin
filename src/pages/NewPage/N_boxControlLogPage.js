@@ -9,7 +9,11 @@ import RightIcon from "../../assets/Vector-right.png"
 
 const N_boxControlLogPage = () => {
     // 복사된 박스 ID 상태 추가 (N_boxControlLogPage 컴포넌트 내부 상단에 추가)
-    const [copiedBoxId, setCopiedBoxId] = useState(null);
+    const [copiedBoxId, setCopiedBoxId] = useState(null)
+
+    // 검색어 상태 추가 (N_boxControlLogPage 컴포넌트 내부 상단에 추가)
+    const [boxSearchTerm, setBoxSearchTerm] = useState("")
+    const [logSearchTerm, setLogSearchTerm] = useState("")
 
     // Replace the year, month, day state definitions with these:
     const [year, setYear] = useState("")
@@ -44,22 +48,23 @@ const N_boxControlLogPage = () => {
 
     // 복사 핸들러 함수 추가 (N_boxControlLogPage 컴포넌트 내부에 추가)
     const handleCopy = (e, boxId, text) => {
-        e.stopPropagation(); // 이벤트 버블링 방지
+        e.stopPropagation() // 이벤트 버블링 방지
 
-        navigator.clipboard.writeText(text)
+        navigator.clipboard
+            .writeText(text)
             .then(() => {
                 // 복사된 항목 ID 저장
-                setCopiedBoxId(boxId);
+                setCopiedBoxId(boxId)
 
                 // 1.5초 후 상태 초기화
                 setTimeout(() => {
-                    setCopiedBoxId(null);
-                }, 1500);
+                    setCopiedBoxId(null)
+                }, 1500)
             })
             .catch((err) => {
-                console.error("복사 실패:", err);
-            });
-    };
+                console.error("복사 실패:", err)
+            })
+    }
 
     // Update the useEffect for days:
     useEffect(() => {
@@ -137,6 +142,13 @@ const N_boxControlLogPage = () => {
         },
     ]
 
+    // 검색어에 따라 필터링된 박스 목록 계산 (boxList 변수 아래에 추가)
+    const filteredBoxList = boxList.filter(
+        (box) =>
+            box.name.toLowerCase().includes(boxSearchTerm.toLowerCase()) ||
+            box.location.toLowerCase().includes(boxSearchTerm.toLowerCase()),
+    )
+
     // Add this dummy data array after the boxList array (around line 75)
     const logData = [
         {
@@ -197,6 +209,16 @@ const N_boxControlLogPage = () => {
         },
     ]
 
+    // 검색어에 따라 필터링된 로그 데이터 계산 (logData 변수 아래에 추가)
+    const filteredLogData = logData.filter((log) => {
+        const searchTerm = logSearchTerm.toLowerCase()
+        return (
+            log.userName.toLowerCase().includes(searchTerm) ||
+            log.boxName.toLowerCase().includes(searchTerm) ||
+            log.dischargeInfo.toLowerCase().includes(searchTerm)
+        )
+    })
+
     // Stats data
     const statsData = {
         totalBoxes: 63,
@@ -234,6 +256,16 @@ const N_boxControlLogPage = () => {
         setDay(e.target.value)
     }
 
+    // 박스 검색 입력 필드 핸들러 추가 (handleDayChange 함수 아래에 추가)
+    const handleBoxSearch = (e) => {
+        setBoxSearchTerm(e.target.value)
+    }
+
+    // 로그 검색 입력 필드 추가 (로그 테이블 위에 추가할 예정)
+    const handleLogSearch = (e) => {
+        setLogSearchTerm(e.target.value)
+    }
+
     return (
         <div className="flex min-h-screen w-full bg-[#F3F3F5]">
             <Sidebar />
@@ -252,6 +284,8 @@ const N_boxControlLogPage = () => {
                                             type="text"
                                             placeholder="장소, 주소, 수거함 코드 검색"
                                             className="w-full py-2 pl-4 rounded-2xl border border-black/20 text-sm focus:outline-none"
+                                            value={boxSearchTerm}
+                                            onChange={handleBoxSearch}
                                         />
                                         <div className="absolute right-8 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
                                             <img src={SearchIcon || "/placeholder.svg?height=20&width=20"} alt="검색" />
@@ -261,19 +295,23 @@ const N_boxControlLogPage = () => {
 
                                 {/* Box list with scrollbar */}
                                 <div className="overflow-auto flex-1 custom-scrollbar ml-4">
-                                    {boxList.map((box) => (
-                                        <BoxListItem
-                                            key={box.id}
-                                            id={box.id}  // id prop 추가
-                                            name={box.name}
-                                            location={box.location}
-                                            date={box.date}
-                                            isActive={box.id === 1}
-                                            onClick={() => setSelectedBox(box)}
-                                            handleCopy={handleCopy}  // handleCopy 함수 전달
-                                            copiedBoxId={copiedBoxId}  // 복사 상태 전달
-                                        />
-                                    ))}
+                                    {filteredBoxList.length > 0 ? (
+                                        filteredBoxList.map((box) => (
+                                            <BoxListItem
+                                                key={box.id}
+                                                id={box.id}
+                                                name={box.name}
+                                                location={box.location}
+                                                date={box.date}
+                                                isActive={box.id === selectedBox?.id || box.id === 1}
+                                                onClick={() => setSelectedBox(box)}
+                                                handleCopy={handleCopy}
+                                                copiedBoxId={copiedBoxId}
+                                            />
+                                        ))
+                                    ) : (
+                                        <div className="p-4 text-center text-gray-500">검색 결과가 없습니다</div>
+                                    )}
                                 </div>
                             </div>
 
@@ -566,6 +604,20 @@ const N_boxControlLogPage = () => {
                         </div>
                     </div>
 
+                    {/* 로그 검색 입력 필드 */}
+                    <div className="relative mt-4 mb-4 w-1/3">
+                        <input
+                            type="text"
+                            placeholder="로그 검색 (사용자, 수거함, 정보)"
+                            className="w-full py-2 pl-4 pr-10 rounded-2xl border border-black/20 text-sm focus:outline-none"
+                            value={logSearchTerm}
+                            onChange={handleLogSearch}
+                        />
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
+                            <img src={SearchIcon || "/placeholder.svg?height=20&width=20"} alt="검색" />
+                        </div>
+                    </div>
+
                     {/* Log Tables - Conditionally render based on logType */}
                     {logType === "discharge" ? (
                         <div className="mt-4 px-6 py-4 bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -602,20 +654,28 @@ const N_boxControlLogPage = () => {
                                         <col style={{ width: "15%" }} />
                                     </colgroup>
                                     <tbody>
-                                    {logData.map((log) => (
-                                        <tr key={log.id} className="hover:bg-[#D1E3EE]/50">
-                                            <td className="py-4 px-6 text-sm text-gray-500">{log.userName}</td>
-                                            <td className="py-4 px-6 text-sm text-gray-500">{log.date}</td>
-                                            <td className="py-4 px-6 text-sm text-gray-500">{log.boxName}</td>
-                                            <td className="py-4 px-6 text-sm text-gray-500">{log.dischargeInfo}</td>
-                                            <td className="py-4 px-6 text-right">
-                                                <button className="pl-14 text-sm text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
-                                                    사용자 상세정보 보기{" "}
-                                                    <img src={RightIcon || "/placeholder.svg"} alt="오른쪽 화살표" className="w-2 h-3 ml-1" />
-                                                </button>
+                                    {filteredLogData.length > 0 ? (
+                                        filteredLogData.map((log) => (
+                                            <tr key={log.id} className="hover:bg-[#D1E3EE]/50">
+                                                <td className="py-4 px-6 text-sm text-gray-500">{log.userName}</td>
+                                                <td className="py-4 px-6 text-sm text-gray-500">{log.date}</td>
+                                                <td className="py-4 px-6 text-sm text-gray-500">{log.boxName}</td>
+                                                <td className="py-4 px-6 text-sm text-gray-500">{log.dischargeInfo}</td>
+                                                <td className="py-4 px-6 text-right">
+                                                    <button className="pl-14 text-sm text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
+                                                        사용자 상세정보 보기{" "}
+                                                        <img src={RightIcon || "/placeholder.svg"} alt="오른쪽 화살표" className="w-2 h-3 ml-1" />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={5} className="py-8 text-center text-gray-500">
+                                                검색 결과가 없습니다
                                             </td>
                                         </tr>
-                                    ))}
+                                    )}
                                     </tbody>
                                 </table>
                             </div>
@@ -655,20 +715,28 @@ const N_boxControlLogPage = () => {
                                         <col style={{ width: "15%" }} />
                                     </colgroup>
                                     <tbody>
-                                    {logData.map((log) => (
-                                        <tr key={log.id} className="hover:bg-[#D1E3EE]/50">
-                                            <td className="py-4 px-6 text-sm text-gray-500">{log.userName}</td>
-                                            <td className="py-4 px-6 text-sm text-gray-500">{log.date}</td>
-                                            <td className="py-4 px-6 text-sm text-gray-500">{log.boxName}</td>
-                                            <td className="py-4 px-6 text-sm text-gray-500">{log.dischargeInfo}</td>
-                                            <td className="py-4 px-6 text-right">
-                                                <button className="pl-14 text-sm text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
-                                                    사용자 상세정보 보기{" "}
-                                                    <img src={RightIcon || "/placeholder.svg"} alt="오른쪽 화살표" className="w-2 h-3 ml-1" />
-                                                </button>
+                                    {filteredLogData.length > 0 ? (
+                                        filteredLogData.map((log) => (
+                                            <tr key={log.id} className="hover:bg-[#D1E3EE]/50">
+                                                <td className="py-4 px-6 text-sm text-gray-500">{log.userName}</td>
+                                                <td className="py-4 px-6 text-sm text-gray-500">{log.date}</td>
+                                                <td className="py-4 px-6 text-sm text-gray-500">{log.boxName}</td>
+                                                <td className="py-4 px-6 text-sm text-gray-500">{log.dischargeInfo}</td>
+                                                <td className="py-4 px-6 text-right">
+                                                    <button className="pl-14 text-sm text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
+                                                        사용자 상세정보 보기{" "}
+                                                        <img src={RightIcon || "/placeholder.svg"} alt="오른쪽 화살표" className="w-2 h-3 ml-1" />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={5} className="py-8 text-center text-gray-500">
+                                                검색 결과가 없습니다
                                             </td>
                                         </tr>
-                                    ))}
+                                    )}
                                     </tbody>
                                 </table>
                             </div>
@@ -727,7 +795,7 @@ function BoxListItem({ id, name, location, date, isActive, onClick, handleCopy, 
                 )}
             </div>
         </div>
-    );
+    )
 }
 
 // Radio button component
