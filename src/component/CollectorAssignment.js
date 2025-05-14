@@ -561,38 +561,3 @@ function StatCard({ title, value, number }) {
         </div>
     )
 }
-
-// Component for collection items in the right sidebar
-function CollectionItem({ status, date, time, location, amount }) {
-    return (
-        <div>
-            <div>
-        <span
-            className={`inline-block px-2 py-0.5 text-white text-sm rounded-md font-nomal ${
-                status === "수거함 설치 진행 중" || status === "수거함 제거 진행 중" ? "bg-[#00A060]" : "bg-[#21262B]"
-            }`}
-        >
-          {status}
-        </span>
-            </div>
-            <table className="w-full text-sm border-collapse mt-4 mb-8">
-                <tbody>
-                <tr>
-                    <td className="w-16 text-gray-500">알림일자</td>
-                    <td>
-                        {date} {time}
-                    </td>
-                </tr>
-                <tr>
-                    <td className="w-16 text-gray-500">알림지역</td>
-                    <td>{location}</td>
-                </tr>
-                <tr>
-                    <td className="w-16 text-gray-500">알림 좌표</td>
-                    <td>{amount}</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    )
-}
