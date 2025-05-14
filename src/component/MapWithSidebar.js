@@ -139,22 +139,27 @@ const ActionButton = memo(({ onClick, className, disabled, children }) => {
 ActionButton.displayName = "ActionButton"
 
 // 지역 필터 컴포넌트 - 광역시/도 단위만 표시
-const RegionFilter = memo(({ region, setRegion, regions }) => {
+const RegionFilter = memo(({ region, setRegion, regions, boxCount }) => {
     return (
-        <div className="flex items-center gap-2 p-2 bg-white rounded-md shadow-sm">
-            <label className="text-sm font-medium">지역:</label>
-            <select
-                value={region}
-                onChange={(e) => setRegion(e.target.value)}
-                className="border border-gray-300 rounded px-2 py-1 text-sm"
-            >
-                <option value="전체">전체</option>
-                {Object.keys(regions).map((r) => (
-                    <option key={r} value={r}>
-                        {r}
-                    </option>
-                ))}
-            </select>
+        <div className="flex flex-col gap-2 p-2 bg-white">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium">지역:</label>
+                    <select
+                        value={region}
+                        onChange={(e) => setRegion(e.target.value)}
+                        className="border border-gray-300 rounded px-2 py-1 text-sm"
+                    >
+                        <option value="전체">전체</option>
+                        {Object.keys(regions).map((r) => (
+                            <option key={r} value={r}>
+                                {r}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="text-sm font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded">수거함: {boxCount}개</div>
+            </div>
         </div>
     )
 })
@@ -211,7 +216,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     // 지역 필터링 상태 - 광역시/도 단위만 사용
     const [region, setRegion] = useState("전체")
 
-    // �� 좌표 범위 (대략적인 값)
+    // 별 좌표 범위 (대략적인 값)
     const regionBounds = useMemo(
         () => ({
             서울특별시: {
@@ -702,7 +707,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
 
     const handleButtonMouseUp = useCallback((e) => {
         e.stopPropagation()
-        // 약간의 지연 후 ��도 클릭 이벤트 다시 활성화
+        // 약간의 지연 후 지도 클릭 이벤트 다시 활성화
         setTimeout(() => {
             setMapClickEnabled(true)
         }, 100)
@@ -1140,7 +1145,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
 
                     {/* 지역 필터 */}
                     <div className="mx-2 px-3">
-                        <RegionFilter region={region} setRegion={setRegion} regions={regions} />
+                        <RegionFilter region={region} setRegion={setRegion} regions={regions} boxCount={displayedBoxes.length} />
                     </div>
 
                     {/* 리스트 */}
