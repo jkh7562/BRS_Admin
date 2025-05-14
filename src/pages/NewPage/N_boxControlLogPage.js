@@ -8,6 +8,9 @@ import DownIcon from "../../assets/Down.png"
 import RightIcon from "../../assets/Vector-right.png"
 
 const N_boxControlLogPage = () => {
+    // 복사된 박스 ID 상태 추가 (N_boxControlLogPage 컴포넌트 내부 상단에 추가)
+    const [copiedBoxId, setCopiedBoxId] = useState(null);
+
     // Replace the year, month, day state definitions with these:
     const [year, setYear] = useState("")
     const [month, setMonth] = useState("")
@@ -38,6 +41,25 @@ const N_boxControlLogPage = () => {
 
     // Then update the days state to be dynamic:
     const [days, setDays] = useState(() => getDaysInMonth(year, month))
+
+    // 복사 핸들러 함수 추가 (N_boxControlLogPage 컴포넌트 내부에 추가)
+    const handleCopy = (e, boxId, text) => {
+        e.stopPropagation(); // 이벤트 버블링 방지
+
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                // 복사된 항목 ID 저장
+                setCopiedBoxId(boxId);
+
+                // 1.5초 후 상태 초기화
+                setTimeout(() => {
+                    setCopiedBoxId(null);
+                }, 1500);
+            })
+            .catch((err) => {
+                console.error("복사 실패:", err);
+            });
+    };
 
     // Update the useEffect for days:
     useEffect(() => {
@@ -242,11 +264,14 @@ const N_boxControlLogPage = () => {
                                     {boxList.map((box) => (
                                         <BoxListItem
                                             key={box.id}
+                                            id={box.id}  // id prop 추가
                                             name={box.name}
                                             location={box.location}
                                             date={box.date}
                                             isActive={box.id === 1}
                                             onClick={() => setSelectedBox(box)}
+                                            handleCopy={handleCopy}  // handleCopy 함수 전달
+                                            copiedBoxId={copiedBoxId}  // 복사 상태 전달
                                         />
                                     ))}
                                 </div>
@@ -678,7 +703,7 @@ const N_boxControlLogPage = () => {
     )
 }
 
-function BoxListItem({ name, location, date, isActive, onClick }) {
+function BoxListItem({ id, name, location, date, isActive, onClick, handleCopy, copiedBoxId }) {
     return (
         <div
             className={`p-4 border-b flex justify-between cursor-pointer ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}
@@ -691,11 +716,18 @@ function BoxListItem({ name, location, date, isActive, onClick }) {
                     <p className="text-sm font-normal text-[#60697E]">설치일자 {date}</p>
                 </div>
             </div>
-            <button className="text-gray-400 self-start">
-                <img src={CopyIcon || "/placeholder.svg?height=16&width=16"} alt="복사" width={16} height={16} />
-            </button>
+            <div className="text-gray-400 self-start relative">
+                <button onClick={(e) => handleCopy(e, id, name)}>
+                    <img src={CopyIcon || "/placeholder.svg?height=16&width=16"} alt="복사" width={16} height={16} />
+                </button>
+                {copiedBoxId === id && (
+                    <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full w-3 h-3 flex items-center justify-center text-[8px]">
+                        ✓
+                    </div>
+                )}
+            </div>
         </div>
-    )
+    );
 }
 
 // Radio button component
