@@ -559,23 +559,27 @@ const N_boxAddRemovePage = () => {
 
     // 지역별 필터링된 박스 데이터 계산
     const getRegionFilteredBoxes = () => {
-        console.log("필터링 실행:", filters.type, filters.region, filters.city)
-        console.log("현재 주소 데이터:", addressData)
-        console.log("전체 박스 데이터:", boxes)
+        console.log("필터링 실행:", filters.type, filters.region, filters.city);
+        console.log("현재 주소 데이터:", addressData);
+        console.log("전체 박스 데이터:", boxes);
 
         // 먼저 타입에 따라 필터링
-        let filtered = []
+        let filtered = [];
 
         if (filters.type === "설치") {
-            filtered = boxes.filter((box) => installStatuses.includes(box?.installStatus))
-            console.log("설치 상태 필터링 결과:", filtered.length, filtered)
+            filtered = boxes.filter((box) => installStatuses.includes(box?.installStatus));
         } else {
+            // 제거 상태 필터링 로직 수정
             filtered = boxes.filter(
                 (box) =>
+                    // removeStatus가 있거나
                     removeStatuses.includes(box?.removeStatus) ||
-                    (box?.removeInfo?.alarmType && box.removeInfo.alarmType.startsWith("REMOVE")),
-            )
-            console.log("제거 상태 필터링 결과:", filtered.length, filtered)
+                    // removeInfo.alarmType이 REMOVE로 시작하거나
+                    (box?.removeInfo?.alarmType && box.removeInfo.alarmType.startsWith("REMOVE")) ||
+                    // installStatus가 REMOVE로 시작하는 경우도 포함
+                    (box?.installStatus && box.installStatus.startsWith("REMOVE"))
+            );
+            console.log("제거 상태 필터링 결과:", filtered.length, filtered);
         }
 
         // 지역 필터링
@@ -639,20 +643,24 @@ const N_boxAddRemovePage = () => {
             alarmType: box.installInfo.alarmType,
         }))
 
-    // 제거 상태 컴포넌트에 전달할 데이터
+    // 제거 상태 컴포넌트에 전달할 데이터 생성 부분
     const removalBoxes = processedBoxes
         .filter(
             (box) =>
                 removeStatuses.includes(box?.removeStatus) ||
-                (box?.removeInfo?.alarmType && box.removeInfo.alarmType.startsWith("REMOVE")),
+                (box?.removeInfo?.alarmType && box.removeInfo.alarmType.startsWith("REMOVE")) ||
+                (box?.installStatus && box.installStatus.startsWith("REMOVE"))
         )
         .map((box) => ({
             ...box,
-            user: box.removeInfo.user,
-            createdAt: box.removeInfo.createdAt,
-            alarmDate: box.removeInfo.alarmDate,
-            alarmType: box.removeInfo.alarmType,
-        }))
+            user: box.removeInfo?.user || { name: box.name || "미지정", createdAt: "정보 없음" },
+            createdAt: box.removeInfo?.createdAt || "정보 없음",
+            alarmDate: box.removeInfo?.alarmDate || null,
+            alarmType: box.removeInfo?.alarmType || box.installStatus || null,
+        }));
+
+// 디버깅을 위한 로그 추가
+    console.log("제거 컴포넌트에 전달할 데이터:", removalBoxes);
 
     return (
         <div className="flex min-h-screen w-full bg-[#F3F3F5]">

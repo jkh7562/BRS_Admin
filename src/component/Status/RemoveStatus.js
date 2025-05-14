@@ -13,22 +13,37 @@ export default function RemoveStatus({ statuses, addressData = {}, processedBoxe
     const [displayedBoxes, setDisplayedBoxes] = useState([])
     const [isLoading, setIsLoading] = useState(false)
 
-    // 초기 데이터 설정
+    // 초기 데이터 설정 - 디버깅 로그 추가
     useEffect(() => {
         setIsLoading(true)
+        console.log("RemoveStatus - 원본 데이터:", processedBoxes)
+
         if (processedBoxes && processedBoxes.length > 0) {
-            setDisplayedBoxes(processedBoxes)
+            // 필터링 없이 모든 데이터 사용
+            setDisplayedBoxes([...processedBoxes]) // 배열 복사본 사용
+            console.log("RemoveStatus - 표시할 데이터:", [...processedBoxes])
+
             if (!selectedBox && processedBoxes.length > 0) {
                 setSelectedBox(processedBoxes[0])
+                console.log("RemoveStatus - 선택된 박스:", processedBoxes[0])
             }
+        } else {
+            console.log("RemoveStatus - 데이터 없음")
         }
+
         setIsLoading(false)
     }, [processedBoxes])
 
     // 검색어에 따른 필터링
     useEffect(() => {
+        if (!processedBoxes || processedBoxes.length === 0) {
+            console.log("RemoveStatus - 검색 필터링: 원본 데이터 없음")
+            return
+        }
+
         if (searchTerm.trim() === "") {
-            setDisplayedBoxes(processedBoxes)
+            setDisplayedBoxes([...processedBoxes])
+            console.log("RemoveStatus - 검색 필터링: 모든 데이터 표시", [...processedBoxes])
         } else {
             const filtered = processedBoxes.filter(
                 (box) =>
@@ -36,16 +51,26 @@ export default function RemoveStatus({ statuses, addressData = {}, processedBoxe
                     (box.name && box.name.includes(searchTerm)),
             )
             setDisplayedBoxes(filtered)
+            console.log("RemoveStatus - 검색 필터링 결과:", filtered)
         }
     }, [searchTerm, processedBoxes])
 
     // 제거 상태 한글 변환
     const getStatusText = (status) => {
+        // status가 없으면 기본값 사용
+        if (!status) {
+            return "상태 없음"
+        }
+
         const statusMap = {
             REMOVE_REQUEST: "제거 요청",
             REMOVE_IN_PROGRESS: "제거 진행중",
-            REMOVE_CONFIRMED: "제거 확인",
             REMOVE_COMPLETED: "제거 완료",
+            REMOVE_CONFIRMED: "제거 확정",
+            INSTALL_REQUEST: "설치 요청",
+            INSTALL_IN_PROGRESS: "설치 진행중",
+            INSTALL_CONFIRMED: "설치 확정",
+            INSTALL_COMPLETED: "설치 완료",
         }
         return statusMap[status] || status
     }
@@ -61,6 +86,13 @@ export default function RemoveStatus({ statuses, addressData = {}, processedBoxe
         }
     }
 
+    console.log("RemoveStatus - 렌더링 시점 데이터:", {
+        displayedBoxes,
+        selectedBox,
+        isLoading,
+        boxCount: displayedBoxes.length,
+    })
+
     if (isLoading) {
         return (
             <div className="flex h-[525px] bg-white rounded-2xl shadow-md overflow-hidden justify-center items-center">
@@ -69,12 +101,14 @@ export default function RemoveStatus({ statuses, addressData = {}, processedBoxe
         )
     }
 
-    if (displayedBoxes.length === 0 && !searchTerm) {
+    // 데이터가 없는 경우 메시지 표시
+    if (!displayedBoxes || displayedBoxes.length === 0) {
         return (
             <div className="flex h-[525px] bg-white rounded-2xl shadow-md overflow-hidden justify-center items-center">
                 <div className="text-center">
                     <p className="text-xl font-bold text-gray-700">데이터가 없습니다</p>
-                    <p className="text-gray-500 mt-2">해당 상태의 수거함이 없습니다.</p>
+                    <p className="text-gray-500 mt-2">표시할 박스가 없습니다.</p>
+                    <p className="text-gray-500 mt-2">원본 데이터 수: {processedBoxes?.length || 0}</p>
                 </div>
             </div>
         )
@@ -105,9 +139,9 @@ export default function RemoveStatus({ statuses, addressData = {}, processedBoxe
                         <UserListItem
                             key={box.id}
                             boxId={box.id}
-                            name={box.user?.name || "미지정"}
-                            status={getStatusText(box.removeStatus || box.alarmType || "REMOVE_REQUEST")}
-                            date={box.createdAt || "정보 없음"}
+                            name={box.user?.name || box.name || "미지정"}
+                            status={getStatusText(box.installStatus)}
+                            date={box.removeInfo?.createdAt || box.installInfo?.createdAt || box.createdAt || "정보 없음"}
                             isActive={selectedBox && selectedBox.id === box.id}
                             onClick={() => setSelectedBox(box)}
                         />
@@ -121,8 +155,7 @@ export default function RemoveStatus({ statuses, addressData = {}, processedBoxe
                     {/* Map title overlay */}
                     <div className="p-10 pb-9 bg-white">
                         <h2 className="text-2xl text-[#21262B] font-bold mb-1">
-                            [{getStatusText(selectedBox.removeStatus || selectedBox.alarmType || "REMOVE_REQUEST")}]{" "}
-                            {selectedBox.name}
+                            [{getStatusText(selectedBox.installStatus || "상태 없음")}] {selectedBox.name}
                         </h2>
                         <p className="text-[#60697E]">
                             <span className="font-bold">제거 좌표</span>{" "}
@@ -130,7 +163,7 @@ export default function RemoveStatus({ statuses, addressData = {}, processedBoxe
                 {selectedBox.lat} / {selectedBox.lng}
               </span>
                             <span className="float-right text-sm">
-                알림 일자 {selectedBox.alarmDate || selectedBox.createdAt || "정보 없음"}
+                알림 일자 {selectedBox.removeInfo?.alarmDate || selectedBox.removeInfo?.createdAt || "정보 없음"}
               </span>
                         </p>
                     </div>
@@ -162,7 +195,9 @@ export default function RemoveStatus({ statuses, addressData = {}, processedBoxe
             {selectedBox && (
                 <div className="w-[290px] h-full flex flex-col border-l p-8">
                     <div className="mb-10">
-                        <h2 className="text-2xl text-[#21262B] font-bold pb-1">{selectedBox.user?.name || "미지정"}</h2>
+                        <h2 className="text-2xl text-[#21262B] font-bold pb-1">
+                            {selectedBox.user?.name || selectedBox.name || "미지정"}
+                        </h2>
                         <p className="text-[#60697E]">
                             <span className="font-bold">가입일자</span>
                             <span className="ml-3 font-normal">{selectedBox.user?.createdAt || "정보 없음"}</span>
@@ -180,13 +215,13 @@ export default function RemoveStatus({ statuses, addressData = {}, processedBoxe
                         </div>
                         <div className="flex items-center">
                             <span className="font-bold w-[70px]">상태</span>
-                            <span className="font-nomal">
-                {getStatusText(selectedBox.removeStatus || selectedBox.alarmType || "REMOVE_REQUEST")}
-              </span>
+                            <span className="font-nomal">{getStatusText(selectedBox.installStatus || "상태 없음")}</span>
                         </div>
                         <div className="flex items-center">
                             <span className="font-bold w-[70px]">알림일자</span>
-                            <span className="font-nomal">{selectedBox.alarmDate || selectedBox.createdAt || "정보 없음"}</span>
+                            <span className="font-nomal">
+                {selectedBox.removeInfo?.alarmDate || selectedBox.removeInfo?.createdAt || "정보 없음"}
+              </span>
                         </div>
                     </div>
                 </div>
