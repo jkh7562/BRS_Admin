@@ -1,11 +1,13 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import MapWithSidebar from "../../component/MapWithSidebar"
 import DownIcon from "../../assets/Down.png"
 import InstallationStatus from "../../component/Status/InstallationStatus"
-import RemoveStatus from "../../component/Status/RemoveStatus"
-import { findAllBox, fetchUnresolvedAlarms, findUserAll } from "../../api/apiServices"
+import RemoveStatus from "../../component/Status/InstallationStatus"
+import { findAllBox, fetchUnresolvedAlarms, findUserAll, uploadFile } from "../../api/apiServices"
 
 const N_boxAddRemovePage = () => {
     const [activeTab, setActiveTab] = useState("전체")
@@ -17,6 +19,11 @@ const N_boxAddRemovePage = () => {
     const [userMap, setUserMap] = useState({})
     const [processedBoxes, setProcessedBoxes] = useState([])
     const [isDataLoading, setIsDataLoading] = useState(true)
+    const [files, setFiles] = useState({})
+    const [showUploader, setShowUploader] = useState(false)
+    const [isUploading, setIsUploading] = useState(false)
+    const [uploadProgress, setUploadProgress] = useState(0)
+    const [uploadStatus, setUploadStatus] = useState({})
 
     // 지역 및 도시 데이터
     const regionData = {
@@ -102,6 +109,66 @@ const N_boxAddRemovePage = () => {
         console.warn(`정규화할 수 없는 지역명: ${regionName}`)
         return regionName
     }
+
+    // 파일 변경 핸들러
+    const handleFileChange = (e, key) => {
+        setFiles((prev) => ({ ...prev, [key]: e.target.files[0] }))
+    }
+
+    const handleUploadAll = async () => {
+        setIsUploading(true);
+        setUploadProgress(0);
+        setUploadStatus({});
+
+        const totalFiles = Object.keys(files).length;
+
+        if (totalFiles === 0) {
+            alert("업로드할 파일을 선택해주세요.");
+            setIsUploading(false);
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            for (const key in files) {
+                formData.append(key, files[key]);
+                console.log(`📦 FormData에 추가됨 - key: ${key}, name: ${files[key].name}`);
+            }
+
+            // 👉 FormData 확인용 로그
+            for (let pair of formData.entries()) {
+                console.log(`🧾 전송 데이터 - ${pair[0]}:`, pair[1]);
+            }
+
+            const response = await uploadFile(formData);
+
+            if (response) {
+                alert("파일 업로드 완료.");
+                setUploadStatus(
+                    Object.keys(files).reduce((status, key) => {
+                        status[key] = { success: true, message: "업로드 성공" };
+                        return status;
+                    }, {}),
+                );
+            } else {
+                alert("파일 업로드 실패.");
+            }
+        } catch (error) {
+            console.error("❌ 파일 업로드 실패:", error);
+            alert("파일 업로드 중 오류가 발생했습니다.");
+            setUploadStatus(
+                Object.keys(files).reduce((status, key) => {
+                    status[key] = { success: false, message: error.message || "업로드 실패" };
+                    return status;
+                }, {}),
+            );
+        } finally {
+            setIsUploading(false);
+            setUploadProgress(100);
+        }
+    };
+
+
 
     // 모든 데이터 로드 (박스, 알람, 사용자)
     const loadAllData = async () => {
@@ -559,15 +626,15 @@ const N_boxAddRemovePage = () => {
 
     // 지역별 필터링된 박스 데이터 계산
     const getRegionFilteredBoxes = () => {
-        console.log("필터링 실행:", filters.type, filters.region, filters.city);
-        console.log("현재 주소 데이터:", addressData);
-        console.log("전체 박스 데이터:", boxes);
+        console.log("필터링 실행:", filters.type, filters.region, filters.city)
+        console.log("현재 주소 데이터:", addressData)
+        console.log("전체 박스 데이터:", boxes)
 
         // 먼저 타입에 따라 필터링
-        let filtered = [];
+        let filtered = []
 
         if (filters.type === "설치") {
-            filtered = boxes.filter((box) => installStatuses.includes(box?.installStatus));
+            filtered = boxes.filter((box) => installStatuses.includes(box?.installStatus))
         } else {
             // 제거 상태 필터링 로직 수정
             filtered = boxes.filter(
@@ -577,9 +644,9 @@ const N_boxAddRemovePage = () => {
                     // removeInfo.alarmType이 REMOVE로 시작하거나
                     (box?.removeInfo?.alarmType && box.removeInfo.alarmType.startsWith("REMOVE")) ||
                     // installStatus가 REMOVE로 시작하는 경우도 포함
-                    (box?.installStatus && box.installStatus.startsWith("REMOVE"))
-            );
-            console.log("제거 상태 필터링 결과:", filtered.length, filtered);
+                    (box?.installStatus && box.installStatus.startsWith("REMOVE")),
+            )
+            console.log("제거 상태 필터링 결과:", filtered.length, filtered)
         }
 
         // 지역 필터링
@@ -649,7 +716,7 @@ const N_boxAddRemovePage = () => {
             (box) =>
                 removeStatuses.includes(box?.removeStatus) ||
                 (box?.removeInfo?.alarmType && box.removeInfo.alarmType.startsWith("REMOVE")) ||
-                (box?.installStatus && box.installStatus.startsWith("REMOVE"))
+                (box?.installStatus && box.installStatus.startsWith("REMOVE")),
         )
         .map((box) => ({
             ...box,
@@ -657,10 +724,10 @@ const N_boxAddRemovePage = () => {
             createdAt: box.removeInfo?.createdAt || "정보 없음",
             alarmDate: box.removeInfo?.alarmDate || null,
             alarmType: box.removeInfo?.alarmType || box.installStatus || null,
-        }));
+        }))
 
-// 디버깅을 위한 로그 추가
-    console.log("제거 컴포넌트에 전달할 데이터:", removalBoxes);
+    // 디버깅을 위한 로그 추가
+    console.log("제거 컴포넌트에 전달할 데이터:", removalBoxes)
 
     return (
         <div className="flex min-h-screen w-full bg-[#F3F3F5]">
@@ -695,6 +762,67 @@ const N_boxAddRemovePage = () => {
                         onDataChange={loadAllData}
                         addressData={addressData}
                     />
+
+                    {/* 업로드 토글 버튼 */}
+                    <div className="mt-4 w-full text-right">
+                        <button
+                            onClick={() => setShowUploader(!showUploader)}
+                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                        >
+                            {showUploader ? "📁 업로드 창 닫기" : "📁 수거함 위치 추천 최신화"}
+                        </button>
+                    </div>
+
+                    {/* 파일 업로드 박스 */}
+                    {showUploader && (
+                        <div className="mt-4 w-full bg-white shadow-md rounded p-4">
+                            <h2 className="text-lg font-bold mb-2">📁 수거함 추천 시스템 최신화를 위한 데이터 업로드</h2>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="font-semibold">① 인구밀도 데이터 </label>
+                                    <input type="file" accept=".csv,.txt" onChange={(e) => handleFileChange(e, "population")} />
+                                </div>
+                                {["cpg", "dbf", "prj", "shp", "shx"].map((n) => (
+                                    <div key={n}>
+                                        <label className="font-semibold">② 경계 데이터 {n} </label>
+                                        <input type="file" accept={`.${n}`} onChange={(e) => handleFileChange(e, `boundary${n}`)} />
+                                    </div>
+                                ))}
+                                <div>
+                                    <label className="font-semibold">③ 119안전센터 현황 </label>
+                                    <input type="file" accept=".csv" onChange={(e) => handleFileChange(e, "fireStation")} />
+                                </div>
+                                <div>
+                                    <label className="font-semibold">④ 어린이보호구역 표준데이터 </label>
+                                    <input type="file" accept=".csv" onChange={(e) => handleFileChange(e, "childSafety")} />
+                                </div>
+                            </div>
+
+                            {/* 업로드 진행률 표시 */}
+                            {isUploading && uploadProgress > 0 && (
+                                <div className="mt-4">
+                                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mt-1 text-center">{uploadProgress}% 완료</p>
+                                </div>
+                            )}
+
+                            <div className="flex gap-4 mt-4">
+                                <button
+                                    onClick={handleUploadAll}
+                                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+                                    disabled={isUploading}
+                                >
+                                    {isUploading ? "📤 업로드 중..." : "📤 업로드 실행"}
+                                </button>
+                                {/* 업로드 중 표시 */}
+                                {isUploading && (
+                                    <div className="text-blue-600 ml-4">파일 업로드 중... 최대 7시간이 소요될 수 있습니다.</div>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="pt-14 pb-3">
                         <div className="flex justify-between items-center">

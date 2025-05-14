@@ -269,19 +269,23 @@ export const fetchFilteredRecommendedBoxes = async () => {
     }
 };
 
+export const uploadFile = async (formData) => {
+    try {
+        const response = await axiosInstance.post('/admin/upload', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data', // Content-Type 설정 유지
+            },
+        });
 
-// 파일 업로드 함수
-export const uploadFileToFlask = async (file) => {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const response = await axiosInstance.post("/admin/upload", formData, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    });
-
-    return response.data;
+        if (response.status === 200) {
+            return response.data; // 성공 시 응답 데이터 반환 (필요에 따라)
+        } else {
+            return null; // 실패 시 null 또는 에러 코드 반환
+        }
+    } catch (error) {
+        console.error('파일 업로드 실패:', error);
+        throw error;
+    }
 };
 
 // ✅ 수거함 설치 요청 API (longitude / latitude 별도 전송)
