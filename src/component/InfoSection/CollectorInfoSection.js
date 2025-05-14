@@ -582,7 +582,7 @@ export default function CollectorInfoSection() {
 function UserListItem({ collectorId, name, points, date, isActive, onClick, handleCopy, copiedId }) {
     return (
         <div
-            className={`p-4 border-b flex items-center justify-between hover:bg-[#D1E3EE] hover:bg-opacity-50 cursor-pointer ${isActive ? "bg-[#D1E3EE] bg-opacity-50" : ""}`}
+            className={`p-4 border-b flex items-center justify-between cursor-pointer ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}
             onClick={onClick}
         >
             <div>
