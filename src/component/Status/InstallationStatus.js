@@ -12,6 +12,7 @@ export default function InstallationStatus({ statuses, addressData = {}, process
     const [searchTerm, setSearchTerm] = useState("")
     const [displayedBoxes, setDisplayedBoxes] = useState([])
     const [isLoading, setIsLoading] = useState(false)
+    const [addressText, setAddressText] = useState("주소 로딩 중...")
 
     // 초기 데이터 설정
     useEffect(() => {
@@ -39,6 +40,40 @@ export default function InstallationStatus({ statuses, addressData = {}, process
         }
     }, [searchTerm, processedBoxes])
 
+    // 좌표를 주소로 변환하는 함수
+    const convertCoordsToFullAddress = (lng, lat) => {
+        if (!window.kakao || !window.kakao.maps || !window.kakao.maps.services) {
+            setAddressText("주소 변환 불가")
+            return
+        }
+
+        const geocoder = new window.kakao.maps.services.Geocoder()
+
+        geocoder.coord2Address(lng, lat, (result, status) => {
+            if (status === window.kakao.maps.services.Status.OK && result[0]) {
+                const addressInfo = result[0]
+
+                // 도로명 주소 또는 지번 주소 사용
+                const roadAddress = addressInfo.road_address ? addressInfo.road_address.address_name : ""
+                const jibunAddress = addressInfo.address ? addressInfo.address.address_name : ""
+
+                // 도로명 주소가 있으면 도로명 주소 사용, 없으면 지번 주소 사용
+                const fullAddress = roadAddress || jibunAddress || "주소 정보 없음"
+                setAddressText(fullAddress)
+            } else {
+                setAddressText("주소 변환 실패")
+            }
+        })
+    }
+
+    // selectedBox가 변경될 때마다 주소 변환
+    useEffect(() => {
+        if (selectedBox && selectedBox.lng && selectedBox.lat) {
+            setAddressText("주소 로딩 중...")
+            convertCoordsToFullAddress(selectedBox.lng, selectedBox.lat)
+        }
+    }, [selectedBox])
+
     // 설치 상태 한글 변환
     const getStatusText = (status) => {
         const statusMap = {
@@ -50,14 +85,13 @@ export default function InstallationStatus({ statuses, addressData = {}, process
         return statusMap[status] || status
     }
 
-    // 좌표 복사 함수
-    const copyCoordinates = () => {
-        if (selectedBox) {
-            const coordText = `${selectedBox.lat} / ${selectedBox.lng}`
+    // 주소 복사 함수
+    const copyAddress = () => {
+        if (addressText) {
             navigator.clipboard
-                .writeText(coordText)
-                .then(() => alert("좌표가 클립보드에 복사되었습니다."))
-                .catch((err) => console.error("좌표 복사 실패:", err))
+                .writeText(addressText)
+                .then(() => alert("주소가 클립보드에 복사되었습니다."))
+                .catch((err) => console.error("주소 복사 실패:", err))
         }
     }
 
@@ -124,9 +158,9 @@ export default function InstallationStatus({ statuses, addressData = {}, process
                             [{getStatusText(selectedBox.installStatus)}] {selectedBox.name}
                         </h2>
                         <p className="text-[#60697E]">
-                            <span className="font-bold">설치 좌표</span>{" "}
-                            <span className="font-normal cursor-pointer hover:text-blue-500" onClick={copyCoordinates}>
-                {selectedBox.lat} / {selectedBox.lng}
+                            <span className="font-bold pr-2">설치 주소</span>{" "}
+                            <span className="font-normal cursor-pointer hover:text-blue-500" onClick={copyAddress}>
+                {addressText}
               </span>
                             <span className="float-right text-sm">
                 알림 일자 {selectedBox.alarmDate || selectedBox.createdAt || "정보 없음"}
