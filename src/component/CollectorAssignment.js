@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useRef, useEffect } from "react"
 import SearchIcon from "../assets/검색.png"
 import CopyIcon from "../assets/copy.png"
@@ -65,6 +63,40 @@ function CustomDropdown({ options, value, onChange, width = "200px" }) {
 }
 
 export default function CollectorAssignment() {
+    // 검색어 상태 변수 추가 (CollectorAssignment 컴포넌트 내부, 다른 상태 변수 근처에 추가)
+    const [searchTerm, setSearchTerm] = useState("")
+
+    // 수거자 목록 데이터 추가 (CollectorAssignment 컴포넌트 내부, regionData 위에 추가)
+    const [collectors, setCollectors] = useState([
+        { id: "user1", name: "이창진", points: 1600, date: "2025.02.03", isActive: false },
+        { id: "user2", name: "정윤식", points: 3200, date: "2025.02.03", isActive: true },
+        { id: "user3", name: "정규혁", points: 1100, date: "2025.02.03", isActive: false },
+        { id: "user4", name: "홍길동", points: 2000, date: "2025.02.03", isActive: false },
+        { id: "user5", name: "김철수", points: 2000, date: "2025.02.03", isActive: false },
+        { id: "user6", name: "이영희", points: 2000, date: "2025.02.03", isActive: false },
+        { id: "user7", name: "박지성", points: 2000, date: "2025.02.03", isActive: false },
+    ])
+
+    // 선택된 수거자 상태 추가
+    const [selectedCollector, setSelectedCollector] = useState(null)
+
+    // 컴포넌트 마운트 시 기본 선택 수거자 설정
+    useEffect(() => {
+        // 기본적으로 첫 번째 수거자 선택 또는 isActive가 true인 수거자 선택
+        const defaultCollector = collectors.find((c) => c.isActive) || collectors[0]
+        setSelectedCollector(defaultCollector)
+    }, [collectors])
+
+    // 수거자 선택 핸들러 함수 추가
+    const handleCollectorSelect = (collector) => {
+        setSelectedCollector(collector)
+    }
+
+    // 검색어에 따라 필터링된 수거자 목록 계산
+    const filteredCollectors = collectors.filter((collector) =>
+        collector.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    )
+
     const [selectedPeriod, setSelectedPeriod] = useState("일")
     const [selectedRegion, setSelectedRegion] = useState("충청남도")
 
@@ -73,6 +105,29 @@ export default function CollectorAssignment() {
         province: false,
         city: false,
     })
+
+    // 복사된 사용자 ID 상태 추가
+    const [copiedId, setCopiedId] = useState(null)
+
+    // 복사 핸들러 함수 추가
+    const handleCopy = (e, userId, text) => {
+        e.stopPropagation() // 이벤트 버블링 방지
+
+        navigator.clipboard
+            .writeText(text)
+            .then(() => {
+                // 복사된 항목 ID 저장
+                setCopiedId(userId)
+
+                // 1.5초 후 상태 초기화
+                setTimeout(() => {
+                    setCopiedId(null)
+                }, 1500)
+            })
+            .catch((err) => {
+                console.error("복사 실패:", err)
+            })
+    }
 
     // 툴팁 토글 함수
     const toggleTooltip = (name, e) => {
@@ -165,6 +220,8 @@ export default function CollectorAssignment() {
                             type="text"
                             placeholder="수거자 이름 검색"
                             className="w-full pl-4 pr-4 py-2 text-sm border border border-black/20 rounded-2xl"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                         />
                         <div className="absolute right-5 top-2 text-gray-400">
                             <img src={SearchIcon || "/placeholder.svg"} alt="검색" className="w-5 h-5" />
@@ -174,13 +231,23 @@ export default function CollectorAssignment() {
 
                 {/* 사용자 목록 영역에만 스크롤바 적용 */}
                 <div className="overflow-auto flex-1 custom-scrollbar ml-4">
-                    <UserListItem name="이창진" points={1600} date="2025.02.03" isActive={false} />
-                    <UserListItem name="정윤식" points={3200} date="2025.02.03" isActive={true} />
-                    <UserListItem name="정규혁" points={1100} date="2025.02.03" isActive={false} />
-                    <UserListItem name="홍길동" points={2000} date="2025.02.03" isActive={false} />
-                    <UserListItem name="홍길동" points={2000} date="2025.02.03" isActive={false} />
-                    <UserListItem name="홍길동" points={2000} date="2025.02.03" isActive={false} />
-                    <UserListItem name="홍길동" points={2000} date="2025.02.03" isActive={false} />
+                    {filteredCollectors.length === 0 ? (
+                        <div className="p-4 text-center text-gray-500">검색 결과가 없습니다</div>
+                    ) : (
+                        filteredCollectors.map((collector) => (
+                            <UserListItem
+                                key={collector.id}
+                                userId={collector.id}
+                                name={collector.name}
+                                points={collector.points}
+                                date={collector.date}
+                                isActive={selectedCollector && selectedCollector.id === collector.id}
+                                onClick={() => handleCollectorSelect(collector)}
+                                handleCopy={handleCopy}
+                                copiedId={copiedId}
+                            />
+                        ))
+                    )}
                 </div>
             </div>
 
@@ -190,28 +257,31 @@ export default function CollectorAssignment() {
                 <div className="flex-1 h-full flex flex-col overflow-hidden p-4">
                     <div className="p-4">
                         {/* User profile section styled to match the image */}
-                        <div className="flex">
-                            <div className="mr-4">
-                                <div className="w-14 h-14 rounded-full bg-gray-200 overflow-hidden">
-                                    <img
-                                        src={UserIcon || "/placeholder.svg"}
-                                        alt="프로필 이미지"
-                                        className="w-full h-full object-cover"
-                                    />
+                        {selectedCollector && (
+                            <div className="flex">
+                                <div className="mr-4">
+                                    <div className="w-14 h-14 rounded-full bg-gray-200 overflow-hidden">
+                                        <img
+                                            src={UserIcon || "/placeholder.svg"}
+                                            alt="프로필 이미지"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <h2 className="font-bold text-[#21262B] text-lg">{selectedCollector.name}</h2>
+                                    <div className="flex">
+                                        <p className="text-sm text-[#60697E]">
+                                            <span className="font-bold">가입일자</span>{" "}
+                                            <span className="font-normal">{selectedCollector.date}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="ml-auto pt-7 pr-2">
+                                    <p className="text-sm font-medium text-gray-500">마지막 이용일 2025.03.06</p>
                                 </div>
                             </div>
-                            <div>
-                                <h2 className="font-bold text-[#21262B] text-lg">정윤식</h2>
-                                <div className="flex">
-                                    <p className="text-sm text-[#60697E]">
-                                        <span className="font-bold">가입일자</span> <span className="font-normal">2025.02.03</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="ml-auto pt-7 pr-2">
-                                <p className="text-sm font-medium text-gray-500">마지막 이용일 2025.03.06</p>
-                            </div>
-                        </div>
+                        )}
 
                         {/* Stats Cards */}
                         <div className="flex flex-col md:flex-row items-start md:items-center mt-6 mb-6">
@@ -390,34 +460,36 @@ export default function CollectorAssignment() {
 
                 {/* Right Sidebar - User Information Card */}
                 <div className="w-full md:w-[300px] h-full flex flex-col shadow-lg p-7">
-                    <div className="px-2 pt-2">
-                        <h2 className="text-xl text-[#21262B] font-bold mb-2">정윤식</h2>
-                        <div className="flex">
-                            <span className="font-bold text-[#60697E] w-20 mb-6">전화번호</span>
-                            <span className="text-[#60697E]">010-2222-2222</span>
+                    {selectedCollector && (
+                        <div className="px-2 pt-2">
+                            <h2 className="text-xl text-[#21262B] font-bold mb-2">{selectedCollector.name}</h2>
+                            <div className="flex">
+                                <span className="font-bold text-[#60697E] w-20 mb-6">전화번호</span>
+                                <span className="text-[#60697E]">010-2222-2222</span>
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex">
+                                    <span className="text-[#21262B] text-sm font-bold w-20">광역시/도</span>
+                                    <span className="text-[#21262B] text-sm">충청남도</span>
+                                </div>
+
+                                <div className="flex">
+                                    <span className="text-[#21262B] text-sm font-bold w-20">시/군/구</span>
+                                    <span className="text-[#21262B] text-sm">아산시</span>
+                                </div>
+
+                                <div className="flex">
+                                    <span className="text-[#21262B] text-sm font-bold w-20">상태</span>
+                                    <span className="text-[#21262B] text-sm">설치 진행중</span>
+                                </div>
+
+                                <div className="flex">
+                                    <span className="text-[#21262B] text-sm font-bold w-20">알림일자</span>
+                                    <span className="text-[#21262B] text-sm">2025/03/16</span>
+                                </div>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <div className="flex">
-                                <span className="text-[#21262B] text-sm font-bold w-20">광역시/도</span>
-                                <span className="text-[#21262B] text-sm">충청남도</span>
-                            </div>
-
-                            <div className="flex">
-                                <span className="text-[#21262B] text-sm font-bold w-20">시/군/구</span>
-                                <span className="text-[#21262B] text-sm">아산시</span>
-                            </div>
-
-                            <div className="flex">
-                                <span className="text-[#21262B] text-sm font-bold w-20">상태</span>
-                                <span className="text-[#21262B] text-sm">설치 진행중</span>
-                            </div>
-
-                            <div className="flex">
-                                <span className="text-[#21262B] text-sm font-bold w-20">알림일자</span>
-                                <span className="text-[#21262B] text-sm">2025/03/16</span>
-                            </div>
-                        </div>
-                    </div>
+                    )}
                 </div>
             </div>
 
@@ -518,17 +590,27 @@ export default function CollectorAssignment() {
 }
 
 // Update the UserListItem component to apply text-base and font-bold to the name, and text-sm and font-normal to the other text
-function UserListItem({ name, points, date, isActive }) {
+function UserListItem({ name, userId, points, date, isActive, onClick, handleCopy, copiedId }) {
     return (
-        <div className={`p-4 border-b flex items-center justify-between hover:bg-[#D1E3EE] hover:bg-opacity-50`}>
+        <div
+            className={`p-4 border-b flex items-center justify-between hover:bg-[#D1E3EE] hover:bg-opacity-50 cursor-pointer ${isActive ? "bg-[#D1E3EE] bg-opacity-50" : ""}`}
+            onClick={onClick}
+        >
             <div>
                 <h3 className="text-base text-[#21262B] font-bold">{name}</h3>
                 <p className="text-sm font-normal text-[#60697E] mt-1">총 수거량 {points}</p>
                 <p className="text-sm font-normal text-[#60697E]">{date}</p>
             </div>
-            <button className="pb-10 text-gray-400">
-                <img src={CopyIcon || "/placeholder.svg"} alt="복사" className="w-4 h-5" />
-            </button>
+            <div className="pb-10 text-gray-400 relative">
+                <button onClick={(e) => handleCopy(e, userId, name)}>
+                    <img src={CopyIcon || "/placeholder.svg"} alt="복사" className="w-4 h-5" />
+                </button>
+                {copiedId === userId && (
+                    <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full w-3 h-3 flex items-center justify-center text-[8px]">
+                        ✓
+                    </div>
+                )}
+            </div>
         </div>
     )
 }
