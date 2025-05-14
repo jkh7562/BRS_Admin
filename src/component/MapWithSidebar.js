@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useEffect, useState, useRef, useMemo, useCallback, memo } from "react"
 import { Map, MapMarker, CustomOverlayMap, Circle } from "react-kakao-maps-sdk"
 import ArrowLeftIcon from "../assets/arrow_left.png"
@@ -213,7 +211,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     // 지역 필터링 상태 - 광역시/도 단위만 사용
     const [region, setRegion] = useState("전체")
 
-    // 역별 좌표 범위 (대략적인 값)
+    // ��별 좌표 범위 (대략적인 값)
     const regionBounds = useMemo(
         () => ({
             서울특별시: {
@@ -849,7 +847,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
         (boxId) => {
             setSelectedBoxId(boxId)
 
-            // isAddRemovePage가 true일 때 기존 핀 클릭 시 오버레이 표시
+            // isAddRemovePage가 true일 때 기존 핀 클릭 시
             if (isAddRemovePage) {
                 const selectedBox = filteredBoxes.find((box) => box.id === boxId)
                 // 제거 상태인 핀은 오버레이를 표시하지 않음
@@ -877,7 +875,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
         (box) => {
             setSelectedBoxId(box.id)
 
-            // isAddRemovePage가 true일 때 기존 핀 클릭 시 오버레이 표시
+            // isAddRemovePage가 true일 때 기존 핀 클릭 시
             if (isAddRemovePage) {
                 // 제거 상태인 핀은 오버레이를 표시하지 않음
                 if (!box?.installStatus?.startsWith("REMOVE_")) {
@@ -981,14 +979,45 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
                 setNewBoxIpAddress("")
                 setIsRecommendedLocationOverlay(false) // 추천 위치 오버레이 플래그 초기화
 
+                // Call onDataChange to refresh the data
                 onDataChange()
+
+                // Reset the dataLoadedRef to force reloading of recommended locations
+                dataLoadedRef.current = false
+
+                // Reload recommended locations data if they're being shown
+                if (showRecommendedLocations && isAddRemovePage) {
+                    loadAllData()
+                }
+
+                // Force a refresh of the displayed boxes
+                setTimeout(() => {
+                    // This timeout ensures the parent component has time to fetch new data
+                    // before we try to update our local state
+                    if (map) {
+                        // Trigger a map event to refresh the view
+                        const center = map.getCenter()
+                        map.setCenter(center)
+                    }
+                }, 500)
             } catch (error) {
                 alert("설치 요청 중 오류가 발생했습니다: " + (error.message || "알 수 없는 오류"))
             } finally {
                 setIsSubmitting(false)
             }
         },
-        [newBoxName, newBoxIpAddress, newPinPosition, onDataChange, setShowNewPinOverlay, setNewPinPosition],
+        [
+            newBoxName,
+            newBoxIpAddress,
+            newPinPosition,
+            onDataChange,
+            setShowNewPinOverlay,
+            setNewPinPosition,
+            map,
+            showRecommendedLocations,
+            isAddRemovePage,
+            loadAllData,
+        ],
     )
 
     // 오버레이 닫기
@@ -1036,14 +1065,41 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
                 setSelectedBoxId(null)
                 setShowExistingPinOverlay(false)
 
+                // Call onDataChange to refresh the data
                 onDataChange()
+
+                // Reset the dataLoadedRef to force reloading of recommended locations
+                dataLoadedRef.current = false
+
+                // Reload recommended locations data if they're being shown
+                if (showRecommendedLocations && isAddRemovePage) {
+                    loadAllData()
+                }
+
+                // Force a refresh of the displayed boxes
+                setTimeout(() => {
+                    // This timeout ensures the parent component has time to fetch new data
+                    if (map) {
+                        // Trigger a map event to refresh the view
+                        const center = map.getCenter()
+                        map.setCenter(center)
+                    }
+                }, 500)
             } catch (error) {
                 alert("제거 요청 중 오류가 발생했습니다: " + (error.message || "알 수 없는 오류"))
             } finally {
                 setIsSubmitting(false)
             }
         },
-        [selectedBoxId, onDataChange, setShowExistingPinOverlay],
+        [
+            selectedBoxId,
+            onDataChange,
+            setShowExistingPinOverlay,
+            map,
+            showRecommendedLocations,
+            isAddRemovePage,
+            loadAllData,
+        ],
     )
 
     return (
