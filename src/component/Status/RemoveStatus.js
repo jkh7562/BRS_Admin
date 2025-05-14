@@ -67,10 +67,6 @@ export default function RemoveStatus({ statuses, addressData = {}, processedBoxe
             REMOVE_IN_PROGRESS: "제거 진행중",
             REMOVE_COMPLETED: "제거 완료",
             REMOVE_CONFIRMED: "제거 확정",
-            INSTALL_REQUEST: "설치 요청",
-            INSTALL_IN_PROGRESS: "설치 진행중",
-            INSTALL_CONFIRMED: "설치 확정",
-            INSTALL_COMPLETED: "설치 완료",
         }
         return statusMap[status] || status
     }
