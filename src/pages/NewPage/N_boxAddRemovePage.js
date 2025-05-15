@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
@@ -853,6 +855,40 @@ const N_boxAddRemovePage = () => {
                                             </div>
                                         </div>
                                     ))}
+
+                                    <div className="bg-gray-50 p-2.5 rounded-md hover:bg-gray-100 transition-colors">
+                                        <label className="font-medium text-sm text-gray-700 block mb-1">119안전센터 현황</label>
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                accept=".csv"
+                                                onChange={(e) => handleFileChange(e, "fireStation")}
+                                                className="block w-full text-xs text-gray-500
+                file:mr-2 file:py-1 file:px-2
+                file:rounded-md file:border-0
+                file:text-xs file:font-medium
+                file:bg-blue-50 file:text-blue-700
+                hover:file:bg-blue-100"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-gray-50 p-2.5 rounded-md hover:bg-gray-100 transition-colors">
+                                        <label className="font-medium text-sm text-gray-700 block mb-1">어린이보호구역 표준데이터</label>
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                accept=".csv"
+                                                onChange={(e) => handleFileChange(e, "childSafety")}
+                                                className="block w-full text-xs text-gray-500
+                file:mr-2 file:py-1 file:px-2
+                file:rounded-md file:border-0
+                file:text-xs file:font-medium
+                file:bg-blue-50 file:text-blue-700
+                hover:file:bg-blue-100"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {/* 업로드 진행률 표시 - 컴팩트한 디자인 */}
@@ -1225,7 +1261,9 @@ const N_boxAddRemovePage = () => {
                                 <ul className="list-disc pl-5 text-gray-700">
                                     <li>데이터 처리에는 최대 7시간이 소요될 수 있습니다.</li>
                                     <li>모든 파일은 UTF-8 인코딩으로 저장되어야 합니다.</li>
+                                    <li>파일 크기는 각각 50MB를 초과하지 않아야 합니다.</li>
                                     <li>모든 경계 데이터 파일(.cpg, .dbf, .prj, .shp, .shx)은 함께 업로드해야 합니다.</li>
+                                    <li>데이터 업로드 중에는 페이지를 닫거나 새로고침하지 마세요.</li>
                                 </ul>
                             </div>
                         </div>
@@ -1246,11 +1284,11 @@ const N_boxAddRemovePage = () => {
 
             {/* Add custom styles for scrollbar */}
             <style jsx global>{`
-                .dropdown-container div {
-                    padding-right: 4px; /* 스크롤바 오른쪽 간격 */
-                }
+        .dropdown-container div {
+          padding-right: 4px; /* 스크롤바 오른쪽 간격 */
+        }
 
-                .dropdown-container div::-webkit-scrollbar {
+        .dropdown-container div::-webkit-scrollbar {
                     width: 4px;
                 }
 
