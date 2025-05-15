@@ -16,6 +16,7 @@ import FireIcon from "../assets/아이콘 화재감지.svg"
 import pin from "../assets/pin.png"
 import child_safety from "../assets/child_safety.png"
 import fire_station from "../assets/fire-station.png"
+import Drop_downIcon from "../assets/Down.png"
 
 // API 함수 import
 import {
@@ -142,6 +143,7 @@ ActionButton.displayName = "ActionButton"
 
 // Replace the MapLegend component with this updated version
 // 메모이제이션된 범례 컴포넌트
+// 메모이제이션된 범례 컴포넌트
 const MapLegend = memo(({ isAddRemovePage }) => {
     const [isCollapsed, setIsCollapsed] = useState(false)
 
@@ -164,15 +166,7 @@ const MapLegend = memo(({ isAddRemovePage }) => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                         </svg>
                     ) : (
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-9" />
-                        </svg>
+                        <img src={Drop_downIcon || "/placeholder.svg"} alt="드롭다운" className="h-2 w-3" />
                     )}
                 </button>
             </div>
