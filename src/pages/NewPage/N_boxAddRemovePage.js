@@ -5,6 +5,7 @@ import MapWithSidebar from "../../component/MapWithSidebar"
 import DownIcon from "../../assets/Down.png"
 import InstallationStatus from "../../component/Status/InstallationStatus"
 import RemoveStatus from "../../component/Status/InstallationStatus"
+import InfoIcon from "../../assets/추가정보2.png"
 import { findAllBox, fetchUnresolvedAlarms, findUserAll, uploadFile } from "../../api/apiServices"
 
 const N_boxAddRemovePage = () => {
@@ -773,51 +774,126 @@ const N_boxAddRemovePage = () => {
 
                     {/* 파일 업로드 박스 */}
                     {showUploader && (
-                        <div className="mt-4 w-full bg-white shadow-md rounded p-4">
-                            <h2 className="text-lg font-bold mb-2">📁 수거함 추천 시스템 최신화를 위한 데이터 업로드</h2>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="font-semibold">① 인구밀도 데이터 </label>
-                                    <input type="file" accept=".csv,.txt" onChange={(e) => handleFileChange(e, "population")} />
-                                </div>
-                                {["cpg", "dbf", "prj", "shp", "shx"].map((n) => (
-                                    <div key={n}>
-                                        <label className="font-semibold">② 경계 데이터 {n} </label>
-                                        <input type="file" accept={`.${n}`} onChange={(e) => handleFileChange(e, `boundary${n}`)} />
-                                    </div>
-                                ))}
-                                <div>
-                                    <label className="font-semibold">③ 119안전센터 현황 </label>
-                                    <input type="file" accept=".csv" onChange={(e) => handleFileChange(e, "fireStation")} />
-                                </div>
-                                <div>
-                                    <label className="font-semibold">④ 어린이보호구역 표준데이터 </label>
-                                    <input type="file" accept=".csv" onChange={(e) => handleFileChange(e, "childSafety")} />
-                                </div>
+                        <div className="mt-4 w-full bg-white shadow-md rounded-lg overflow-hidden border border-gray-100">
+                            <div className="bg-gradient-to-r from-blue-50 to-white p-2.5 border-b border-gray-100">
+                                <h2 className="text-base font-bold text-gray-800 flex items-center">
+                                    <span className="text-blue-500 mr-1.5">📁</span>
+                                    수거함 추천 시스템 최신화를 위한 데이터 업로드
+                                    <img src={InfoIcon || "/placeholder.svg"} alt="정보"
+                                         className="ml-2 w-4 h-4 cursor-pointer"/>
+                                </h2>
                             </div>
 
-                            {/* 업로드 진행률 표시 */}
-                            {isUploading && uploadProgress > 0 && (
-                                <div className="mt-4">
-                                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                                        <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
+                            <div className="p-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div className="bg-gray-50 p-2.5 rounded-md hover:bg-gray-100 transition-colors">
+                                        <label className="font-medium text-sm text-gray-700 block mb-1">인구밀도 데이터</label>
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                accept=".csv,.txt"
+                                                onChange={(e) => handleFileChange(e, "population")}
+                                                className="block w-full text-xs text-gray-500
+                file:mr-2 file:py-1 file:px-2
+                file:rounded-md file:border-0
+                file:text-xs file:font-medium
+                file:bg-blue-50 file:text-blue-700
+                hover:file:bg-blue-100"
+                                            />
+                                        </div>
                                     </div>
-                                    <p className="text-sm text-gray-600 mt-1 text-center">{uploadProgress}% 완료</p>
-                                </div>
-                            )}
 
-                            <div className="flex gap-4 mt-4">
-                                <button
-                                    onClick={handleUploadAll}
-                                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
-                                    disabled={isUploading}
-                                >
-                                    {isUploading ? "📤 업로드 중..." : "📤 업로드 실행"}
-                                </button>
-                                {/* 업로드 중 표시 */}
-                                {isUploading && (
-                                    <div className="text-blue-600 ml-4">파일 업로드 중... 최대 7시간이 소요될 수 있습니다.</div>
+                                    {["cpg", "dbf", "prj", "shp", "shx"].map((n) => (
+                                        <div key={n} className="bg-gray-50 p-2.5 rounded-md hover:bg-gray-100 transition-colors">
+                                            <label className="font-medium text-sm text-gray-700 block mb-1">경계 데이터 <span className="text-blue-600 font-mono">.{n}</span></label>
+                                            <div className="relative">
+                                                <input
+                                                    type="file"
+                                                    accept={`.${n}`}
+                                                    onChange={(e) => handleFileChange(e, `boundary${n}`)}
+                                                    className="block w-full text-xs text-gray-500
+                  file:mr-2 file:py-1 file:px-2
+                  file:rounded-md file:border-0
+                  file:text-xs file:font-medium
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    <div className="bg-gray-50 p-2.5 rounded-md hover:bg-gray-100 transition-colors">
+                                        <label className="font-medium text-sm text-gray-700 block mb-1">119안전센터 현황</label>
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                accept=".csv"
+                                                onChange={(e) => handleFileChange(e, "fireStation")}
+                                                className="block w-full text-xs text-gray-500
+                file:mr-2 file:py-1 file:px-2
+                file:rounded-md file:border-0
+                file:text-xs file:font-medium
+                file:bg-blue-50 file:text-blue-700
+                hover:file:bg-blue-100"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-gray-50 p-2.5 rounded-md hover:bg-gray-100 transition-colors">
+                                        <label className="font-medium text-sm text-gray-700 block mb-1">어린이보호구역 표준데이터</label>
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                accept=".csv"
+                                                onChange={(e) => handleFileChange(e, "childSafety")}
+                                                className="block w-full text-xs text-gray-500
+                file:mr-2 file:py-1 file:px-2
+                file:rounded-md file:border-0
+                file:text-xs file:font-medium
+                file:bg-blue-50 file:text-blue-700
+                hover:file:bg-blue-100"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 업로드 진행률 표시 - 컴팩트한 디자인 */}
+                                {isUploading && uploadProgress > 0 && (
+                                    <div className="mt-3 mb-1">
+                                        <div className="flex justify-between mb-0.5">
+                                            <span className="text-xs font-medium text-blue-700">업로드 진행 중</span>
+                                            <span className="text-xs font-medium text-blue-700">{uploadProgress}%</span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                            <div
+                                                className="bg-blue-600 h-1.5 rounded-full transition-all duration-300 ease-in-out"
+                                                style={{ width: `${uploadProgress}%` }}
+                                            ></div>
+                                        </div>
+                                    </div>
                                 )}
+
+                                <div className="flex flex-row gap-3 mt-3 pt-2 border-t border-gray-100">
+                                    <button
+                                        onClick={handleUploadAll}
+                                        className="flex items-center justify-center bg-green-600 text-white px-3 py-1.5 rounded text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                                        disabled={isUploading}
+                                    >
+                                        <span className="mr-1">{isUploading ? "📤" : "📤"}</span>
+                                        <span>{isUploading ? "업로드 중..." : "업로드 실행"}</span>
+                                    </button>
+
+                                    {/* 업로드 중 표시 */}
+                                    {isUploading && (
+                                        <div className="flex items-center text-blue-600 text-xs">
+                                            <svg className="animate-spin mr-1.5 h-3 w-3 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            파일 업로드 중... 최대 7시간이 소요될 수 있습니다.
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
