@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useEffect, useState, useRef, useMemo, useCallback, memo } from "react"
 import { Map, MapMarker, CustomOverlayMap, Circle } from "react-kakao-maps-sdk"
 import ArrowLeftIcon from "../assets/arrow_left.png"
