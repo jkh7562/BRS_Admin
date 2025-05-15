@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useEffect, useState, useRef, useMemo, useCallback, memo } from "react"
 import { Map, MapMarker, CustomOverlayMap, Circle } from "react-kakao-maps-sdk"
 import ArrowLeftIcon from "../assets/arrow_left.png"
@@ -138,6 +140,133 @@ const ActionButton = memo(({ onClick, className, disabled, children }) => {
 })
 ActionButton.displayName = "ActionButton"
 
+// Replace the MapLegend component with this updated version
+// 메모이제이션된 범례 컴포넌트
+const MapLegend = memo(({ isAddRemovePage }) => {
+    const [isCollapsed, setIsCollapsed] = useState(false)
+
+    return (
+        <div className="absolute bottom-4 right-4 bg-white rounded-lg shadow-md z-10 overflow-hidden" style={{ minWidth: "200px" }}>
+            <div className="flex justify-between items-center px-3 py-2 border-b border-gray-200">
+                <span className="text-sm font-medium">범례</span>
+                <button
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                >
+                    {isCollapsed ? (
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        </svg>
+                    ) : (
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-9" />
+                        </svg>
+                    )}
+                </button>
+            </div>
+
+            {!isCollapsed && (
+                <div className={isAddRemovePage ? "p-2" : "py-1 px-2"}>
+                    {isAddRemovePage ? (
+                        // 설치/제거 페이지에서 표시할 아이콘들 (2열 그리드)
+                        <div className="grid grid-cols-2 gap-x-2 gap-y-3">
+                            <div className="flex items-center">
+                                <div className="w-10 flex justify-center">
+                                    <img src={GreenIcon || "/placeholder.svg"} alt="녹색 아이콘" className="w-9 h-10"/>
+                                </div>
+                                <span className="text-xs ml-1">설치 상태</span>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-10 flex justify-center">
+                                    <img src={RedIcon || "/placeholder.svg"} alt="빨간색 아이콘" className="w-9 h-10"/>
+                                </div>
+                                <span className="text-xs ml-1">제거 상태</span>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-10 flex justify-center">
+                                    <img
+                                        src="https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"
+                                        alt="추천 위치"
+                                        className="w-6 h-7"
+                                    />
+                                </div>
+                                <span className="text-xs ml-1">설치 추천 위치</span>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-10 flex justify-center">
+                                    <div className="relative">
+                                        <img
+                                            src="https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"
+                                            alt="밀집 중심 위치"
+                                            className="w-6 h-7"
+                                        />
+                                        <div
+                                            className="absolute -right-2 -top-1 bg-red-600 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center shadow-sm">
+                                            n
+                                        </div>
+                                    </div>
+                                </div>
+                                <span className="text-xs ml-1">밀집 중심 위치</span>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-10 flex justify-center">
+                                    <img src={pin || "/placeholder.svg"} alt="밀집 지역 내 위치" className="w-6 h-6"/>
+                                </div>
+                                <span className="text-xs ml-1">밀집 지역 내 위치</span>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-10 flex justify-center">
+                                    <img src={fire_station || "/placeholder.svg"} alt="소방서" className="w-6 h-6"/>
+                                </div>
+                                <span className="text-xs ml-1">소방서</span>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-10 flex justify-center">
+                                    <img src={child_safety || "/placeholder.svg"} alt="어린이보호구역" className="w-6 h-6"/>
+                                </div>
+                                <span className="text-xs ml-1">어린이보호구역</span>
+                            </div>
+                        </div>
+                    ) : (
+                        // 일반 페이지에서 표시할 아이콘들 (1열 그리드) - 여백 줄임
+                        <div className="grid grid-cols-1 gap-y-1">
+                            <div className="flex items-center py-1">
+                                <img src={GreenIcon || "/placeholder.svg"} alt="녹색 아이콘" className="w-9 h-10 mr-2"/>
+                                <span className="text-xs">수거량 50% 이하</span>
+                            </div>
+                            <div className="flex items-center py-1">
+                                <img src={YellowIcon || "/placeholder.svg"} alt="노란색 아이콘" className="w-9 h-10 mr-2"/>
+                                <span className="text-xs">수거량 51~80%</span>
+                            </div>
+                            <div className="flex items-center py-1">
+                                <img src={RedIcon || "/placeholder.svg"} alt="빨간색 아이콘" className="w-9 h-10 mr-2" />
+                                <span className="text-xs">수거량 81% 이상</span>
+                            </div>
+                            <div className="flex items-center py-1">
+                                <img src={FireIcon || "/placeholder.svg"} alt="화재 아이콘" className="w-9 h-10 mr-2" />
+                                <span className="text-xs">화재 감지</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    )
+})
+MapLegend.displayName = "MapLegend"
+
 // 지역 필터 컴포넌트 - 광역시/도 단위만 표시
 const RegionFilter = memo(({ region, setRegion, regions, boxCount }) => {
     return (
@@ -175,8 +304,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     const dragStartTimeRef = useRef(0)
     const [showRecommendedLocations, setShowRecommendedLocations] = useState(false)
     const [mapClickEnabled, setMapClickEnabled] = useState(true) // 지도 클릭 활성화 상태
-
-    // 새로운 핀 관련 상태
+    // Remove the showLegend state variable from the component
     const [newPinPosition, setNewPinPosition] = useState(null)
     const [showNewPinOverlay, setShowNewPinOverlay] = useState(false)
     const [newBoxName, setNewBoxName] = useState("")
@@ -624,7 +752,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     // Add a new state variable to track if we're showing an overlay for a recommended location
     const [isRecommendedLocationOverlay, setIsRecommendedLocationOverlay] = useState(false)
 
-    // 군집 멤버 수 가져오기 - 직접 필터링 방식으로 변경하여 성능 개선
+    // 밀집 지역 내 위치 수 가져오기 - 직접 필터링 방식으로 변경하여 성능 개선
     const getClusterMemberCount = useCallback(
         (clusterId) => {
             if (clusterId === undefined) return 0
@@ -728,7 +856,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
 
             // POINT 형식 문자열인 경우 파싱
             if (typeof location.lat === "undefined" && location.geometry) {
-                const coordsMatch = location.geometry.match(/POINT\s*$$\s*([-\d.]+)\s+([-\d.]+)\s*$$/)
+                const coordsMatch = location.geometry.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/)
                 if (coordsMatch) {
                     lng = Number.parseFloat(coordsMatch[1])
                     lat = Number.parseFloat(coordsMatch[2])
@@ -1294,7 +1422,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
                                     />
                                 ))}
 
-                            {/* 군집 중심점 마커 */}
+                            {/* 밀집 중심 위치 마커 */}
                             {filteredRecommendedLocations
                                 .filter((loc) => loc.point_type === "centroid")
                                 .map((centroid, index) => {
@@ -1321,7 +1449,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
                                     )
                                 })}
 
-                            {/* 군집 멤버 마커 (선택된 군집의 멤버만 표시) */}
+                            {/* 밀집 지역 내 위치 마커 (선택된 군집의 멤버만 표시) */}
                             {selectedCluster !== null &&
                                 filteredRecommendedLocations
                                     .filter(
@@ -1426,6 +1554,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
                                 </div>
                             </PinOverlay>
                         )}
+                    <MapLegend isAddRemovePage={isAddRemovePage} />
                 </Map>
 
                 {/* 추천 위치 관련 토글 버튼들 */}
