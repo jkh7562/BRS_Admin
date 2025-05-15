@@ -1261,9 +1261,7 @@ const N_boxAddRemovePage = () => {
                                 <ul className="list-disc pl-5 text-gray-700">
                                     <li>데이터 처리에는 최대 7시간이 소요될 수 있습니다.</li>
                                     <li>모든 파일은 UTF-8 인코딩으로 저장되어야 합니다.</li>
-                                    <li>파일 크기는 각각 50MB를 초과하지 않아야 합니다.</li>
                                     <li>모든 경계 데이터 파일(.cpg, .dbf, .prj, .shp, .shx)은 함께 업로드해야 합니다.</li>
-                                    <li>데이터 업로드 중에는 페이지를 닫거나 새로고침하지 마세요.</li>
                                 </ul>
                             </div>
                         </div>
