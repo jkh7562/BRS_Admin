@@ -5,7 +5,14 @@ import MapWithSidebar from "../../component/MapWithSidebar"
 import DownIcon from "../../assets/Down.png"
 import InstallationStatus from "../../component/Status/InstallationStatus"
 import RemoveStatus from "../../component/Status/InstallationStatus"
-import InfoIcon from "../../assets/추가정보2.png"
+import SGIS_Login from "../../assets/SGIS_Login.png"
+import zaryo1 from "../../assets/자료신청1.png"
+import zaryo2 from "../../assets/자료신청2.png"
+import zaryo2_1 from "../../assets/자료신청2-1(인구밀도).png"
+import zaryo2_2 from "../../assets/자료신청2-2(경계데이터).png"
+import zaryo3 from "../../assets/신청완료.png"
+import Download1 from "../../assets/다운로드1.png"
+import Download2 from "../../assets/다운로드2.png"
 import { findAllBox, fetchUnresolvedAlarms, findUserAll, uploadFile } from "../../api/apiServices"
 
 const N_boxAddRemovePage = () => {
@@ -23,6 +30,10 @@ const N_boxAddRemovePage = () => {
     const [isUploading, setIsUploading] = useState(false)
     const [uploadProgress, setUploadProgress] = useState(0)
     const [uploadStatus, setUploadStatus] = useState({})
+    const [showInfoModal, setShowInfoModal] = useState(false)
+    const [isFireStationExpanded, setIsFireStationExpanded] = useState(false)
+    const [isChildSafetyExpanded, setIsChildSafetyExpanded] = useState(false)
+    const [isPopulationDataExpanded, setIsPopulationDataExpanded] = useState(false)
 
     // 지역 및 도시 데이터
     const regionData = {
@@ -115,59 +126,57 @@ const N_boxAddRemovePage = () => {
     }
 
     const handleUploadAll = async () => {
-        setIsUploading(true);
-        setUploadProgress(0);
-        setUploadStatus({});
+        setIsUploading(true)
+        setUploadProgress(0)
+        setUploadStatus({})
 
-        const totalFiles = Object.keys(files).length;
+        const totalFiles = Object.keys(files).length
 
         if (totalFiles === 0) {
-            alert("업로드할 파일을 선택해주세요.");
-            setIsUploading(false);
-            return;
+            alert("업로드할 파일을 선택해주세요.")
+            setIsUploading(false)
+            return
         }
 
         try {
-            const formData = new FormData();
+            const formData = new FormData()
             for (const key in files) {
-                formData.append(key, files[key]);
-                console.log(`📦 FormData에 추가됨 - key: ${key}, name: ${files[key].name}`);
+                formData.append(key, files[key])
+                console.log(`📦 FormData에 추가됨 - key: ${key}, name: ${files[key].name}`)
             }
 
             // 👉 FormData 확인용 로그
-            for (let pair of formData.entries()) {
-                console.log(`🧾 전송 데이터 - ${pair[0]}:`, pair[1]);
+            for (const pair of formData.entries()) {
+                console.log(`🧾 전송 데이터 - ${pair[0]}:`, pair[1])
             }
 
-            const response = await uploadFile(formData);
+            const response = await uploadFile(formData)
 
             if (response) {
-                alert("파일 업로드 완료.");
+                alert("파일 업로드 완료.")
                 setUploadStatus(
                     Object.keys(files).reduce((status, key) => {
-                        status[key] = { success: true, message: "업로드 성공" };
-                        return status;
+                        status[key] = { success: true, message: "업로드 성공" }
+                        return status
                     }, {}),
-                );
+                )
             } else {
-                alert("파일 업로드 실패.");
+                alert("파일 업로드 실패.")
             }
         } catch (error) {
-            console.error("❌ 파일 업로드 실패:", error);
-            alert("파일 업로드 중 오류가 발생했습니다.");
+            console.error("❌ 파일 업로드 실패:", error)
+            alert("파일 업로드 중 오류가 발생했습니다.")
             setUploadStatus(
                 Object.keys(files).reduce((status, key) => {
-                    status[key] = { success: false, message: error.message || "업로드 실패" };
-                    return status;
+                    status[key] = { success: false, message: error.message || "업로드 실패" }
+                    return status
                 }, {}),
-            );
+            )
         } finally {
-            setIsUploading(false);
-            setUploadProgress(100);
+            setIsUploading(false)
+            setUploadProgress(100)
         }
-    };
-
-
+    }
 
     // 모든 데이터 로드 (박스, 알람, 사용자)
     const loadAllData = async () => {
@@ -728,6 +737,21 @@ const N_boxAddRemovePage = () => {
     // 디버깅을 위한 로그 추가
     console.log("제거 컴포넌트에 전달할 데이터:", removalBoxes)
 
+    // 모달 외부 클릭 시 닫기 핸들러
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            // 정보 아이콘이나 모달 내부를 클릭한 경우가 아니라면 모달 닫기
+            if (showInfoModal && !event.target.closest(".info-modal-container") && !event.target.closest(".info-icon")) {
+                setShowInfoModal(false)
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+        }
+    }, [showInfoModal])
+
     return (
         <div className="flex min-h-screen w-full bg-[#F3F3F5]">
             <Sidebar />
@@ -776,16 +800,22 @@ const N_boxAddRemovePage = () => {
                     {showUploader && (
                         <div className="mt-4 w-full bg-white shadow-md rounded-lg overflow-hidden border border-gray-100">
                             <div className="bg-gradient-to-r from-blue-50 to-white p-2.5 border-b border-gray-100">
-                                <h2 className="text-base font-bold text-gray-800 flex items-center">
-                                    <span className="text-blue-500 mr-1.5">📁</span>
-                                    수거함 추천 시스템 최신화를 위한 데이터 업로드
-                                    <img src={InfoIcon || "/placeholder.svg"} alt="정보"
-                                         className="ml-2 w-4 h-4 cursor-pointer"/>
-                                </h2>
+                                <div className="flex justify-between items-center">
+                                    <h2 className="text-base font-bold text-gray-800 flex items-center">
+                                        <span className="text-blue-500 mr-1.5">📁</span>
+                                        수거함 추천 시스템 최신화를 위한 데이터 업로드
+                                    </h2>
+                                    <div
+                                        className="flex items-center cursor-pointer info-guide-button"
+                                        onClick={() => setShowInfoModal(true)}
+                                    >
+                                        <span className="text-blue-600 mr-2 text-sm font-medium hover:underline">업로드 가이드 보기</span>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="p-3">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div className="bg-gray-50 p-2.5 rounded-md hover:bg-gray-100 transition-colors">
                                         <label className="font-medium text-sm text-gray-700 block mb-1">인구밀도 데이터</label>
                                         <div className="relative">
@@ -805,7 +835,9 @@ const N_boxAddRemovePage = () => {
 
                                     {["cpg", "dbf", "prj", "shp", "shx"].map((n) => (
                                         <div key={n} className="bg-gray-50 p-2.5 rounded-md hover:bg-gray-100 transition-colors">
-                                            <label className="font-medium text-sm text-gray-700 block mb-1">경계 데이터 <span className="text-blue-600 font-mono">.{n}</span></label>
+                                            <label className="font-medium text-sm text-gray-700 block mb-1">
+                                                경계 데이터 <span className="text-blue-600 font-mono">.{n}</span>
+                                            </label>
                                             <div className="relative">
                                                 <input
                                                     type="file"
@@ -821,40 +853,6 @@ const N_boxAddRemovePage = () => {
                                             </div>
                                         </div>
                                     ))}
-
-                                    <div className="bg-gray-50 p-2.5 rounded-md hover:bg-gray-100 transition-colors">
-                                        <label className="font-medium text-sm text-gray-700 block mb-1">119안전센터 현황</label>
-                                        <div className="relative">
-                                            <input
-                                                type="file"
-                                                accept=".csv"
-                                                onChange={(e) => handleFileChange(e, "fireStation")}
-                                                className="block w-full text-xs text-gray-500
-                file:mr-2 file:py-1 file:px-2
-                file:rounded-md file:border-0
-                file:text-xs file:font-medium
-                file:bg-blue-50 file:text-blue-700
-                hover:file:bg-blue-100"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-gray-50 p-2.5 rounded-md hover:bg-gray-100 transition-colors">
-                                        <label className="font-medium text-sm text-gray-700 block mb-1">어린이보호구역 표준데이터</label>
-                                        <div className="relative">
-                                            <input
-                                                type="file"
-                                                accept=".csv"
-                                                onChange={(e) => handleFileChange(e, "childSafety")}
-                                                className="block w-full text-xs text-gray-500
-                file:mr-2 file:py-1 file:px-2
-                file:rounded-md file:border-0
-                file:text-xs file:font-medium
-                file:bg-blue-50 file:text-blue-700
-                hover:file:bg-blue-100"
-                                            />
-                                        </div>
-                                    </div>
                                 </div>
 
                                 {/* 업로드 진행률 표시 - 컴팩트한 디자인 */}
@@ -886,9 +884,25 @@ const N_boxAddRemovePage = () => {
                                     {/* 업로드 중 표시 */}
                                     {isUploading && (
                                         <div className="flex items-center text-blue-600 text-xs">
-                                            <svg className="animate-spin mr-1.5 h-3 w-3 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            <svg
+                                                className="animate-spin mr-1.5 h-3 w-3 text-blue-600"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <circle
+                                                    className="opacity-25"
+                                                    cx="12"
+                                                    cy="12"
+                                                    r="10"
+                                                    stroke="currentColor"
+                                                    strokeWidth="4"
+                                                ></circle>
+                                                <path
+                                                    className="opacity-75"
+                                                    fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                ></path>
                                             </svg>
                                             파일 업로드 중... 최대 7시간이 소요될 수 있습니다.
                                         </div>
@@ -1068,6 +1082,168 @@ const N_boxAddRemovePage = () => {
                 </main>
             </div>
 
+            {/* 도움말 모달 - 화면 중앙에 크게 표시 */}
+            {showInfoModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[80vh] overflow-y-auto info-modal-container">
+                        <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-t-lg">
+                            <div className="flex justify-between items-center">
+                                <h2 className="text-xl font-bold flex items-center">
+                                    <span className="mr-2">📋</span>
+                                    데이터 업로드 안내
+                                </h2>
+                                <button className="text-white hover:text-gray-200 text-xl" onClick={() => setShowInfoModal(false)}>
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="mb-6">
+                                <h3 className="text-lg font-bold text-gray-800 mb-2">개요</h3>
+                                <p className="text-gray-700 mb-4">
+                                    수거함 추천 시스템은 다양한 데이터를 분석하여 최적의 수거함 설치 위치를 추천합니다. 이 시스템을
+                                    최신화하기 위해서는 아래의 데이터를 업로드해야 합니다.
+                                </p>
+                            </div>
+
+                            <div className="mb-6">
+                                <h3 className="text-lg font-bold text-gray-800 mb-2">필요한 데이터 파일</h3>
+
+                                <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                                    <div
+                                        className="flex items-center justify-between cursor-pointer"
+                                        onClick={() => setIsPopulationDataExpanded(!isPopulationDataExpanded)}
+                                    >
+                                        <h4 className="font-bold text-blue-800 mb-2">인구밀도 데이터 및 경계 데이터 파일</h4>
+                                        <span className="text-blue-800">{isPopulationDataExpanded ? "▼" : "▶"}</span>
+                                    </div>
+
+                                    {isPopulationDataExpanded && (
+                                        <>
+                                            <p className="text-gray-700 mb-2">
+                                                지역별 인구 분포를 분석하기 위한 데이터와 지역 경계를 정의하는 GIS 데이터 파일입니다.
+                                            </p>
+                                            <ul className="list-disc pl-5 text-gray-600 mb-2">
+                                                <li>인구밀도 데이터 파일 형식: TXT</li>
+                                                <li>경계 데이터 파일 형식: .cpg, .dbf, .prj, .shp, .shx (모두 필수)</li>
+                                                <li>데이터 출처: SGIS 통계지리정보서비스(https://sgis.kostat.go.kr/view/index)</li>
+                                            </ul>
+                                            <p className="text-black font-bold text-lg mt-4 mb-2">1. SGIS 홈페이지 회원가입 및 로그인</p>
+                                            <p className="text-gray-700 mb-2">
+                                                SGIS 통계지리정보서비스(https://sgis.kostat.go.kr/view/index)에 진입하여 회원가입 및 로그인을
+                                                진행합니다.
+                                            </p>
+                                            <img src={SGIS_Login || "/placeholder.svg"} />
+                                            <p className="text-black font-bold text-lg mt-4 mb-2">2. 자료신청</p>
+                                            <p className="text-gray-700 mb-2">자료제공 -> 자료신청으로 진입합니다.</p>
+                                            <img src={zaryo1 || "/placeholder.svg"} />
+                                            <p className="text-black font-bold text-lg mt-4 mb-2">2-1. 기본정보 입력</p>
+                                            <p className="text-gray-700 mb-2">활용목적 및 수행과제 예시 문장입니다. 복사하여 사용하세요.</p>
+                                            <ul className="list-disc pl-5 text-gray-600 mb-2">
+                                                <li>
+                                                    본 자료는 스마트 도시 환경에서 폐전지 수거함의 최적 배치를 위한 연구에 활용하고자 합니다.
+                                                    인구밀도, 유동인구, 안전시설 위치 등의 데이터를 종합적으로 분석하여 효율적인 쓰레기 수거
+                                                    시스템을 구축하고, 이를 통해 도시 환경 개선 및 주민 생활 편의성 향상에 기여하고자 합니다. 특히
+                                                    어린이보호구역과 소방서 위치 데이터를 활용하여 안전성과 접근성을 모두 고려한 최적의 수거함
+                                                    위치 선정 알고리즘을 개발하는 데 중점을 두고 있습니다.
+                                                </li>
+                                                <li>
+                                                    스마트 도시 환경에서 폐전지 수거함의 최적 위치 선정을 위한 데이터 기반 의사결정 시스템 개발 및
+                                                    실증 분석
+                                                </li>
+                                            </ul>
+                                            <img src={zaryo2 || "/placeholder.svg"} />
+                                            <p className="text-black font-bold text-lg mt-4 mb-2">2-2. 인구밀도 데이터</p>
+                                            <img src={zaryo2_1 || "/placeholder.svg"} />
+                                            <p className="text-black font-bold text-lg mt-4 mb-2">2-3. 경계 데이터</p>
+                                            <img src={zaryo2_2 || "/placeholder.svg"} />
+                                            <p className="text-black font-bold text-lg mt-4 mb-2">2-4. 신청 완료</p>
+                                            <img src={zaryo3 || "/placeholder.svg"} />
+                                            <p className="text-black font-bold text-lg mt-4 mb-2">3. 신청자료 다운로드</p>
+                                            <img src={Download1 || "/placeholder.svg"} />
+                                            <img src={Download2 || "/placeholder.svg"} />
+                                        </>
+                                    )}
+                                </div>
+
+                                <div className="bg-red-50 p-4 rounded-lg mb-4">
+                                    <div
+                                        className="flex items-center justify-between cursor-pointer"
+                                        onClick={() => setIsFireStationExpanded(!isFireStationExpanded)}
+                                    >
+                                        <h4 className="font-bold text-red-800 mb-2">119안전센터 현황</h4>
+                                        <span className="text-red-800">{isFireStationExpanded ? "▼" : "▶"}</span>
+                                    </div>
+
+                                    {isFireStationExpanded && (
+                                        <>
+                                            <p className="text-gray-700 mb-2">소방서 및 안전센터 위치 정보입니다.</p>
+                                            <ul className="list-disc pl-5 text-gray-600">
+                                                <li>파일 형식: CSV</li>
+                                                <li>필수 열: 센터명, 주소, 좌표(위도/경도)</li>
+                                                <li>데이터 출처: 국가공공데이터포털</li>
+                                            </ul>
+                                        </>
+                                    )}
+                                </div>
+
+                                <div className="bg-yellow-50 p-4 rounded-lg">
+                                    <div
+                                        className="flex items-center justify-between cursor-pointer"
+                                        onClick={() => setIsChildSafetyExpanded(!isChildSafetyExpanded)}
+                                    >
+                                        <h4 className="font-bold text-yellow-800 mb-2">어린이보호구역 표준데이터</h4>
+                                        <span className="text-yellow-800">{isChildSafetyExpanded ? "▼" : "▶"}</span>
+                                    </div>
+
+                                    {isChildSafetyExpanded && (
+                                        <>
+                                            <p className="text-gray-700 mb-2">어린이보호구역 위치 및 범위 정보입니다.</p>
+                                            <ul className="list-disc pl-5 text-gray-600">
+                                                <li>파일 형식: CSV</li>
+                                                <li>필수 열: 보호구역명, 주소, 좌표(위도/경도), 범위정보</li>
+                                                <li>데이터 출처: 국가공공데이터포털</li>
+                                            </ul>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="mb-6">
+                                <h3 className="text-lg font-bold text-gray-800 mb-2">처리 과정</h3>
+                                <ol className="list-decimal pl-5 space-y-2 text-gray-700">
+                                    <li>모든 필요 파일을 업로드합니다.</li>
+                                    <li>시스템이 데이터를 검증하고 처리합니다.</li>
+                                    <li>인구밀도, 안전센터 접근성, 어린이보호구역 등을 고려하여 최적의 위치를 분석합니다.</li>
+                                    <li>분석 결과를 바탕으로 추천 위치가 지도에 표시됩니다.</li>
+                                </ol>
+                            </div>
+
+                            <div className="bg-orange-50 p-4 rounded-lg">
+                                <h3 className="text-lg font-bold text-orange-800 mb-2">주의사항</h3>
+                                <ul className="list-disc pl-5 text-gray-700">
+                                    <li>데이터 처리에는 최대 7시간이 소요될 수 있습니다.</li>
+                                    <li>모든 파일은 UTF-8 인코딩으로 저장되어야 합니다.</li>
+                                    <li>모든 경계 데이터 파일(.cpg, .dbf, .prj, .shp, .shx)은 함께 업로드해야 합니다.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div className="bg-gray-100 p-4 rounded-b-lg border-t border-gray-200">
+                            <div className="flex justify-end">
+                                <button
+                                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                                    onClick={() => setShowInfoModal(false)}
+                                >
+                                    확인
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Add custom styles for scrollbar */}
             <style jsx global>{`
                 .dropdown-container div {
@@ -1079,7 +1255,7 @@ const N_boxAddRemovePage = () => {
                 }
 
                 .dropdown-container div::-webkit-scrollbar-track {
-                    background: transparent;
+                    background: transparent;ent;
                     margin-left: 4px; /* 스크롤바 왼쪽 간격 */
                 }
 
