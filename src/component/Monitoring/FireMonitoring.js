@@ -17,14 +17,14 @@ export default function FireMonitoring() {
     // 선택된 사용자 상태 추가
     const [selectedUser, setSelectedUser] = useState(null)
 
-    const options = ["전체", "재가동 진행중", "재가동 완료", "재가동 확정"]
+    const options = ["전체", "화재처리 진행", "화재처리 완료", "화재처리 확정"]
 
     // 사용자 데이터 추가
     const [users, setUsers] = useState([
         {
             id: "user1",
             name: "홍길동",
-            status: "재가동 완료",
+            status: "화재처리 완료",
             date: "2025.03.17",
             location: { province: "충청남도", city: "아산시" },
             coordinates: "36.8082 / 127.009",
@@ -33,7 +33,7 @@ export default function FireMonitoring() {
         {
             id: "user2",
             name: "김유신",
-            status: "재가동 진행중",
+            status: "화재처리 진행",
             date: "2025.03.16",
             location: { province: "충청남도", city: "아산시" },
             coordinates: "36.8082 / 127.009",
@@ -42,7 +42,7 @@ export default function FireMonitoring() {
         {
             id: "user3",
             name: "이순신",
-            status: "재가동 완료",
+            status: "화재처리 완료",
             date: "2025.03.13",
             location: { province: "충청남도", city: "아산시" },
             coordinates: "36.8082 / 127.009",
@@ -51,7 +51,7 @@ export default function FireMonitoring() {
         {
             id: "user4",
             name: "공자철",
-            status: "재가동 확정",
+            status: "화재처리 확정",
             date: "2025.03.09",
             location: { province: "충청남도", city: "아산시" },
             coordinates: "36.8082 / 127.009",
@@ -60,7 +60,7 @@ export default function FireMonitoring() {
         {
             id: "user5",
             name: "강감찬",
-            status: "재가동 진행중",
+            status: "화재처리 진행",
             date: "2025.03.08",
             location: { province: "충청남도", city: "아산시" },
             coordinates: "36.8082 / 127.009",
@@ -69,7 +69,7 @@ export default function FireMonitoring() {
         {
             id: "user6",
             name: "장영실",
-            status: "재가동 진행중",
+            status: "화재처리 진행",
             date: "2025.03.07",
             location: { province: "충청남도", city: "아산시" },
             coordinates: "36.8082 / 127.009",
@@ -78,7 +78,7 @@ export default function FireMonitoring() {
         {
             id: "user7",
             name: "세종대왕",
-            status: "재가동 확정",
+            status: "화재처리 확정",
             date: "2025.03.05",
             location: { province: "충청남도", city: "아산시" },
             coordinates: "36.8082 / 127.009",
@@ -215,7 +215,7 @@ export default function FireMonitoring() {
                             [{selectedUser.status}] {selectedUser.boxName}
                         </h2>
                         <p className="text-[#60697E]">
-                            <span className="font-bold">재가동 좌표</span>{" "}
+                            <span className="font-bold">화재처리 좌표</span>{" "}
                             <span className="font-normal">{selectedUser.coordinates}</span>
                             <span className="float-right text-sm">알림 일자 {selectedUser.date}</span>
                         </p>

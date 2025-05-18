@@ -169,7 +169,7 @@ const N_MonitoringPage = () => {
                 return <RemoveMonitoring selectedRegion={filters.region} selectedCity={filters.city} />
             case "수거 현황":
                 return <CollectMonitoring selectedRegion={filters.region} selectedCity={filters.city} />
-            case "화재 후 재가동":
+            case "화재 처리":
                 return <FireMonitoring selectedRegion={filters.region} selectedCity={filters.city} />
             default:
                 return <InstallationMonitoring selectedRegion={filters.region} selectedCity={filters.city} />
@@ -196,7 +196,7 @@ const N_MonitoringPage = () => {
                                 {/* 타입 드롭다운 메뉴 */}
                                 {openDropdown.type && (
                                     <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[160px] overflow-hidden shadow-sm">
-                                        {["설치 현황", "제거 현황", "수거 현황", "화재 후 재가동"].map((type) => (
+                                        {["설치 현황", "제거 현황", "수거 현황", "화재 처리"].map((type) => (
                                             <div
                                                 key={type}
                                                 className={`px-4 py-2 cursor-pointer font-normal ${
