@@ -15,6 +15,8 @@ import zaryo2_2 from "../../assets/자료신청2-2(경계데이터).png"
 import zaryo3 from "../../assets/신청완료.png"
 import Download1 from "../../assets/다운로드1.png"
 import Download2 from "../../assets/다운로드2.png"
+import firestation from "../../assets/소방서안내.png"
+import safetyzone from "../../assets/어린이보호구역안내.png"
 import { findAllBox, fetchUnresolvedAlarms, findUserAll, uploadFile } from "../../api/apiServices"
 
 const N_boxAddRemovePage = () => {
@@ -1217,9 +1219,16 @@ const N_boxAddRemovePage = () => {
                                             <p className="text-gray-700 mb-2">소방서 및 안전센터 위치 정보입니다.</p>
                                             <ul className="list-disc pl-5 text-gray-600">
                                                 <li>파일 형식: CSV</li>
-                                                <li>필수 열: 센터명, 주소, 좌표(위도/경도)</li>
-                                                <li>데이터 출처: 국가공공데이터포털</li>
+                                                <li>데이터 출처:
+                                                    국가공공데이터포털(https://www.data.go.kr/data/15065056/fileData.do#tab-layer-file)
+                                                </li>
                                             </ul>
+                                            <p className="text-black font-bold text-lg mt-4 mb-2">다운로드 방법</p>
+                                            <p className="text-gray-700 mb-2 whitespace-pre-wrap">
+                                                {`아래 링크에서 제공되는 데이터 파일을 다운로드하실 수 있습니다.
+https://www.data.go.kr/data/15065056/fileData.do#tab-layer-file`}
+                                            </p>
+                                            <img src={firestation}/>
                                         </>
                                     )}
                                 </div>
@@ -1238,9 +1247,17 @@ const N_boxAddRemovePage = () => {
                                             <p className="text-gray-700 mb-2">어린이보호구역 위치 및 범위 정보입니다.</p>
                                             <ul className="list-disc pl-5 text-gray-600">
                                                 <li>파일 형식: CSV</li>
-                                                <li>필수 열: 보호구역명, 주소, 좌표(위도/경도), 범위정보</li>
-                                                <li>데이터 출처: 국가공공데이터포털</li>
+                                                <li>데이터 출처:
+                                                    국가공공데이터포털(https://www.data.go.kr/data/15012891/standard.do)
+                                                </li>
                                             </ul>
+                                            <p className="text-black font-bold text-lg mt-4 mb-2">다운로드 방법</p>
+                                            <p className="text-gray-700 mb-2 whitespace-pre-wrap">
+                                                {`아래 링크에서 제공되는 데이터 파일을 다운로드하실 수 있습니다.
+https://www.data.go.kr/data/15012891/standard.do
+*반드시 CSV형식으로 다운로드 받아야합니다.*`}
+                                            </p>
+                                            <img src={safetyzone}/>
                                         </>
                                     )}
                                 </div>
