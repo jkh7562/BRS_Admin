@@ -524,7 +524,7 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
             <div className="flex-1 relative flex flex-col">
                 {/* Map title overlay */}
                 {selectedUser && (
-                    <div className="p-10 pb-9 bg-white">
+                    <div className="px-10 pt-10 bg-white">
                         <h2 className="text-2xl text-[#21262B] font-bold mb-1">
                             [{getStatusFromType(selectedUser.type)}]{" "}
                             {selectedBox ? selectedBox.name : `수거함 ID: ${selectedUser.boxId}`}
@@ -547,7 +547,7 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
                 )}
 
                 {/* Map */}
-                <div className="flex-1 w-full px-10 pb-14" ref={mapContainerRef}>
+                <div className="flex-1 w-full px-10 py-14" ref={mapContainerRef}>
                     <Map
                         center={selectedBoxCoordinates}
                         style={{ width: "100%", height: "100%" }}

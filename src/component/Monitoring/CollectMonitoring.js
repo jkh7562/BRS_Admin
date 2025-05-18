@@ -210,7 +210,7 @@ export default function CollectMonitoring() {
             <div className="flex-1 relative flex flex-col">
                 {/* Map title overlay */}
                 {selectedUser && (
-                    <div className="p-10 pb-9 bg-white">
+                    <div className="px-10 pt-10 bg-white">
                         <h2 className="text-2xl text-[#21262B] font-bold mb-1">
                             [{selectedUser.status}] {selectedUser.boxName}
                         </h2>
@@ -223,7 +223,7 @@ export default function CollectMonitoring() {
                 )}
 
                 {/* Map */}
-                <div className="flex-1 w-full px-10 pb-14">
+                <div className="flex-1 w-full px-10 py-14">
                     <Map
                         center={{ lat: 36.8082, lng: 127.009 }}
                         style={{ width: "100%", height: "100%" }}
