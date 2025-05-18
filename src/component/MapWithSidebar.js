@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useEffect, useState, useRef, useMemo, useCallback, memo } from "react"
 import { Map, MapMarker, CustomOverlayMap, Circle } from "react-kakao-maps-sdk"
 import ArrowLeftIcon from "../assets/arrow_left.png"
@@ -66,10 +68,7 @@ const BoxListItem = memo(
                             {isAddRemovePage ? (
                                 formatInstallStatus(box.installStatus)
                             ) : (
-                                <>
-                                    {typeof box.lat === "number" ? box.lat.toFixed(8) : box.lat} /{" "}
-                                    {typeof box.lng === "number" ? box.lng.toFixed(8) : box.lng}
-                                </>
+                                <>수거량: {Math.max(box.volume1 || 0, box.volume2 || 0, box.volume3 || 0)}%</>
                             )}
                         </p>
                     </div>
@@ -146,7 +145,10 @@ const MapLegend = memo(({ isAddRemovePage }) => {
     const [isCollapsed, setIsCollapsed] = useState(false)
 
     return (
-        <div className="absolute bottom-4 right-4 bg-white rounded-lg shadow-md z-10 overflow-hidden" style={{ minWidth: "200px" }}>
+        <div
+            className="absolute bottom-4 right-4 bg-white rounded-lg shadow-md z-10 overflow-hidden"
+            style={{ minWidth: "200px" }}
+        >
             <div className="flex justify-between items-center px-3 py-2 border-b border-gray-200">
                 <span className="text-sm font-medium">범례</span>
                 <button
@@ -176,13 +178,13 @@ const MapLegend = memo(({ isAddRemovePage }) => {
                         <div className="grid grid-cols-2 gap-x-2 gap-y-3">
                             <div className="flex items-center">
                                 <div className="w-10 flex justify-center">
-                                    <img src={GreenIcon || "/placeholder.svg"} alt="녹색 아이콘" className="w-9 h-10"/>
+                                    <img src={GreenIcon || "/placeholder.svg"} alt="녹색 아이콘" className="w-9 h-10" />
                                 </div>
                                 <span className="text-xs ml-1">설치 상태</span>
                             </div>
                             <div className="flex items-center">
                                 <div className="w-10 flex justify-center">
-                                    <img src={RedIcon || "/placeholder.svg"} alt="빨간색 아이콘" className="w-9 h-10"/>
+                                    <img src={RedIcon || "/placeholder.svg"} alt="빨간색 아이콘" className="w-9 h-10" />
                                 </div>
                                 <span className="text-xs ml-1">제거 상태</span>
                             </div>
@@ -204,8 +206,7 @@ const MapLegend = memo(({ isAddRemovePage }) => {
                                             alt="밀집 중심 위치"
                                             className="w-6 h-7"
                                         />
-                                        <div
-                                            className="absolute -right-2 -top-1 bg-red-600 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center shadow-sm">
+                                        <div className="absolute -right-2 -top-1 bg-red-600 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center shadow-sm">
                                             n
                                         </div>
                                     </div>
@@ -214,19 +215,19 @@ const MapLegend = memo(({ isAddRemovePage }) => {
                             </div>
                             <div className="flex items-center">
                                 <div className="w-10 flex justify-center">
-                                    <img src={pin || "/placeholder.svg"} alt="밀집 지역 내 위치" className="w-6 h-6"/>
+                                    <img src={pin || "/placeholder.svg"} alt="밀집 지역 내 위치" className="w-6 h-6" />
                                 </div>
                                 <span className="text-xs ml-1">밀집 지역 내 위치</span>
                             </div>
                             <div className="flex items-center">
                                 <div className="w-10 flex justify-center">
-                                    <img src={fire_station || "/placeholder.svg"} alt="소방서" className="w-6 h-6"/>
+                                    <img src={fire_station || "/placeholder.svg"} alt="소방서" className="w-6 h-6" />
                                 </div>
                                 <span className="text-xs ml-1">소방서</span>
                             </div>
                             <div className="flex items-center">
                                 <div className="w-10 flex justify-center">
-                                    <img src={child_safety || "/placeholder.svg"} alt="어린이보호구역" className="w-6 h-6"/>
+                                    <img src={child_safety || "/placeholder.svg"} alt="어린이보호구역" className="w-6 h-6" />
                                 </div>
                                 <span className="text-xs ml-1">어린이보호구역</span>
                             </div>
@@ -235,11 +236,11 @@ const MapLegend = memo(({ isAddRemovePage }) => {
                         // 일반 페이지에서 표시할 아이콘들 (1열 그리드) - 여백 줄임
                         <div className="grid grid-cols-1 gap-y-1">
                             <div className="flex items-center py-1">
-                                <img src={GreenIcon || "/placeholder.svg"} alt="녹색 아이콘" className="w-9 h-10 mr-2"/>
+                                <img src={GreenIcon || "/placeholder.svg"} alt="녹색 아이콘" className="w-9 h-10 mr-2" />
                                 <span className="text-xs">수거량 50% 이하</span>
                             </div>
                             <div className="flex items-center py-1">
-                                <img src={YellowIcon || "/placeholder.svg"} alt="노란색 아이콘" className="w-9 h-10 mr-2"/>
+                                <img src={YellowIcon || "/placeholder.svg"} alt="노란색 아이콘" className="w-9 h-10 mr-2" />
                                 <span className="text-xs">수거량 51~80%</span>
                             </div>
                             <div className="flex items-center py-1">
@@ -848,7 +849,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
 
             // POINT 형식 문자열인 경우 파싱
             if (typeof location.lat === "undefined" && location.geometry) {
-                const coordsMatch = location.geometry.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/)
+                const coordsMatch = location.geometry.match(/POINT\s*$$\s*([-\d.]+)\s+([-\d.]+)\s*$$/)
                 if (coordsMatch) {
                     lng = Number.parseFloat(coordsMatch[1])
                     lat = Number.parseFloat(coordsMatch[2])
@@ -882,7 +883,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     // 상태 포맷 함수 - useMemo로 최적화
     const statusMap = useMemo(
         () => ({
-            INSTALL_REQUEST: "설치 요청 중",
+            INSTALL_REQUEST: "설치 ��청 중",
             INSTALL_IN_PROGRESS: "설치 진행 중",
             INSTALL_COMPLETED: "설치 완료",
             INSTALL_CONFIRMED: "설치 확정",
