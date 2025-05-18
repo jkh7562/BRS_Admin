@@ -272,12 +272,6 @@ export default function RemoveStatus({ statuses, addressData = {}, processedBoxe
                 {selectedBox.removeInfo?.alarmDate || selectedBox.removeInfo?.createdAt || "정보 없음"}
               </span>
                         </div>
-                        <div className="flex items-center">
-                            <span className="font-bold w-[70px]">좌표</span>
-                            <span className="font-nomal">
-                {selectedBox.lat} / {selectedBox.lng}
-              </span>
-                        </div>
                     </div>
                 </div>
             )}

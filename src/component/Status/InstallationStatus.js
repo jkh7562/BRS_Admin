@@ -17,12 +17,22 @@ export default function InstallationStatus({ statuses, addressData = {}, process
     // 초기 데이터 설정
     useEffect(() => {
         setIsLoading(true)
+        console.log("RemoveStatus - 원본 데이터:", processedBoxes)
+
         if (processedBoxes && processedBoxes.length > 0) {
-            setDisplayedBoxes(processedBoxes)
-            if (!selectedBox && processedBoxes.length > 0) {
-                setSelectedBox(processedBoxes[0])
-            }
+            // 필터링 없이 모든 데이터 사용
+            setDisplayedBoxes([...processedBoxes]) // 배열 복사본 사용
+            console.log("RemoveStatus - 표시할 데이터:", [...processedBoxes])
+
+            // 항상 첫 번째 항목을 선택하도록 수정
+            setSelectedBox(processedBoxes[0])
+            console.log("RemoveStatus - 선택된 박스:", processedBoxes[0])
+        } else {
+            console.log("RemoveStatus - 데이터 없음")
+            // 데이터가 없을 경우 선택된 박스도 초기화
+            setSelectedBox(null)
         }
+
         setIsLoading(false)
     }, [processedBoxes])
 

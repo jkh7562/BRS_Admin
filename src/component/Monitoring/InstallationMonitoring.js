@@ -7,6 +7,7 @@ import CopyIcon from "../../assets/copy.png"
 import Sample from "../../assets/Sample.png"
 import DownIcon from "../../assets/Down.png"
 import Expansion from "../../assets/Expansion.png"
+import GreenIcon from "../../assets/아이콘 GREEN.png"
 import { fetchUnresolvedAlarms, findAllBox, findUserAll } from "../../api/apiServices"
 
 export default function InstallationMonitoring({ selectedRegion = "광역시/도", selectedCity = "시/군/구" }) {
@@ -116,6 +117,12 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
     const [isLoading, setIsLoading] = useState(false)
     // 지오코더 참조
     const geocoderRef = useRef(null)
+    // 지도 참조 추가
+    const mapRef = useRef(null)
+    // 지도 인스턴스 상태 추가
+    const [kakaoMap, setKakaoMap] = useState(null)
+    // 지도 로드 상태
+    const [mapLoaded, setMapLoaded] = useState(false)
 
     const options = ["전체", "설치요청", "설치 진행중", "설치 완료", "설치 확정"]
 
@@ -133,10 +140,6 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
             INSTALL_IN_PROGRESS: "설치 진행중",
             INSTALL_COMPLETED: "설치 완료",
             INSTALL_CONFIRMED: "설치 확정",
-            REMOVE_REQUEST: "제거요청",
-            REMOVE_IN_PROGRESS: "제거 진행중",
-            REMOVE_COMPLETED: "제거 완료",
-            REMOVE_CONFIRMED: "제거 확정",
         }
         return statusMap[type] || type
     }
@@ -252,7 +255,7 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
                 await Promise.all(
                     batch.map(async (box) => {
                         const coords = parseCoordinates(box.location)
-                        if (coords.lat !== 36.8082 || coords.lng !== 127.009) {
+                        if (coords !== 0 && coords.lat && coords.lng) {
                             // 기본값이 아닌 경우만 처리
                             await convertCoordsToAddress(box.id, coords.lng, coords.lat)
                         }
@@ -271,12 +274,21 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
                 setIsLoading(true)
                 const alarmsData = await fetchUnresolvedAlarms()
 
+                // 설치 관련 알람만 필터링
+                const installAlarms = alarmsData.filter(
+                    (alarm) =>
+                        alarm.type === "INSTALL_REQUEST" ||
+                        alarm.type === "INSTALL_IN_PROGRESS" ||
+                        alarm.type === "INSTALL_COMPLETED" ||
+                        alarm.type === "INSTALL_CONFIRMED",
+                )
+
                 // 알람 데이터 로드 후 처리
-                setAlarms(alarmsData)
+                setAlarms(installAlarms)
 
                 // 첫 번째 알람을 기본 선택
-                if (alarmsData.length > 0) {
-                    setSelectedUser(alarmsData[0])
+                if (installAlarms.length > 0) {
+                    setSelectedUser(installAlarms[0])
                 }
             } catch (error) {
                 console.error("알람 데이터 로딩 실패:", error)
@@ -372,11 +384,60 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
     const selectedUserInfo = selectedUser ? users[selectedUser.userId] : null
 
     // 선택된 수거함의 좌표
-    const selectedBoxCoordinates = selectedBox ? parseCoordinates(selectedBox.location) : { lat: 36.8082, lng: 127.009 }
+    const coordinates = selectedBox ? parseCoordinates(selectedBox.location) : 0
+    const selectedBoxCoordinates = typeof coordinates === "object" ? coordinates : { lat: 0, lng: 0 }
 
     // 선택된 수거함의 주소 정보
     const selectedBoxAddress =
         selectedUser && addressMap[selectedUser.boxId] ? addressMap[selectedUser.boxId].fullAddress : "주소 변환 중..."
+
+    // 지도 생성 완료 핸들러
+    const handleMapCreated = (map) => {
+        setKakaoMap(map)
+        setMapLoaded(true)
+    }
+
+    // 지도 센터 업데이트 - 좌표 변경 시
+    useEffect(() => {
+        if (kakaoMap && selectedBoxCoordinates.lat && selectedBoxCoordinates.lng) {
+            // 지도 중심 설정
+            const moveLatLng = new window.kakao.maps.LatLng(selectedBoxCoordinates.lat, selectedBoxCoordinates.lng)
+            kakaoMap.setCenter(moveLatLng)
+
+            // 지도 영역 재설정 (마커가 중앙에 오도록)
+            setTimeout(() => {
+                kakaoMap.setCenter(moveLatLng)
+            }, 100)
+        }
+    }, [kakaoMap, selectedBoxCoordinates])
+
+    // 지도 컨테이너 참조
+    const mapContainerRef = useRef(null)
+
+    // 지도 컨테이너 크기 변경 감지
+    useEffect(() => {
+        if (!mapContainerRef.current || !kakaoMap) return
+
+        const resizeObserver = new ResizeObserver(() => {
+            kakaoMap.relayout()
+            if (selectedBoxCoordinates.lat && selectedBoxCoordinates.lng) {
+                const moveLatLng = new window.kakao.maps.LatLng(selectedBoxCoordinates.lat, selectedBoxCoordinates.lng)
+                kakaoMap.setCenter(moveLatLng)
+            }
+        })
+
+        resizeObserver.observe(mapContainerRef.current)
+
+        return () => {
+            resizeObserver.disconnect()
+        }
+    }, [kakaoMap, selectedBoxCoordinates])
+
+    // 선택된 알람의 상태 확인
+    const isCompletedOrConfirmed =
+        selectedUser && (selectedUser.type === "INSTALL_COMPLETED" || selectedUser.type === "INSTALL_CONFIRMED")
+
+    const isCompleted = selectedUser && selectedUser.type === "INSTALL_COMPLETED"
 
     return (
         <div className="flex h-[555px] bg-white rounded-2xl shadow-md overflow-hidden">
@@ -486,19 +547,21 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
                 )}
 
                 {/* Map */}
-                <div className="flex-1 w-full px-10 pb-14">
+                <div className="flex-1 w-full px-10 pb-14" ref={mapContainerRef}>
                     <Map
                         center={selectedBoxCoordinates}
                         style={{ width: "100%", height: "100%" }}
                         level={3}
                         className={"border rounded-2xl"}
+                        onCreate={handleMapCreated}
+                        isPanto={true}
                     >
                         {selectedBox && (
                             <MapMarker
                                 position={selectedBoxCoordinates}
                                 image={{
-                                    src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
-                                    size: { width: 24, height: 35 },
+                                    src: GreenIcon,
+                                    size: { width: 34, height: 40 },
                                 }}
                             />
                         )}
@@ -564,43 +627,37 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
                     .replace(/\.$/, "")}
               </span>
                         </div>
-                        <div className="flex items-center">
-                            <span className="font-bold w-[70px]">알람 ID</span>
-                            <span className="font-nomal">{selectedUser.id}</span>
-                        </div>
-                        <div className="flex items-center">
-                            <span className="font-bold w-[70px]">수거함 ID</span>
-                            <span className="font-nomal">{selectedUser.boxId}</span>
-                        </div>
-                        {selectedBox && (
-                            <div className="flex items-center">
-                                <span className="font-bold w-[70px]">수거함명</span>
-                                <span className="font-nomal">{selectedBox.name}</span>
-                            </div>
-                        )}
                     </div>
-                    <div className="relative inline-block">
-                        <img
-                            src={selectedUser.file || Sample || "/placeholder.svg"}
-                            alt="사진"
-                            width="234px"
-                            height="189px"
-                            className="rounded-2xl mt-7 cursor-pointer"
-                            onClick={openModal}
-                        />
-                        <img
-                            src={Expansion || "/placeholder.svg"}
-                            alt="확대"
-                            width="20px"
-                            height="20px"
-                            className="absolute bottom-4 right-4 cursor-pointer"
-                            onClick={openModal}
-                        />
-                    </div>
-                    <span className="mt-2 flex gap-2">
-            <button className="bg-[#21262B] text-white rounded-2xl py-2 px-14">수락</button>
-            <button className="bg-[#FF7571] text-white rounded-2xl py-2 px-6">거절</button>
-          </span>
+
+                    {/* 사진은 INSTALL_COMPLETED 또는 INSTALL_CONFIRMED 상태일 때만 표시 */}
+                    {isCompletedOrConfirmed && (
+                        <div className="relative inline-block">
+                            <img
+                                src={selectedUser.file || Sample || "/placeholder.svg"}
+                                alt="사진"
+                                width="234px"
+                                height="189px"
+                                className="rounded-2xl mt-7 cursor-pointer"
+                                onClick={openModal}
+                            />
+                            <img
+                                src={Expansion || "/placeholder.svg"}
+                                alt="확대"
+                                width="20px"
+                                height="20px"
+                                className="absolute bottom-4 right-4 cursor-pointer"
+                                onClick={openModal}
+                            />
+                        </div>
+                    )}
+
+                    {/* 수락/거절 버튼은 INSTALL_COMPLETED 상태일 때만 표시 */}
+                    {isCompleted && (
+                        <span className="mt-2 flex gap-2">
+              <button className="bg-[#21262B] text-white rounded-2xl py-2 px-14">수락</button>
+              <button className="bg-[#FF7571] text-white rounded-2xl py-2 px-6">거절</button>
+            </span>
+                    )}
                 </div>
             )}
 
