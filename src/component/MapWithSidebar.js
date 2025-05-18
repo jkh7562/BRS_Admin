@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useEffect, useState, useRef, useMemo, useCallback, memo } from "react"
 import { Map, MapMarker, CustomOverlayMap, Circle } from "react-kakao-maps-sdk"
 import ArrowLeftIcon from "../assets/arrow_left.png"
@@ -261,7 +259,21 @@ const MapLegend = memo(({ isAddRemovePage }) => {
 MapLegend.displayName = "MapLegend"
 
 // 지역 필터 컴포넌트 - 광역시/도 단위만 표시
-const RegionFilter = memo(({ region, setRegion, regions, boxCount }) => {
+const RegionFilter = memo(({ region, setRegion, regions, boxCount, showRecommendedLocations, isAddRemovePage }) => {
+    // 지역 변경 핸들러 추가
+    const handleRegionChange = (e) => {
+        const newRegion = e.target.value
+
+        // 설치 추천 위치가 ON이고 isAddRemovePage가 true이며, 새 지역이 "전체"인 경우
+        if (showRecommendedLocations && isAddRemovePage && newRegion === "전체") {
+            alert("설치 추천 위치가 켜진 상태에서는 '전체' 지역으로 변경할 수 없습니다.\n특정 지역을 선택해주세요.")
+            return // 지역 변경 중단
+        }
+
+        // 그 외의 경우 정상적으로 지역 변경
+        setRegion(newRegion)
+    }
+
     return (
         <div className="flex flex-col gap-2 p-2 bg-white">
             <div className="flex items-center justify-between">
@@ -269,7 +281,7 @@ const RegionFilter = memo(({ region, setRegion, regions, boxCount }) => {
                     <label className="text-sm font-medium">지역:</label>
                     <select
                         value={region}
-                        onChange={(e) => setRegion(e.target.value)}
+                        onChange={handleRegionChange}
                         className="border border-gray-300 rounded px-2 py-1 text-sm"
                     >
                         <option value="전체">전체</option>
@@ -733,6 +745,12 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
 
     // 토글 함수 수정 - 추천 위치 ON/OFF 전환 및 데이터 로드
     const toggleRecommendedLocations = useCallback(() => {
+        // 지역이 "전체"로 설정되어 있고, isAddRemovePage가 true이며, 현재 추천 위치가 OFF인 경우
+        if (region === "전체" && isAddRemovePage && !showRecommendedLocations) {
+            alert("설치 추천 위치를 보려면 먼저 지역을 선택해주세요.")
+            return // 토글 동작 중단
+        }
+
         const newState = !showRecommendedLocations
         setShowRecommendedLocations(newState)
 
@@ -740,7 +758,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
         if (newState && isAddRemovePage && !dataLoadedRef.current) {
             loadAllData()
         }
-    }, [showRecommendedLocations, isAddRemovePage, loadAllData, dataLoadedRef])
+    }, [showRecommendedLocations, isAddRemovePage, loadAllData, dataLoadedRef, region])
 
     // Add a new state variable to track if we're showing an overlay for a recommended location
     const [isRecommendedLocationOverlay, setIsRecommendedLocationOverlay] = useState(false)
@@ -849,7 +867,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
 
             // POINT 형식 문자열인 경우 파싱
             if (typeof location.lat === "undefined" && location.geometry) {
-                const coordsMatch = location.geometry.match(/POINT\s*$$\s*([-\d.]+)\s+([-\d.]+)\s*$$/)
+                const coordsMatch = location.geometry.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/)
                 if (coordsMatch) {
                     lng = Number.parseFloat(coordsMatch[1])
                     lat = Number.parseFloat(coordsMatch[2])
@@ -883,7 +901,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     // 상태 포맷 함수 - useMemo로 최적화
     const statusMap = useMemo(
         () => ({
-            INSTALL_REQUEST: "설치 ��청 중",
+            INSTALL_REQUEST: "설치 요청 중",
             INSTALL_IN_PROGRESS: "설치 진행 중",
             INSTALL_COMPLETED: "설치 완료",
             INSTALL_CONFIRMED: "설치 확정",
@@ -1266,7 +1284,14 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
 
                     {/* 지역 필터 */}
                     <div className="mx-2 px-3">
-                        <RegionFilter region={region} setRegion={setRegion} regions={regions} boxCount={displayedBoxes.length} />
+                        <RegionFilter
+                            region={region}
+                            setRegion={setRegion}
+                            regions={regions}
+                            boxCount={displayedBoxes.length}
+                            showRecommendedLocations={showRecommendedLocations}
+                            isAddRemovePage={isAddRemovePage}
+                        />
                     </div>
 
                     {/* 리스트 */}
