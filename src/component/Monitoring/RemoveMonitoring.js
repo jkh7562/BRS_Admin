@@ -8,7 +8,7 @@ import Sample from "../../assets/Sample.png"
 import DownIcon from "../../assets/Down.png"
 import Expansion from "../../assets/Expansion.png"
 import RedIcon from "../../assets/아이콘 RED.png"
-import { fetchUnresolvedAlarms, findAllBox, findUserAll } from "../../api/apiServices"
+import { fetchUnresolvedAlarms, findAllBox, findUserAll, requestRemoveConfirmed } from "../../api/apiServices"
 
 export default function RemoveMonitoring({ selectedRegion = "광역시/도", selectedCity = "시/군/구" }) {
     // 지역명 정규화를 위한 매핑 테이블
@@ -274,6 +274,8 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
                 setIsLoading(true)
                 const alarmsData = await fetchUnresolvedAlarms()
 
+                console.log(alarmsData)
+
                 // 제거 관련 알람만 필터링
                 const removeAlarms = alarmsData.filter(
                     (alarm) =>
@@ -292,151 +294,6 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
                 }
             } catch (error) {
                 console.error("알람 데이터 로딩 실패:", error)
-
-                // API 호출 실패 시 더미 데이터 사용
-                const dummyAlarms = [
-                    {
-                        id: "alarm1",
-                        userId: "user1",
-                        boxId: "box1",
-                        type: "REMOVE_COMPLETED",
-                        date: new Date("2025-03-17").toISOString(),
-                        file: Sample,
-                    },
-                    {
-                        id: "alarm2",
-                        userId: "user2",
-                        boxId: "box2",
-                        type: "REMOVE_IN_PROGRESS",
-                        date: new Date("2025-03-16").toISOString(),
-                        file: Sample,
-                    },
-                    {
-                        id: "alarm3",
-                        userId: "user3",
-                        boxId: "box3",
-                        type: "REMOVE_COMPLETED",
-                        date: new Date("2025-03-13").toISOString(),
-                        file: Sample,
-                    },
-                    {
-                        id: "alarm4",
-                        userId: "user4",
-                        boxId: "box4",
-                        type: "REMOVE_CONFIRMED",
-                        date: new Date("2025-03-09").toISOString(),
-                        file: Sample,
-                    },
-                    {
-                        id: "alarm5",
-                        userId: "user5",
-                        boxId: "box5",
-                        type: "REMOVE_REQUEST",
-                        date: new Date("2025-03-08").toISOString(),
-                        file: Sample,
-                    },
-                    {
-                        id: "alarm6",
-                        userId: "user6",
-                        boxId: "box6",
-                        type: "REMOVE_IN_PROGRESS",
-                        date: new Date("2025-03-07").toISOString(),
-                        file: Sample,
-                    },
-                    {
-                        id: "alarm7",
-                        userId: "user7",
-                        boxId: "box7",
-                        type: "REMOVE_REQUEST",
-                        date: new Date("2025-03-05").toISOString(),
-                        file: Sample,
-                    },
-                ]
-
-                // 더미 사용자 데이터
-                const dummyUsers = {
-                    user1: {
-                        id: "user1",
-                        name: "홍길동",
-                        date: new Date("2025-02-03").toISOString(),
-                        location1: "충청남도",
-                        location2: "아산시",
-                    },
-                    user2: {
-                        id: "user2",
-                        name: "김유신",
-                        date: new Date("2025-02-03").toISOString(),
-                        location1: "충청남도",
-                        location2: "아산시",
-                    },
-                    user3: {
-                        id: "user3",
-                        name: "이순신",
-                        date: new Date("2025-02-03").toISOString(),
-                        location1: "충청남도",
-                        location2: "아산시",
-                    },
-                    user4: {
-                        id: "user4",
-                        name: "공자철",
-                        date: new Date("2025-02-03").toISOString(),
-                        location1: "충청남도",
-                        location2: "아산시",
-                    },
-                    user5: {
-                        id: "user5",
-                        name: "강감찬",
-                        date: new Date("2025-02-03").toISOString(),
-                        location1: "충청남도",
-                        location2: "아산시",
-                    },
-                    user6: {
-                        id: "user6",
-                        name: "장영실",
-                        date: new Date("2025-02-03").toISOString(),
-                        location1: "충청남도",
-                        location2: "아산시",
-                    },
-                    user7: {
-                        id: "user7",
-                        name: "세종대왕",
-                        date: new Date("2025-02-03").toISOString(),
-                        location1: "충청남도",
-                        location2: "아산시",
-                    },
-                }
-
-                // 더미 수거함 데이터
-                const dummyBoxes = {
-                    box1: { id: "box1", name: "선문대학교 도서관 앞 수거함", location: "POINT(127.009 36.8082)" },
-                    box2: { id: "box2", name: "선문대학교 인문관 1층 수거함", location: "POINT(127.009 36.8082)" },
-                    box3: { id: "box3", name: "선문대학교 상봉마을 수거함", location: "POINT(127.009 36.8082)" },
-                    box4: { id: "box4", name: "선문대학교 서문 앞 수거함", location: "POINT(127.009 36.8082)" },
-                    box5: { id: "box5", name: "선문대학교 동문 앞 수거함", location: "POINT(127.009 36.8082)" },
-                    box6: { id: "box6", name: "선문대학교 기숙사 앞 수거함", location: "POINT(127.009 36.8082)" },
-                    box7: { id: "box7", name: "선문대학교 학생회관 앞 수거함", location: "POINT(127.009 36.8082)" },
-                }
-
-                // 더미 주소 데이터
-                const dummyAddressMap = {
-                    box1: { fullAddress: "충청남도 아산시 선문대학교 도서관 앞", region: "충청남도", city: "아산시" },
-                    box2: { fullAddress: "충청남도 아산시 선문대학교 인문관 1층", region: "충청남도", city: "아산시" },
-                    box3: { fullAddress: "충청남도 아산시 선문대학교 상봉마을", region: "충청남도", city: "아산시" },
-                    box4: { fullAddress: "충청남도 아산시 선문대학교 서문 앞", region: "충청남도", city: "아산시" },
-                    box5: { fullAddress: "충청남도 아산시 선문대학교 동문 앞", region: "충청남도", city: "아산시" },
-                    box6: { fullAddress: "충청남도 아산시 선문대학교 기숙사 앞", region: "충청남도", city: "아산시" },
-                    box7: { fullAddress: "충청남도 아산시 선문대학교 학생회관 앞", region: "충청남도", city: "아산시" },
-                }
-
-                setAlarms(dummyAlarms)
-                setUsers(dummyUsers)
-                setBoxes(dummyBoxes)
-                setAddressMap(dummyAddressMap)
-
-                // 첫 번째 알람을 기본 선택
-                if (dummyAlarms.length > 0) {
-                    setSelectedUser(dummyAlarms[1]) // 김유신을 기본 선택
-                }
             } finally {
                 setIsLoading(false)
             }
@@ -583,6 +440,39 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
         selectedUser && (selectedUser.type === "REMOVE_COMPLETED" || selectedUser.type === "REMOVE_CONFIRMED")
 
     const isCompleted = selectedUser && selectedUser.type === "REMOVE_COMPLETED"
+
+    // 수락 버튼 핸들러
+    const handleAccept = async () => {
+        if (selectedUser && selectedUser.boxId) {
+            try {
+                await requestRemoveConfirmed(selectedUser.boxId)
+                console.log(selectedUser.boxId)
+                alert("확정되었습니다.")
+                // 성공 후 알람 데이터 다시 로드
+                const alarmsData = await fetchUnresolvedAlarms()
+
+                // 제거 관련 알람만 필터링
+                const removeAlarms = alarmsData.filter(
+                    (alarm) =>
+                        alarm.type === "REMOVE_REQUEST" ||
+                        alarm.type === "REMOVE_IN_PROGRESS" ||
+                        alarm.type === "REMOVE_COMPLETED" ||
+                        alarm.type === "REMOVE_CONFIRMED",
+                )
+
+                setAlarms(removeAlarms)
+
+                // 현재 선택된 알람 업데이트
+                const updatedAlarm = removeAlarms.find((alarm) => alarm.id === selectedUser.id)
+                if (updatedAlarm) {
+                    setSelectedUser(updatedAlarm)
+                }
+            } catch (error) {
+                console.error("수거함 설치 확정 실패:", error)
+                // 에러 처리 로직 추가 (필요시)
+            }
+        }
+    }
 
     return (
         <div className="flex h-[555px] bg-white rounded-2xl shadow-md overflow-hidden">
@@ -799,7 +689,7 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
                     {/* 수락/거절 버튼은 REMOVE_COMPLETED 상태일 때만 표시 */}
                     {isCompleted && (
                         <span className="mt-2 flex gap-2">
-              <button className="bg-[#21262B] text-white rounded-2xl py-2 px-14">수락</button>
+              <button className="bg-[#21262B] text-white rounded-2xl py-2 px-14" onClick={handleAccept}>수락</button>
               <button className="bg-[#FF7571] text-white rounded-2xl py-2 px-6">거절</button>
             </span>
                     )}

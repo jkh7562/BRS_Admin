@@ -8,7 +8,7 @@ import Sample from "../../assets/Sample.png"
 import DownIcon from "../../assets/Down.png"
 import Expansion from "../../assets/Expansion.png"
 import FireIcon from "../../assets/아이콘 RED.png"
-import { fetchUnresolvedAlarms, findAllBox, findUserAll } from "../../api/apiServices"
+import { fetchUnresolvedAlarms, findAllBox, findUserAll, requestInstallConfirmed } from "../../api/apiServices"
 
 export default function FireMonitoring() {
     // 검색어 상태 추가
@@ -43,7 +43,7 @@ export default function FireMonitoring() {
         FIRE: "화재 발생",
         FIRE_IN_PROGRESS: "화재처리 진행",
         FIRE_COMPLETED: "화재처리 완료",
-        FIRE_CONFIRMED: "화재처리 확정"
+        FIRE_CONFIRMED: "화재처리 확정",
     }
 
     // 지오코더 초기화
@@ -102,7 +102,7 @@ export default function FireMonitoring() {
     const parseCoordinates = (location) => {
         if (!location) return 0
 
-        const coordsMatch = location.match(/POINT\s*$$\s*([-\d\.]+)\s+([-\d\.]+)\s*$$/)
+        const coordsMatch = location.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/)
         if (coordsMatch) {
             return {
                 lng: Number.parseFloat(coordsMatch[1]),
@@ -125,13 +125,20 @@ export default function FireMonitoring() {
                         // 주소 정보 추출
                         const rawRegion = address.region_1depth_name || ""
                         const rawCity = address.region_2depth_name || ""
+                        const roadAddress = result[0].road_address ? result[0].road_address.address_name : ""
+                        const jibunAddress = result[0].address ? result[0].address.address_name : ""
+
+                        // 도로명 주소가 있으면 도로명 주소를, 없으면 지번 주소를 사용
+                        const fullAddress = roadAddress || jibunAddress
 
                         setAddressMap((prev) => ({
                             ...prev,
                             [boxId]: {
-                                fullAddress: address.address_name,
+                                fullAddress: fullAddress,
                                 region: rawRegion,
                                 city: rawCity,
+                                roadAddress: roadAddress,
+                                jibunAddress: jibunAddress,
                             },
                         }))
                         resolve(address)
@@ -272,11 +279,7 @@ export default function FireMonitoring() {
 
     // 선택된 수거함의 좌표
     const coordinates = selectedBox ? parseCoordinates(selectedBox.location) : 0
-    const selectedBoxCoordinates = typeof coordinates === "object" ? coordinates : { lat: 36.8082, lng: 127.009 }
-
-    // 선택된 수거함의 주소 정보
-    const selectedBoxAddress =
-        selectedUser && addressMap[selectedUser.boxId] ? addressMap[selectedUser.boxId].fullAddress : "주소 변환 중..."
+    const selectedBoxCoordinates = typeof coordinates === "object" ? coordinates : { lat: 36, lng: 127 }
 
     // 지도 센터 업데이트 - 좌표 변경 시
     useEffect(() => {
@@ -407,12 +410,16 @@ export default function FireMonitoring() {
                             {selectedBox ? selectedBox.name : `수거함 ID: ${selectedUser.boxId}`}
                         </h2>
                         <p className="text-[#60697E]">
-                            <span className="font-bold">화재처리 좌표</span>{" "}
+                            <span className="font-bold">화재처리 주소</span>{" "}
                             <span className="font-normal">
-                                {selectedBoxCoordinates.lat} / {selectedBoxCoordinates.lng}
-                            </span>
+                {selectedUser && addressMap[selectedUser.boxId]
+                    ? addressMap[selectedUser.boxId].fullAddress
+                    : selectedBoxCoordinates.lat && selectedBoxCoordinates.lng
+                        ? `좌표: ${selectedBoxCoordinates.lat.toFixed(6)} / ${selectedBoxCoordinates.lng.toFixed(6)} (주소 변환 중...)`
+                        : "주소 정보 없음"}
+              </span>
                             <span className="float-right text-sm">
-                                알림 일자{" "}
+                알림 일자{" "}
                                 {new Date(selectedUser.date)
                                     .toLocaleDateString("ko-KR", {
                                         year: "numeric",
@@ -421,7 +428,7 @@ export default function FireMonitoring() {
                                     })
                                     .replace(/\. /g, ".")
                                     .replace(/\.$/, "")}
-                            </span>
+              </span>
                         </p>
                     </div>
                 )}
@@ -443,6 +450,17 @@ export default function FireMonitoring() {
                                     src: FireIcon || "/placeholder.svg",
                                     size: { width: 34, height: 40 },
                                 }}
+                                clickable={true}
+                                onClick={() => {
+                                    if (selectedUser && addressMap[selectedUser.boxId]) {
+                                        const address = addressMap[selectedUser.boxId]
+                                        alert(`주소: ${address.fullAddress}\n광역시/도: ${address.region}\n담당지역: ${address.city}`)
+                                    } else {
+                                        alert(
+                                            `좌표: ${selectedBoxCoordinates.lat.toFixed(6)} / ${selectedBoxCoordinates.lng.toFixed(6)}\n주소 정보를 불러오는 중입니다.`,
+                                        )
+                                    }
+                                }}
                             />
                         )}
                     </Map>
@@ -459,17 +477,17 @@ export default function FireMonitoring() {
                         <p className="text-[#60697E]">
                             <span className="font-bold">가입일자</span>
                             <span className="ml-3 font-normal">
-                                {selectedUserInfo && selectedUserInfo.date
-                                    ? new Date(selectedUserInfo.date)
-                                        .toLocaleDateString("ko-KR", {
-                                            year: "numeric",
-                                            month: "2-digit",
-                                            day: "2-digit",
-                                        })
-                                        .replace(/\. /g, ".")
-                                        .replace(/\.$/, "")
-                                    : "정보 없음"}
-                            </span>
+                {selectedUserInfo && selectedUserInfo.date
+                    ? new Date(selectedUserInfo.date)
+                        .toLocaleDateString("ko-KR", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                        })
+                        .replace(/\. /g, ".")
+                        .replace(/\.$/, "")
+                    : "정보 없음"}
+              </span>
                         </p>
                     </div>
 
@@ -477,18 +495,18 @@ export default function FireMonitoring() {
                         <div className="flex items-center">
                             <span className="font-bold w-[70px]">광역시/도</span>
                             <span className="font-nomal">
-                                {selectedUser && addressMap[selectedUser.boxId]
-                                    ? addressMap[selectedUser.boxId].region
-                                    : selectedUserInfo?.location1 || "정보 없음"}
-                            </span>
+                {selectedUser && addressMap[selectedUser.boxId]
+                    ? addressMap[selectedUser.boxId].region
+                    : selectedUserInfo?.location1 || "정보 없음"}
+              </span>
                         </div>
                         <div className="flex items-center">
                             <span className="font-bold w-[70px]">담당지역</span>
                             <span className="font-nomal">
-                                {selectedUser && addressMap[selectedUser.boxId]
-                                    ? addressMap[selectedUser.boxId].city
-                                    : selectedUserInfo?.location2 || "정보 없음"}
-                            </span>
+                {selectedUser && addressMap[selectedUser.boxId]
+                    ? addressMap[selectedUser.boxId].city
+                    : selectedUserInfo?.location2 || "정보 없음"}
+              </span>
                         </div>
                         <div className="flex items-center">
                             <span className="font-bold w-[70px]">상태</span>
@@ -497,15 +515,15 @@ export default function FireMonitoring() {
                         <div className="flex items-center">
                             <span className="font-bold w-[70px]">알림일자</span>
                             <span className="font-nomal">
-                                {new Date(selectedUser.date)
-                                    .toLocaleDateString("ko-KR", {
-                                        year: "numeric",
-                                        month: "2-digit",
-                                        day: "2-digit",
-                                    })
-                                    .replace(/\. /g, ".")
-                                    .replace(/\.$/, "")}
-                            </span>
+                {new Date(selectedUser.date)
+                    .toLocaleDateString("ko-KR", {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                    })
+                    .replace(/\. /g, ".")
+                    .replace(/\.$/, "")}
+              </span>
                         </div>
                     </div>
 
@@ -534,9 +552,9 @@ export default function FireMonitoring() {
                     {/* 수락/거절 버튼은 FIRE_COMPLETED 상태일 때만 표시 */}
                     {isCompleted && (
                         <span className="mt-2 flex gap-2">
-                            <button className="bg-[#21262B] text-white rounded-2xl py-2 px-14">수락</button>
-                            <button className="bg-[#FF7571] text-white rounded-2xl py-2 px-6">거절</button>
-                        </span>
+              <button className="bg-[#21262B] text-white rounded-2xl py-2 px-14">수락</button>
+              <button className="bg-[#FF7571] text-white rounded-2xl py-2 px-6">거절</button>
+            </span>
                     )}
                 </div>
             )}

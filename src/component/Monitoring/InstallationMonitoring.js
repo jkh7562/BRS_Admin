@@ -8,7 +8,7 @@ import Sample from "../../assets/Sample.png"
 import DownIcon from "../../assets/Down.png"
 import Expansion from "../../assets/Expansion.png"
 import GreenIcon from "../../assets/아이콘 GREEN.png"
-import { fetchUnresolvedAlarms, findAllBox, findUserAll } from "../../api/apiServices"
+import { fetchUnresolvedAlarms, findAllBox, findUserAll, requestInstallConfirmed } from "../../api/apiServices"
 
 export default function InstallationMonitoring({ selectedRegion = "광역시/도", selectedCity = "시/군/구" }) {
     // 지역명 정규화를 위한 매핑 테이블
@@ -439,6 +439,38 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
 
     const isCompleted = selectedUser && selectedUser.type === "INSTALL_COMPLETED"
 
+    // 수락 버튼 핸들러
+    const handleAccept = async () => {
+        if (selectedUser && selectedUser.boxId) {
+            try {
+                await requestInstallConfirmed(selectedUser.boxId)
+                alert("확정되었습니다.")
+                // 성공 후 알람 데이터 다시 로드
+                const alarmsData = await fetchUnresolvedAlarms()
+
+                // 설치 관련 알람만 필터링
+                const installAlarms = alarmsData.filter(
+                    (alarm) =>
+                        alarm.type === "INSTALL_REQUEST" ||
+                        alarm.type === "INSTALL_IN_PROGRESS" ||
+                        alarm.type === "INSTALL_COMPLETED" ||
+                        alarm.type === "INSTALL_CONFIRMED",
+                )
+
+                setAlarms(installAlarms)
+
+                // 현재 선택된 알람 업데이트
+                const updatedAlarm = installAlarms.find((alarm) => alarm.id === selectedUser.id)
+                if (updatedAlarm) {
+                    setSelectedUser(updatedAlarm)
+                }
+            } catch (error) {
+                console.error("수거함 설치 확정 실패:", error)
+                // 에러 처리 로직 추가 (필요시)
+            }
+        }
+    }
+
     return (
         <div className="flex h-[555px] bg-white rounded-2xl shadow-md overflow-hidden">
             {/* Left Sidebar - User List */}
@@ -654,7 +686,9 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
                     {/* 수락/거절 버튼은 INSTALL_COMPLETED 상태일 때만 표시 */}
                     {isCompleted && (
                         <span className="mt-2 flex gap-2">
-              <button className="bg-[#21262B] text-white rounded-2xl py-2 px-14">수락</button>
+              <button className="bg-[#21262B] text-white rounded-2xl py-2 px-14" onClick={handleAccept}>
+                수락
+              </button>
               <button className="bg-[#FF7571] text-white rounded-2xl py-2 px-6">거절</button>
             </span>
                     )}
