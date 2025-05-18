@@ -67,7 +67,6 @@ const N_OrderHistoryPage = () => {
                 date: formattedDate,
                 time: formattedTime,
                 totalAmount: order.totalPrice,
-                state: order.state,
                 items: [],
                 expanded: false,
                 originalDate: order.date, // 정렬을 위해 원본 날짜 보존
@@ -248,42 +247,6 @@ const N_OrderHistoryPage = () => {
     // 검색어로 필터링된 사용자 목록
     const filteredUsers = users.filter((user) => user.name.toLowerCase().includes(searchTerm.toLowerCase()))
 
-    // 주문 상태 텍스트 변환 함수
-    const getOrderStatusText = (state) => {
-        switch (state) {
-            case 1:
-                return "주문 접수"
-            case 2:
-                return "처리 중"
-            case 3:
-                return "배송 중"
-            case 4:
-                return "배송 완료"
-            case 5:
-                return "취소됨"
-            default:
-                return "상태 미정"
-        }
-    }
-
-    // 주문 상태에 따른 배지 색상 클래스
-    const getOrderStatusBadgeClass = (state) => {
-        switch (state) {
-            case 1:
-                return "bg-blue-100 text-blue-800"
-            case 2:
-                return "bg-yellow-100 text-yellow-800"
-            case 3:
-                return "bg-purple-100 text-purple-800"
-            case 4:
-                return "bg-green-100 text-green-800"
-            case 5:
-                return "bg-red-100 text-red-800"
-            default:
-                return "bg-gray-100 text-gray-800"
-        }
-    }
-
     // 사용자 데이터와 주문 데이터가 로드되면 사용자별 최근 주문 정보 업데이트
     useEffect(() => {
         if (allOrders.length > 0 && users.length > 0) {
@@ -426,14 +389,7 @@ const N_OrderHistoryPage = () => {
                                                             <div className="p-4 bg-white">
                                                                 <div className="flex justify-between items-center mb-2">
                                                                     <div>
-                                                                        <div className="flex items-center gap-2">
-                                                                            <h3 className="font-medium">주문번호 - {order.id}</h3>
-                                                                            <span
-                                                                                className={`text-xs px-2 py-1 rounded-full ${getOrderStatusBadgeClass(order.state)}`}
-                                                                            >
-                                        {getOrderStatusText(order.state)}
-                                      </span>
-                                                                        </div>
+                                                                        <h3 className="font-medium">주문번호 - {order.id}</h3>
                                                                         <p className="text-sm text-[#7A7F8A]">
                                                                             주문일자 - {order.date} {order.time}
                                                                         </p>

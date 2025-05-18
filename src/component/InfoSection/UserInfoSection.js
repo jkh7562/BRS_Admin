@@ -18,25 +18,26 @@ export default function UserInfoSection() {
         orders: false,
     })
     const [boxLogs, setBoxLogs] = useState(null)
-    const [copiedId, setCopiedId] = useState(null);
+    const [copiedId, setCopiedId] = useState(null)
 
     const handleCopy = (e, userId, text) => {
-        e.stopPropagation(); // 이벤트 버블링 방지
+        e.stopPropagation() // 이벤트 버블링 방지
 
-        navigator.clipboard.writeText(text)
+        navigator.clipboard
+            .writeText(text)
             .then(() => {
                 // 복사된 항목 ID 저장
-                setCopiedId(userId);
+                setCopiedId(userId)
 
                 // 1.5초 후 상태 초기화
                 setTimeout(() => {
-                    setCopiedId(null);
-                }, 1500);
+                    setCopiedId(null)
+                }, 1500)
             })
             .catch((err) => {
-                console.error("복사 실패:", err);
-            });
-    };
+                console.error("복사 실패:", err)
+            })
+    }
 
     // 툴팁 상태 관리 추가
     const [tooltips, setTooltips] = useState({
@@ -182,7 +183,7 @@ export default function UserInfoSection() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                         <div className="absolute right-5 top-2 text-gray-400">
-                            <img src={SearchIcon || "/placeholder.svg"} alt="검색" className="w-5 h-5"/>
+                            <img src={SearchIcon || "/placeholder.svg"} alt="검색" className="w-5 h-5" />
                         </div>
                     </div>
                 </div>
@@ -197,7 +198,7 @@ export default function UserInfoSection() {
                         filteredUsers.map((user) => (
                             <UserListItem
                                 key={user.id}
-                                userId={user.id}  // userId prop 추가
+                                userId={user.id} // userId prop 추가
                                 name={user.name}
                                 points={user.point || 0}
                                 date={new Date(user.date)
@@ -210,8 +211,8 @@ export default function UserInfoSection() {
                                     .replace(/\.$/, "")}
                                 isActive={selectedUser && selectedUser.id === user.id}
                                 onClick={() => handleUserSelect(user)}
-                                handleCopy={handleCopy}  // handleCopy 함수 전달
-                                copiedId={copiedId}  // 복사 상태 전달
+                                handleCopy={handleCopy} // handleCopy 함수 전달
+                                copiedId={copiedId} // 복사 상태 전달
                             />
                         ))
                     )}
@@ -236,7 +237,7 @@ export default function UserInfoSection() {
                                     </div>
                                 </div>
                                 <div>
-                                <h2 className="font-bold text-[#21262B] text-lg">{selectedUser.name}</h2>
+                                    <h2 className="font-bold text-[#21262B] text-lg">{selectedUser.name}</h2>
                                     <div className="flex">
                                         <p className="text-sm text-[#60697E]">
                                             <span className="font-bold">가입일자</span>{" "}
@@ -424,7 +425,7 @@ export default function UserInfoSection() {
 
                     {/* Right Sidebar - Activity Log */}
                     <div className="w-full md:w-[300px] h-full flex flex-col shadow-lg pl-7 pt-9">
-                        <div className="pb-7">
+                        <div className="pb-4">
                             <h2 className="font-bold text-[#21262B] text-xl">주문 내역</h2>
                         </div>
 
@@ -438,7 +439,6 @@ export default function UserInfoSection() {
                                 userOrders.map((order, index) => (
                                     <ActivityItem
                                         key={index}
-                                        status={getOrderStatus(order.status)}
                                         date={new Date(order.date)
                                             .toLocaleDateString("ko-KR", {
                                                 year: "numeric",
@@ -514,7 +514,7 @@ function UserListItem({ userId, name, points, date, isActive, onClick, handleCop
                 )}
             </div>
         </div>
-    );
+    )
 }
 
 // 차트 바 컴포넌트
@@ -532,12 +532,9 @@ function ChartBar({ height, date }) {
 }
 
 // 활동 내역 아이템 컴포넌트
-function ActivityItem({ status, date, time, code, amount }) {
+function ActivityItem({ date, time, code, amount }) {
     return (
         <div>
-            <div>
-                <span className="inline-block px-2 py-0.5 bg-[#21262B] text-white text-sm rounded-md font-nomal">{status}</span>
-            </div>
             <table className="w-full text-sm border-collapse mt-4 mb-8">
                 <tbody>
                 <tr>
@@ -603,18 +600,6 @@ function StatCard({
 function calculateUsedPoints(orders) {
     if (!orders || orders.length === 0) return 0
     return orders.reduce((total, order) => total + (order.usedPoints || 0), 0)
-}
-
-// 주문 상태 변환 함수
-function getOrderStatus(status) {
-    const statusMap = {
-        PENDING: "주문접수",
-        PROCESSING: "처리중",
-        SHIPPED: "배송중",
-        DELIVERED: "배송완료",
-        CANCELLED: "취소됨",
-    }
-    return statusMap[status] || "배송완료" // 기본값은 '배송완료'로 설정
 }
 
 // 차트 데이터 생성 함수
