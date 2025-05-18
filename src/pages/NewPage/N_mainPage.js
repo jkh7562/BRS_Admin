@@ -124,7 +124,11 @@ const N_mainPage = () => {
         const loadBoxes = async () => {
             try {
                 const data = await findAllBox()
+
                 const mappedBoxes = data.map((entry) => {
+                    // entry.box가 있으면 사용하고, 없으면 entry 자체를 사용
+                    const source = entry.box || entry
+
                     const {
                         id,
                         name,
@@ -136,7 +140,7 @@ const N_mainPage = () => {
                         fireStatus2,
                         fireStatus3,
                         installStatus,
-                    } = entry.box
+                    } = source
 
                     // 위치 파싱 (띄어쓰기 유무 상관없이 처리)
                     let lng = 0
@@ -163,6 +167,7 @@ const N_mainPage = () => {
                     return { id, name, lat, lng, status, installStatus, volume1, volume2, volume3 }
                 })
 
+                console.log(`✅ 수거함 정보 로딩 완료: ${mappedBoxes.length}개의 수거함 로드됨`)
                 setBoxes(mappedBoxes)
             } catch (error) {
                 console.error("수거함 정보 로딩 실패:", error)
