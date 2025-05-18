@@ -1251,7 +1251,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
                     <div className="relative mx-2 mt-4 p-3">
                         <input
                             type="text"
-                            placeholder="수거함 이름 검색"
+                            placeholder="수거함 이름 및 주소 검색"
                             className="w-full py-2 pl-4 rounded-2xl border border-black/20 text-sm focus:outline-none"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -1517,7 +1517,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
                         showExistingPinOverlay &&
                         selectedBoxId &&
                         getSelectedBox() &&
-                        !getSelectedBox()?.installStatus?.startsWith("REMOVE_") && (
+                        getSelectedBox()?.installStatus === "INSTALL_CONFIRMED" && (
                             <PinOverlay
                                 position={{ lat: getSelectedBox()?.lat || 0, lng: getSelectedBox()?.lng || 0 }}
                                 title="수거함 제거 요청"
