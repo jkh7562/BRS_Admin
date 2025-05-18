@@ -215,7 +215,7 @@ const N_mainPage = () => {
 
                     <div className="flex gap-4">
                         {/* 신규 수거자 가입신청 */}
-                        <div className="w-[19%] bg-[#21262B] rounded-2xl p-4 shadow cursor-pointer" onClick={goToApprovalPage}>
+                        <div className="w-[27%] bg-[#21262B] rounded-2xl p-4 shadow cursor-pointer" onClick={goToApprovalPage}>
                             <div className="flex items-center gap-2 mt-4 ml-4 mr-4 mb-4">
                                 <img src={joinIcon || "/placeholder.svg"} alt="신규 수거자" className="w-6 h-6" />
                                 <h2 className="font-bold text-xl text-white whitespace-nowrap">신규 수거자 가입신청</h2>
@@ -321,102 +321,6 @@ const N_mainPage = () => {
                                         </div>
                                     </div>
                                     <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayUserCount}명</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 고객 관리 */}
-                        <div className="flex-1 bg-white rounded-2xl p-4 shadow">
-                            <div className="flex items-center justify-between mb-14">
-                                <div className="flex items-center gap-2 mt-4 ml-6">
-                                    <img src={customerIcon || "/placeholder.svg"} alt="고객 관리" className="w-5 h-5" />
-                                    <h2 className="text-xl font-bold text-[#21262B]">고객 관리</h2>
-                                </div>
-                                <p className="text-sm font-medium text-[#7A7F8A] pr-3 mt-4">마지막 업데이트 2025.03.31</p>
-                            </div>
-
-                            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mx-4 text-sm">
-                                <div className="flex-1 flex flex-col items-center md:items-start px-2">
-                                    <div className="flex items-center gap-3">
-                                        <p className="text-gray-500">사용자 문의</p>
-                                        <div className="tooltip-container relative">
-                                            <img
-                                                src={infoIcon || "/placeholder.svg"}
-                                                alt="info"
-                                                className="w-4 h-4 cursor-pointer"
-                                                onClick={(e) => toggleTooltip("userInquiry", e)}
-                                            />
-                                            <Tooltip
-                                                isVisible={tooltips.userInquiry}
-                                                content={
-                                                    <>
-                                                        <h3 className="font-bold text-sm mb-2">사용자 문의</h3>
-                                                        <p className="text-xs">일반 사용자로부터 접수된 문의 건수입니다.</p>
-                                                        <p className="text-xs mt-2">미처리 상태인 문의만 표시됩니다.</p>
-                                                    </>
-                                                }
-                                            />
-                                        </div>
-                                    </div>
-                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">13건</p>
-                                </div>
-
-                                <div className="hidden md:flex justify-center px-4">
-                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8" />
-                                </div>
-
-                                <div className="flex-1 flex flex-col items-center md:items-start px-2">
-                                    <div className="flex items-center gap-3">
-                                        <p className="text-gray-500">수거자 문의</p>
-                                        <div className="tooltip-container relative">
-                                            <img
-                                                src={infoIcon || "/placeholder.svg"}
-                                                alt="info"
-                                                className="w-4 h-4 cursor-pointer"
-                                                onClick={(e) => toggleTooltip("collectorInquiry", e)}
-                                            />
-                                            <Tooltip
-                                                isVisible={tooltips.collectorInquiry}
-                                                content={
-                                                    <>
-                                                        <h3 className="font-bold text-sm mb-2">수거자 문의</h3>
-                                                        <p className="text-xs">수거자로부터 접수된 문의 건수입니다.</p>
-                                                        <p className="text-xs mt-2">미처리 상태인 문의만 표시됩니다.</p>
-                                                    </>
-                                                }
-                                            />
-                                        </div>
-                                    </div>
-                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">5건</p>
-                                </div>
-
-                                <div className="hidden md:flex justify-center px-4">
-                                    <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8" />
-                                </div>
-
-                                <div className="flex-1 flex flex-col items-center md:items-start px-2">
-                                    <div className="flex items-center gap-3">
-                                        <p className="text-gray-500">일반 민원</p>
-                                        <div className="tooltip-container relative">
-                                            <img
-                                                src={infoIcon || "/placeholder.svg"}
-                                                alt="info"
-                                                className="w-4 h-4 cursor-pointer"
-                                                onClick={(e) => toggleTooltip("generalInquiry", e)}
-                                            />
-                                            <Tooltip
-                                                isVisible={tooltips.generalInquiry}
-                                                content={
-                                                    <>
-                                                        <h3 className="font-bold text-sm mb-2">일반 민원</h3>
-                                                        <p className="text-xs">외부 기관이나 비회원으로부터 접수된 민원 건수입니다.</p>
-                                                        <p className="text-xs mt-2">미처리 상태인 민원만 표시됩니다.</p>
-                                                    </>
-                                                }
-                                            />
-                                        </div>
-                                    </div>
-                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">0건</p>
                                 </div>
                             </div>
                         </div>
