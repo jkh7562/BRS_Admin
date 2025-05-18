@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
@@ -158,6 +160,22 @@ const N_MonitoringPage = () => {
         }))
     }
 
+    // 현재 선택된 모니터링 컴포넌트 렌더링
+    const renderMonitoringComponent = () => {
+        switch (filters.type) {
+            case "설치 현황":
+                return <InstallationMonitoring selectedRegion={filters.region} selectedCity={filters.city} />
+            case "제거 현황":
+                return <RemoveMonitoring selectedRegion={filters.region} selectedCity={filters.city} />
+            case "수거 현황":
+                return <CollectMonitoring selectedRegion={filters.region} selectedCity={filters.city} />
+            case "화재 후 재가동":
+                return <FireMonitoring selectedRegion={filters.region} selectedCity={filters.city} />
+            default:
+                return <InstallationMonitoring selectedRegion={filters.region} selectedCity={filters.city} />
+        }
+    }
+
     return (
         <div className="flex min-h-screen w-full bg-[#F3F3F5]">
             <Sidebar />
@@ -168,7 +186,10 @@ const N_MonitoringPage = () => {
                     <div className="relative pt-2">
                         <div className="flex flex-wrap gap-7 mt-2 pb-1 font-bold relative z-10">
                             <div className="relative dropdown-container">
-                                <button className="flex items-center gap-2 text-base text-[#21262B]" onClick={() => toggleDropdown("type")}>
+                                <button
+                                    className="flex items-center gap-2 text-base text-[#21262B]"
+                                    onClick={() => toggleDropdown("type")}
+                                >
                                     {filters.type}
                                     <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
                                 </button>
@@ -259,10 +280,7 @@ const N_MonitoringPage = () => {
                         <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
                     </div>
 
-                    {filters.type === "설치 현황" && <InstallationMonitoring />}
-                    {filters.type === "제거 현황" && <RemoveMonitoring />}
-                    {filters.type === "수거 현황" && <CollectMonitoring />}
-                    {filters.type === "화재 후 재가동" && <FireMonitoring />}
+                    {renderMonitoringComponent()}
                     <div className="pb-32" />
                 </main>
             </div>
