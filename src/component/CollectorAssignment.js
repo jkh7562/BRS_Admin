@@ -357,7 +357,7 @@ export default function CollectorAssignment() {
                                 </div>
                             </div>
 
-                            <div className="h-12 flex items-center pt-6 md:mt-0 md:ml-[85px]">
+                            <div className="h-12 flex items-center pt-6 md:mt-0 md:ml-[20px]">
                                 <button
                                     className="bg-[#E8F1F7] text-[#21262B] px-6 py-2 rounded-2xl hover:bg-gray-200 transition-colors"
                                     onClick={() => console.log("담당지역 변경 clicked")}
@@ -456,40 +456,6 @@ export default function CollectorAssignment() {
                             </div>
                         </div>
                     </div>
-                </div>
-
-                {/* Right Sidebar - User Information Card */}
-                <div className="w-full md:w-[300px] h-full flex flex-col shadow-lg p-7">
-                    {selectedCollector && (
-                        <div className="px-2 pt-2">
-                            <h2 className="text-xl text-[#21262B] font-bold mb-2">{selectedCollector.name}</h2>
-                            <div className="flex">
-                                <span className="font-bold text-[#60697E] w-20 mb-6">전화번호</span>
-                                <span className="text-[#60697E]">010-2222-2222</span>
-                            </div>
-                            <div className="space-y-2">
-                                <div className="flex">
-                                    <span className="text-[#21262B] text-sm font-bold w-20">광역시/도</span>
-                                    <span className="text-[#21262B] text-sm">충청남도</span>
-                                </div>
-
-                                <div className="flex">
-                                    <span className="text-[#21262B] text-sm font-bold w-20">시/군/구</span>
-                                    <span className="text-[#21262B] text-sm">아산시</span>
-                                </div>
-
-                                <div className="flex">
-                                    <span className="text-[#21262B] text-sm font-bold w-20">상태</span>
-                                    <span className="text-[#21262B] text-sm">설치 진행중</span>
-                                </div>
-
-                                <div className="flex">
-                                    <span className="text-[#21262B] text-sm font-bold w-20">알림일자</span>
-                                    <span className="text-[#21262B] text-sm">2025/03/16</span>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
 
@@ -593,7 +559,7 @@ export default function CollectorAssignment() {
 function UserListItem({ name, userId, points, date, isActive, onClick, handleCopy, copiedId }) {
     return (
         <div
-            className={`p-4 border-b flex items-center justify-between hover:bg-[#D1E3EE] hover:bg-opacity-50 cursor-pointer ${isActive ? "bg-[#D1E3EE] bg-opacity-50" : ""}`}
+            className={`p-4 border-b flex items-center justify-between cursor-pointer ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}
             onClick={onClick}
         >
             <div>
