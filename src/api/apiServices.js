@@ -338,6 +338,17 @@ export const requestRemoveConfirmed = async (boxId) => {
     }
 };
 
+// 수거 확정 요청 API
+export const requestCollectionConfirmed = async (alarmId) => {
+    try {
+        const response = await axiosInstance.patch(`/admin/collectionConfirmed/${alarmId}`)
+        return response.data
+    } catch (error) {
+        console.error("수거 확정 요청 실패:", error)
+        throw error
+    }
+}
+
 // ✅ 관리자용 미해결 알람 조회 API
 export const fetchUnresolvedAlarms = async () => {
     try {
