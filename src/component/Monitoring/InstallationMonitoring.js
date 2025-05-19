@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect, useRef } from "react"
 import { Map, MapMarker } from "react-kakao-maps-sdk"
 import SearchIcon from "../../assets/검색.png"
@@ -602,7 +600,7 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
             </div>
 
             {/* Right Sidebar - User Info */}
-            {selectedUser && (
+            {selectedUser && selectedUser.type !== "INSTALL_REQUEST" && (
                 <div className="w-[290px] h-full flex flex-col border-l p-8">
                     <div className="mb-10">
                         <h2 className="text-2xl text-[#21262B] font-bold pb-1">

@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect, useRef } from "react"
 import { Map, MapMarker } from "react-kakao-maps-sdk"
 import SearchIcon from "../../assets/검색.png"
@@ -7,7 +5,7 @@ import CopyIcon from "../../assets/copy.png"
 import Sample from "../../assets/Sample.png"
 import DownIcon from "../../assets/Down.png"
 import Expansion from "../../assets/Expansion.png"
-import FireIcon from "../../assets/아이콘 RED.png"
+import FireIcon from "../../assets/아이콘 화재감지.svg"
 import { fetchUnresolvedAlarms, findAllBox, findUserAll, requestFireConfirmed } from "../../api/apiServices"
 
 export default function FireMonitoring() {

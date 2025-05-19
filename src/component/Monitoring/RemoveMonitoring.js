@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect, useRef } from "react"
 import { Map, MapMarker } from "react-kakao-maps-sdk"
 import SearchIcon from "../../assets/검색.png"
@@ -30,8 +28,7 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
         전북: "전라북도",
         전남: "전라남도",
         경북: "경상북도",
-        경남: "경상남도",
-        제주: "제주특별자치도",
+        경남: "제주특별자치도",
         // 특별자치도
         제주도: "제주특별자치도",
         세종시: "세종특별자치시",
@@ -312,7 +309,7 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
                 // 복사된 항목 ID 저장
                 setCopiedId(userId)
 
-                // 1.5초 후 상태 초기화
+                // 1.5초 후 ���태 초기화
                 setTimeout(() => {
                     setCopiedId(null)
                 }, 1500)
@@ -605,7 +602,7 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
             </div>
 
             {/* Right Sidebar - User Info */}
-            {selectedUser && (
+            {selectedUser && selectedUser.type !== "REMOVE_REQUEST" && (
                 <div className="w-[290px] h-full flex flex-col border-l p-8">
                     <div className="mb-10">
                         <h2 className="text-2xl text-[#21262B] font-bold pb-1">
@@ -689,7 +686,9 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
                     {/* 수락/거절 버튼은 REMOVE_COMPLETED 상태일 때만 표시 */}
                     {isCompleted && (
                         <span className="mt-2 flex gap-2">
-              <button className="bg-[#21262B] text-white rounded-2xl py-2 px-14" onClick={handleAccept}>수락</button>
+              <button className="bg-[#21262B] text-white rounded-2xl py-2 px-14" onClick={handleAccept}>
+                수락
+              </button>
               <button className="bg-[#FF7571] text-white rounded-2xl py-2 px-6">거절</button>
             </span>
                     )}
