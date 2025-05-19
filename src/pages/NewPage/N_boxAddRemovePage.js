@@ -722,18 +722,13 @@ const N_boxAddRemovePage = () => {
 
     // 제거 상태 컴포넌트에 전달할 데이터 생성 부분
     const removalBoxes = processedBoxes
-        .filter(
-            (box) =>
-                removeStatuses.includes(box?.removeStatus) ||
-                (box?.removeInfo?.alarmType && box.removeInfo.alarmType.startsWith("REMOVE")) ||
-                (box?.installStatus && box.installStatus.startsWith("REMOVE")),
-        )
+        .filter((box) => removeStatuses.includes(box?.installStatus))
         .map((box) => ({
             ...box,
             user: box.removeInfo?.user || { name: box.name || "미지정", createdAt: "정보 없음" },
             createdAt: box.removeInfo?.createdAt || "정보 없음",
             alarmDate: box.removeInfo?.alarmDate || null,
-            alarmType: box.removeInfo?.alarmType || box.installStatus || null,
+            alarmType: box.removeInfo?.alarmType || null,
         }))
 
     // 디버깅을 위한 로그 추가
