@@ -8,7 +8,7 @@ import Sample from "../../assets/Sample.png"
 import DownIcon from "../../assets/Down.png"
 import Expansion from "../../assets/Expansion.png"
 import FireIcon from "../../assets/아이콘 RED.png"
-import { fetchUnresolvedAlarms, findAllBox, findUserAll, requestInstallConfirmed } from "../../api/apiServices"
+import { fetchUnresolvedAlarms, findAllBox, findUserAll, requestFireConfirmed } from "../../api/apiServices"
 
 export default function FireMonitoring() {
     // 검색어 상태 추가
@@ -320,6 +320,29 @@ export default function FireMonitoring() {
 
     const isCompleted = selectedUser && selectedUser.type === "FIRE_COMPLETED"
 
+    const handleAccept = async () => {
+        if (!selectedUser || !selectedUser.id) return
+
+        try {
+            await requestFireConfirmed(selectedUser.id)
+            alert("화재처리 확정 완료")
+
+            const alarmData = await fetchUnresolvedAlarms()
+            const FireAlarms = alarmData.filter((a) => a.type.startsWith("FIRE"))
+            setAlarms(FireAlarms)
+
+            const updated = FireAlarms.find((a) => a.id === selectedUser.id)
+            if (updated) {
+                setSelectedUser(updated)
+            } else {
+                setSelectedUser(FireAlarms[0] || null)
+            }
+        } catch (err) {
+            console.error("화재처리 확정 실패:", err)
+            alert("화재처리 확정 실패")
+        }
+    }
+
     return (
         <div className="flex h-[555px] bg-white rounded-2xl shadow-md overflow-hidden">
             {/* Left Sidebar - User List */}
@@ -552,7 +575,7 @@ export default function FireMonitoring() {
                     {/* 수락/거절 버튼은 FIRE_COMPLETED 상태일 때만 표시 */}
                     {isCompleted && (
                         <span className="mt-2 flex gap-2">
-              <button className="bg-[#21262B] text-white rounded-2xl py-2 px-14">수락</button>
+              <button className="bg-[#21262B] text-white rounded-2xl py-2 px-14" onClick={handleAccept}>수락</button>
               <button className="bg-[#FF7571] text-white rounded-2xl py-2 px-6">거절</button>
             </span>
                     )}

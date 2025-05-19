@@ -349,6 +349,17 @@ export const requestCollectionConfirmed = async (alarmId) => {
     }
 }
 
+// 화재 확정 요청 API
+export const requestFireConfirmed = async (alarmId) => {
+    try {
+        const response = await axiosInstance.patch(`/admin/fireConfirmed/${alarmId}`)
+        return response.data
+    } catch (error) {
+        console.error("화재처리 확정 요청 실패:", error)
+        throw error
+    }
+}
+
 // ✅ 관리자용 미해결 알람 조회 API
 export const fetchUnresolvedAlarms = async () => {
     try {
