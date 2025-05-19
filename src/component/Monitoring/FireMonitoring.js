@@ -259,10 +259,10 @@ export default function FireMonitoring() {
 
     // 검색어와 선택된 옵션에 따라 필터링된 알람 목록 계산
     const filteredAlarms = alarms.filter((alarm) => {
-        // 이름으로 검색 필터링 (userId 또는 사용자 이름)
-        const user = users[alarm.userId] || {}
-        const userName = user.name || alarm.userId || ""
-        const nameMatch = userName.toLowerCase().includes(searchTerm.toLowerCase())
+        // 수거함 이름으로 검색 필터링
+        const box = boxes[alarm.boxId] || {}
+        const boxName = box.name || `수거함 ID: ${alarm.boxId}` || ""
+        const nameMatch = boxName.toLowerCase().includes(searchTerm.toLowerCase())
 
         // 상태로 필터링 (전체 옵션이면 모든 상태 포함)
         const status = getStatusFromType(alarm.type)
@@ -352,7 +352,7 @@ export default function FireMonitoring() {
                     <div className="relative flex-1">
                         <input
                             type="text"
-                            placeholder="수거자 이름 검색"
+                            placeholder="수거함 이름 검색"
                             className="w-full py-2 px-5 rounded-2xl border border-gray-300 text-sm focus:outline-none"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -402,6 +402,7 @@ export default function FireMonitoring() {
                     ) : (
                         filteredAlarms.map((alarm) => {
                             const user = users[alarm.userId] || {}
+                            const box = boxes[alarm.boxId] || {}
                             const date = new Date(alarm.date)
                             const formattedDate = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`
 
@@ -409,7 +410,7 @@ export default function FireMonitoring() {
                                 <UserListItem
                                     key={`alarm-${alarm.id}`}
                                     userId={`alarm-${alarm.id}`}
-                                    name={user.name || alarm.userId || "사용자 정보 없음"}
+                                    name={box.name || `수거함 ID: ${alarm.boxId}` || "수거함 정보 없음"}
                                     status={getStatusFromType(alarm.type)}
                                     date={formattedDate}
                                     isActive={selectedUser && selectedUser.id === alarm.id}
@@ -435,12 +436,10 @@ export default function FireMonitoring() {
                         <p className="text-[#60697E]">
                             <span className="font-bold">화재처리 주소</span>{" "}
                             <span className="font-normal">
-                {selectedUser && addressMap[selectedUser.boxId]
-                    ? addressMap[selectedUser.boxId].fullAddress
-                    : selectedBoxCoordinates.lat && selectedBoxCoordinates.lng
-                        ? `좌표: ${selectedBoxCoordinates.lat.toFixed(6)} / ${selectedBoxCoordinates.lng.toFixed(6)} (주소 변환 중...)`
-                        : "주소 정보 없음"}
-              </span>
+  {selectedUser && addressMap[selectedUser.boxId]
+      ? addressMap[selectedUser.boxId].fullAddress
+      : ""}
+</span>
                             <span className="float-right text-sm">
                 알림 일자{" "}
                                 {new Date(selectedUser.date)
@@ -491,7 +490,7 @@ export default function FireMonitoring() {
             </div>
 
             {/* Right Sidebar - User Info */}
-            {selectedUser && (
+            {selectedUser && selectedUser.type !== "FIRE" && (
                 <div className="w-[290px] h-full flex flex-col border-l p-8">
                     <div className="mb-10">
                         <h2 className="text-2xl text-[#21262B] font-bold pb-1">
@@ -575,7 +574,9 @@ export default function FireMonitoring() {
                     {/* 수락/거절 버튼은 FIRE_COMPLETED 상태일 때만 표시 */}
                     {isCompleted && (
                         <span className="mt-2 flex gap-2">
-              <button className="bg-[#21262B] text-white rounded-2xl py-2 px-14" onClick={handleAccept}>수락</button>
+              <button className="bg-[#21262B] text-white rounded-2xl py-2 px-14" onClick={handleAccept}>
+                수락
+              </button>
               <button className="bg-[#FF7571] text-white rounded-2xl py-2 px-6">거절</button>
             </span>
                     )}
