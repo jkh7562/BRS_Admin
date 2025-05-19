@@ -4,8 +4,9 @@ import { useState, useEffect, useRef } from "react"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import DownIcon from "../../assets/Down.png"
-import { Map } from "react-kakao-maps-sdk"
+import { Map, CustomOverlayMap } from "react-kakao-maps-sdk"
 import CollectorAssignment from "../../component/CollectorAssignment"
+import { findUserAll } from "../../api/apiServices"
 
 const N_collectorAssignmentPage = () => {
     // 지역 및 도시 데이터
@@ -84,11 +85,66 @@ const N_collectorAssignmentPage = () => {
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState(null)
 
+    // 유저 데이터 상태
+    const [userData, setUserData] = useState([])
+    const [employeeCounts, setEmployeeCounts] = useState({})
+    const [isLoadingUsers, setIsLoadingUsers] = useState(false)
+
     // 카카오맵 인스턴스 참조
     const mapRef = useRef(null)
     const geocoderRef = useRef(null)
     const boundaryPolygonsRef = useRef([])
     const boundaryLabelsRef = useRef([])
+
+    // 유저 데이터 가져오기
+    useEffect(() => {
+        const fetchUsers = async () => {
+            setIsLoadingUsers(true)
+            try {
+                const response = await findUserAll()
+                if (response && Array.isArray(response)) {
+                    setUserData(response)
+                    // 유저 데이터를 기반으로 지역별 ROLE_EMPLOYEE 카운트 계산
+                    calculateEmployeeCounts(response)
+                }
+            } catch (err) {
+                console.error("유저 데이터를 가져오는 중 오류 발생:", err)
+                setError("유저 데이터를 가져오는 중 오류가 발생했습니다.")
+            } finally {
+                setIsLoadingUsers(false)
+            }
+        }
+
+        fetchUsers()
+    }, [])
+
+    // 지역별 ROLE_EMPLOYEE 카운트 계산 함수
+    const calculateEmployeeCounts = (users) => {
+        const counts = {}
+
+        // ROLE_EMPLOYEE 역할을 가진 유저만 필터링
+        const employees = users.filter((user) => user.role === "ROLE_EMPLOYEE")
+
+        // 지역별로 그룹화하여 카운트
+        employees.forEach((employee) => {
+            const location1 = employee.location1 || "미지정"
+            const location2 = employee.location2 || "미지정"
+
+            // location1 레벨 카운트
+            if (!counts[location1]) {
+                counts[location1] = { total: 0, cities: {} }
+            }
+            counts[location1].total += 1
+
+            // location2 레벨 카운트
+            if (!counts[location1].cities[location2]) {
+                counts[location1].cities[location2] = 0
+            }
+            counts[location1].cities[location2] += 1
+        })
+
+        setEmployeeCounts(counts)
+    }
 
     // 선택된 지역에 따라 도시 옵션 업데이트
     useEffect(() => {
@@ -286,14 +342,26 @@ const N_collectorAssignmentPage = () => {
         circle.setMap(map)
         boundaryPolygonsRef.current.push(circle)
 
+        // 지역 이름과 사용자 수 표시
+        let count = 0
+        const displayName = address.split(" ").pop()
+
+        if (type === "region") {
+            count = employeeCounts[address]?.total || 0
+        } else if (type === "city") {
+            const region = address.split(" ")[0]
+            const city = address.split(" ")[1]
+            count = employeeCounts[region]?.cities[city] || 0
+        }
+
         // 행정구역 이름 표시 (커스텀 오버레이)
         const content = document.createElement("div")
         content.className = "region-label"
         content.innerHTML = `
-    <div style="padding: 5px 10px; background: white; border-radius: 4px; font-size: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-      ${address.split(" ").pop()}
-    </div>
-  `
+  <div style="padding: 5px 10px; background: white; border-radius: 4px; font-size: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    ${displayName} <span style="color: #4F6CFF;">(${count}명)</span>
+  </div>
+`
 
         const customOverlay = new window.kakao.maps.CustomOverlay({
             position: centerCoords,
@@ -408,6 +476,53 @@ const N_collectorAssignmentPage = () => {
         }))
     }
 
+    // 현재 필터에 따른 직원 수 가져오기
+    const getCurrentEmployeeCount = () => {
+        if (filters.region === "광역시/도") {
+            // 전체 직원 수 (모든 지역 합산)
+            let totalCount = 0
+            Object.values(employeeCounts).forEach((regionData) => {
+                totalCount += regionData.total
+            })
+            return totalCount
+        } else if (filters.city === "시/군/구") {
+            // 선택된 지역의 전체 직원 수
+            return employeeCounts[filters.region]?.total || 0
+        } else {
+            // 선택된 지역 및 도시의 직원 수
+            return employeeCounts[filters.region]?.cities[filters.city] || 0
+        }
+    }
+
+    // 지역별 직원 수 오버레이 렌더링
+    const renderEmployeeCountOverlays = () => {
+        if (filters.region === "광역시/도") {
+            // 모든 지역에 대한 오버레이 표시
+            return Object.keys(employeeCounts)
+                .map((region) => {
+                    if (regionCenters[region] && employeeCounts[region]?.total > 0) {
+                        return (
+                            <CustomOverlayMap
+                                key={region}
+                                position={{
+                                    lat: regionCenters[region].lat,
+                                    lng: regionCenters[region].lng,
+                                }}
+                                yAnchor={1}
+                            >
+                                <div className="employee-count-overlay">
+                                    <div className="count-bubble">{employeeCounts[region].total}</div>
+                                    <div className="count-label">{region}</div>
+                                </div>
+                            </CustomOverlayMap>
+                        )
+                    }
+                    return null
+                })
+                .filter(Boolean)
+        }
+    }
+
     return (
         <div className="flex min-h-screen w-full bg-[#F3F3F5]">
             <Sidebar />
@@ -495,13 +610,16 @@ const N_collectorAssignmentPage = () => {
                             onCreate={(map) => {
                                 mapRef.current = map
                             }}
-                        />
+                        >
+                            {/* 직원 수 오버레이 렌더링 */}
+                            {renderEmployeeCountOverlays()}
+                        </Map>
 
                         {/* 로딩 인디케이터 */}
-                        {isLoading && (
+                        {(isLoading || isLoadingUsers) && (
                             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
                                 <div className="bg-white p-4 rounded-lg shadow-lg">
-                                    <p className="text-gray-700">경계 데이터를 불러오는 중...</p>
+                                    <p className="text-gray-700">데이터를 불러오는 중...</p>
                                 </div>
                             </div>
                         )}
@@ -523,6 +641,7 @@ const N_collectorAssignmentPage = () => {
                                 <p className="text-xs text-gray-500 mt-1">
                                     {boundaryData.type === "region" ? "광역시/도 단위" : "시/군/구 단위"}
                                 </p>
+                                <p className="text-xs font-semibold text-blue-600 mt-1">수거자 수: {getCurrentEmployeeCount()}명</p>
                             </div>
                         )}
 
@@ -536,14 +655,24 @@ const N_collectorAssignmentPage = () => {
                                 <div className="w-4 h-4 rounded-full bg-[#FF6B6B] opacity-60 mr-2"></div>
                                 <p className="text-xs text-gray-700">시/군/구</p>
                             </div>
+                            <div className="flex items-center mt-2">
+                                <div className="w-4 h-4 flex items-center justify-center bg-blue-500 text-white text-xs rounded-full mr-2">
+                                    N
+                                </div>
+                                <p className="text-xs text-gray-700">수거자 수</p>
+                            </div>
                         </div>
                     </div>
-                    <CollectorAssignment />
+                    <CollectorAssignment
+                        selectedRegion={filters.region}
+                        selectedCity={filters.city}
+                        employeeCounts={employeeCounts}
+                    />
                     <div className="pb-32" />
                 </main>
             </div>
 
-            {/* Add custom styles for scrollbar */}
+            {/* Add custom styles for scrollbar and employee count overlays */}
             <style jsx global>{`
                 .dropdown-container div {
                     padding-right: 4px; /* 스크롤바 오른쪽 간격 */
@@ -566,6 +695,41 @@ const N_collectorAssignmentPage = () => {
 
                 .dropdown-container div::-webkit-scrollbar-thumb:hover {
                     background: #b1b1b1;
+                }
+
+                /* 직원 수 오버레이 스타일 */
+                .employee-count-overlay {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    position: relative;
+                }
+
+                .count-bubble {
+                    background-color: #4F6CFF;
+                    color: white;
+                    font-weight: bold;
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                    font-size: 12px;
+                }
+
+                .count-label {
+                    background-color: white;
+                    padding: 2px 6px;
+                    border-radius: 4px;
+                    font-size: 10px;
+                    margin-top: 4px;
+                    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+                    white-space: nowrap;
+                    max-width: 100px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
             `}</style>
         </div>

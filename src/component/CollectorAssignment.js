@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useRef, useEffect } from "react"
 import SearchIcon from "../assets/검색.png"
 import CopyIcon from "../assets/copy.png"
@@ -5,8 +7,9 @@ import InfoIcon from "../assets/추가정보2.png"
 import VectorIcon from "../assets/Vector.png"
 import DownIcon from "../assets/Down.png"
 import UserIcon from "../assets/user.png"
+import { findUserAll, getBoxLog, changeUserLocation } from "../api/apiServices"
 
-function CustomDropdown({ options, value, onChange, width = "200px" }) {
+function CustomDropdown({ options, value, onChange, width = "200px", disabled = false }) {
     const [isOpen, setIsOpen] = useState(false)
     const [selectedValue, setSelectedValue] = useState(value)
     const dropdownRef = useRef(null)
@@ -38,14 +41,17 @@ function CustomDropdown({ options, value, onChange, width = "200px" }) {
         <div ref={dropdownRef} className="relative" style={{ width }}>
             <button
                 type="button"
-                className="w-full px-3 py-2 border border-black/20 rounded-lg text-base text-left flex justify-between items-center"
-                onClick={() => setIsOpen(!isOpen)}
+                className={`w-full px-3 py-2 border border-black/20 rounded-lg text-base text-left flex justify-between items-center ${
+                    disabled ? "bg-gray-100 cursor-not-allowed" : ""
+                }`}
+                onClick={() => !disabled && setIsOpen(!isOpen)}
+                disabled={disabled}
             >
                 <span>{selectedValue}</span>
-                <img src={DownIcon || "/placeholder.svg"} alt="Down" className="ml-2 w-3 h-2" />
+                {!disabled && <img src={DownIcon || "/placeholder.svg"} alt="Down" className="ml-2 w-3 h-2" />}
             </button>
 
-            {isOpen && (
+            {isOpen && !disabled && (
                 <div className="absolute z-10 w-full mt-1 bg-white border border-black/20 rounded-lg shadow-lg max-h-[200px] overflow-y-auto custom-dropdown-scrollbar">
                     {options.map((option) => (
                         <div
@@ -62,23 +68,164 @@ function CustomDropdown({ options, value, onChange, width = "200px" }) {
     )
 }
 
-export default function CollectorAssignment() {
+export default function CollectorAssignment({ selectedRegion, selectedCity, employeeCounts, onLocationChange }) {
     // 검색어 상태 변수 추가 (CollectorAssignment 컴포넌트 내부, 다른 상태 변수 근처에 추가)
     const [searchTerm, setSearchTerm] = useState("")
 
     // 수거자 목록 데이터 추가 (CollectorAssignment 컴포넌트 내부, regionData 위에 추가)
-    const [collectors, setCollectors] = useState([
-        { id: "user1", name: "이창진", points: 1600, date: "2025.02.03", isActive: false },
-        { id: "user2", name: "정윤식", points: 3200, date: "2025.02.03", isActive: true },
-        { id: "user3", name: "정규혁", points: 1100, date: "2025.02.03", isActive: false },
-        { id: "user4", name: "홍길동", points: 2000, date: "2025.02.03", isActive: false },
-        { id: "user5", name: "김철수", points: 2000, date: "2025.02.03", isActive: false },
-        { id: "user6", name: "이영희", points: 2000, date: "2025.02.03", isActive: false },
-        { id: "user7", name: "박지성", points: 2000, date: "2025.02.03", isActive: false },
-    ])
+    const [collectors, setCollectors] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [collectionAmounts, setCollectionAmounts] = useState({}) // 각 사용자별 총 수거량을 저장할 상태
+
+    // Fetch users when component mounts
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                setLoading(true)
+                const users = await findUserAll()
+                // Filter users to only include those with ROLE_EMPLOYEE role
+                const employeeUsers = users.filter((user) => user.role === "ROLE_EMPLOYEE")
+
+                // Map the API response to match our component's expected format
+                const formattedUsers = employeeUsers.map((user) => ({
+                    id: user.id,
+                    name: user.name || "이름 없음",
+                    points: user.point || 0, // 기존 포인트 정보는 유지
+                    date: formatDate(user.date),
+                    isActive: false,
+                    location1: user.location1 || "",
+                    location2: user.location2 || "",
+                    phoneNumber: user.phone_number || "",
+                }))
+
+                setCollectors(formattedUsers)
+
+                // 모든 사용자의 수거량 정보 가져오기
+                await fetchAllUserCollectionAmounts(formattedUsers)
+            } catch (error) {
+                console.error("Error fetching users:", error)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchUsers()
+    }, [])
+
+    // 모든 사용자의 수거량 정보를 가져오는 함수
+    const fetchAllUserCollectionAmounts = async (users) => {
+        try {
+            const amounts = {}
+
+            // 각 사용자별로 수거함 로그를 가져와서 총 수거량 계산
+            await Promise.all(
+                users.map(async (user) => {
+                    try {
+                        const logs = await getBoxLog(user.id)
+                        // 총 수거량 계산 (모든 로그의 value 합계)
+                        const totalAmount = logs.reduce((sum, log) => sum + (log.value || 0), 0)
+                        amounts[user.id] = totalAmount
+                    } catch (error) {
+                        console.error(`Error fetching box logs for user ${user.id}:`, error)
+                        amounts[user.id] = 0 // 오류 발생 시 0으로 설정
+                    }
+                }),
+            )
+
+            setCollectionAmounts(amounts)
+        } catch (error) {
+            console.error("Error fetching collection amounts:", error)
+        }
+    }
+
+    // Add a helper function to format date
+    const formatDate = (dateString) => {
+        if (!dateString) return ""
+        const date = new Date(dateString)
+        return date
+            .toLocaleDateString("ko-KR", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+            })
+            .replace(/\. /g, ".")
+            .replace(/\.$/, "")
+    }
 
     // 선택된 수거자 상태 추가
     const [selectedCollector, setSelectedCollector] = useState(null)
+    const [boxLogs, setBoxLogs] = useState([])
+    const [chartData, setChartData] = useState([])
+
+    // Fetch box logs when selected collector changes
+    useEffect(() => {
+        const fetchBoxLogs = async () => {
+            if (!selectedCollector) return
+
+            try {
+                const logs = await getBoxLog(selectedCollector.id)
+                setBoxLogs(logs)
+
+                // Process logs for chart data
+                processChartData(logs)
+            } catch (error) {
+                console.error("Error fetching box logs:", error)
+            }
+        }
+
+        fetchBoxLogs()
+    }, [selectedCollector])
+
+    // Process box logs for chart visualization
+    const processChartData = (logs) => {
+        if (!logs || logs.length === 0) {
+            setChartData([])
+            return
+        }
+
+        // Group logs by date and sum values
+        const groupedByDate = logs.reduce((acc, log) => {
+            const date = new Date(log.date)
+            const dateStr = date
+                .toLocaleDateString("ko-KR", {
+                    month: "2-digit",
+                    day: "2-digit",
+                })
+                .replace(/\. /g, ".")
+                .replace(/\.$/, "")
+
+            if (!acc[dateStr]) {
+                acc[dateStr] = 0
+            }
+            acc[dateStr] += log.value
+
+            return acc
+        }, {})
+
+        // Convert to array format for chart
+        const chartDataArray = Object.entries(groupedByDate).map(([date, value]) => ({
+            date,
+            height: calculateHeightPercentage(value),
+        }))
+
+        // Sort by date
+        chartDataArray.sort((a, b) => {
+            const dateA = a.date.split(".").map(Number)
+            const dateB = b.date.split(".").map(Number)
+            if (dateA[0] !== dateB[0]) return dateA[0] - dateB[0]
+            return dateA[1] - dateB[1]
+        })
+
+        // Limit to last 11 entries (or fewer if not enough data)
+        const recentData = chartDataArray.slice(-11)
+        setChartData(recentData)
+    }
+
+    // Calculate height percentage for chart bars (max height is 100%)
+    const calculateHeightPercentage = (value) => {
+        const maxValue = 2000 // Adjust based on your expected maximum value
+        return Math.min(Math.round((value / maxValue) * 100), 100)
+    }
 
     // 컴포넌트 마운트 시 기본 선택 수거자 설정
     useEffect(() => {
@@ -90,17 +237,64 @@ export default function CollectorAssignment() {
     // 수거자 선택 핸들러 함수 추가
     const handleCollectorSelect = (collector) => {
         setSelectedCollector(collector)
+        // 선택된 수거자의 담당 지역 정보로 드롭다운 값 업데이트
+        if (collector) {
+            setCollectorRegion(collector.location1 || "")
+            setCollectorCity(collector.location2 || "")
+        }
     }
 
-    // 검색어에 따라 필터링된 수거자 목록 계산
-    const filteredCollectors = collectors.filter((collector) =>
-        collector.name.toLowerCase().includes(searchTerm.toLowerCase()),
-    )
-
+    // 변수명 충돌 문제를 해결하기 위해 내부 state 변수명을 변경합니다.
     const [selectedPeriod, setSelectedPeriod] = useState("일")
-    const [selectedRegion, setSelectedRegion] = useState("충청남도")
 
-    // 툴팁 상태 관리 추가
+    // 수거자의 담당 지역 정보를 저장하는 상태
+    const [collectorRegion, setCollectorRegion] = useState("")
+    const [collectorCity, setCollectorCity] = useState("")
+
+    // 부모로부터 받은 필터링 지역 정보
+    const [filterRegion, setFilterRegion] = useState(selectedRegion || "광역시/도")
+    const [filterCity, setFilterCity] = useState(selectedCity || "시/군/구")
+
+    // 부모 컴포넌트에서 전달받은 지역 정보가 변경될 때 필터링 상태 업데이트
+    useEffect(() => {
+        if (selectedRegion) {
+            setFilterRegion(selectedRegion)
+        }
+        if (selectedCity) {
+            setFilterCity(selectedCity)
+        }
+    }, [selectedRegion, selectedCity])
+
+    // 선택된 수거자가 변경될 때 담당 지역 정보 업데이트
+    useEffect(() => {
+        if (selectedCollector) {
+            setCollectorRegion(selectedCollector.location1 || "")
+            setCollectorCity(selectedCollector.location2 || "")
+        }
+    }, [selectedCollector])
+
+    // 검색어와 지역 정보에 따라 필터링된 수거자 목록 계산
+    const filteredCollectors = collectors.filter((collector) => {
+        // 이름으로 필터링
+        const nameMatch = collector.name.toLowerCase().includes(searchTerm.toLowerCase())
+
+        // 지역 필터링 (실제 데이터에 location1, location2 필드가 있다고 가정)
+        let regionMatch = true
+        if (filterRegion && filterRegion !== "광역시/도") {
+            // 수거자의 지역 정보가 있다고 가정하고, 없으면 항상 true로 처리
+            regionMatch = collector.location1 === filterRegion
+        }
+
+        // 도시 필터링
+        let cityMatch = true
+        if (filterCity && filterCity !== "시/군/구" && regionMatch) {
+            // 수거자의 도시 정보가 있다고 가정하고, 없으면 항상 true로 처리
+            cityMatch = collector.location2 === filterCity
+        }
+
+        return nameMatch && regionMatch && cityMatch
+    })
+
     const [tooltips, setTooltips] = useState({
         province: false,
         city: false,
@@ -179,19 +373,7 @@ export default function CollectorAssignment() {
     const regionData = {
         "광역시/도": [], // 전체 선택 옵션
         서울특별시: ["강남구", "서초구", "송파구", "강동구", "마포구", "용산구", "종로구", "중구", "성동구", "광진구"],
-        부산광역시: [
-            "해운대구",
-            "수영구",
-            "남구",
-            "동구",
-            "서구",
-            "북구",
-            "사상구",
-            "사하구",
-            "사하구",
-            "연제구",
-            "영도구",
-        ],
+        부산광역시: ["해운대구", "수영구", "남구", "동구", "서구", "북구", "사상구", "사하구", "연제구", "영도구"],
         인천광역시: ["중구", "동구", "미추홀구", "연수구", "남동구", "부평구", "계양구", "서구", "강화군", "옹진군"],
         대구광역시: ["중구", "동구", "서구", "남구", "북구", "수성구", "달서구", "달성군"],
         광주광역시: ["동구", "서구", "남구", "북구", "광산구"],
@@ -207,6 +389,70 @@ export default function CollectorAssignment() {
         경상북도: ["포항시", "경주시", "김천시", "안동시", "구미시", "영주시", "영천시", "상주시", "문경시", "경산시"],
         경상남도: ["창원시", "진주시", "통영시", "사천시", "김해시", "밀양시", "거제시", "양산시", "의령군", "함안군"],
         제주특별자치도: ["제주시", "서귀포시"],
+    }
+
+    // 담당 지역 변경 핸들러
+    const handleRegionChange = (region) => {
+        setCollectorRegion(region)
+        // 지역이 변경되면 도시는 초기화
+        setCollectorCity("")
+    }
+
+    // 담당 도시 변경 핸들러
+    const handleCityChange = (city) => {
+        setCollectorCity(city)
+    }
+
+    // 변경사항 저장 핸들러
+    const [isSaving, setIsSaving] = useState(false)
+
+    const handleSaveChanges = async () => {
+        if (!selectedCollector || !collectorRegion || !collectorCity) return
+
+        try {
+            setIsSaving(true)
+
+            // API를 호출하여 사용자 위치 변경
+            await changeUserLocation(selectedCollector.id, collectorRegion, collectorCity)
+
+            // 성공 시 로컬 상태 업데이트
+            const updatedCollectors = collectors.map((collector) => {
+                if (collector.id === selectedCollector.id) {
+                    return {
+                        ...collector,
+                        location1: collectorRegion,
+                        location2: collectorCity,
+                    }
+                }
+                return collector
+            })
+
+            // 수거자 목록 업데이트
+            setCollectors(updatedCollectors)
+
+            // 선택된 수거자 정보 업데이트
+            setSelectedCollector({
+                ...selectedCollector,
+                location1: collectorRegion,
+                location2: collectorCity,
+            })
+
+            // 성공 메시지 표시
+            alert("담당 지역이 변경되었습니다.")
+
+            // 부모 컴포넌트에 변경 알림 (콜백이 있는 경우)
+            if (typeof onLocationChange === "function") {
+                onLocationChange(selectedCollector.id, collectorRegion, collectorCity)
+            } else {
+                // 콜백이 없는 경우 페이지 새로고침
+                window.location.reload()
+            }
+        } catch (error) {
+            console.error("담당 지역 변경 실패:", error)
+            alert("담당 지역 변경에 실패했습니다. 다시 시도해주세요.")
+        } finally {
+            setIsSaving(false)
+        }
     }
 
     return (
@@ -231,7 +477,9 @@ export default function CollectorAssignment() {
 
                 {/* 사용자 목록 영역에만 스크롤바 적용 */}
                 <div className="overflow-auto flex-1 custom-scrollbar ml-4">
-                    {filteredCollectors.length === 0 ? (
+                    {loading ? (
+                        <div className="p-4 text-center">데이터를 불러오는 중...</div>
+                    ) : filteredCollectors.length === 0 ? (
                         <div className="p-4 text-center text-gray-500">검색 결과가 없습니다</div>
                     ) : (
                         filteredCollectors.map((collector) => (
@@ -239,8 +487,10 @@ export default function CollectorAssignment() {
                                 key={collector.id}
                                 userId={collector.id}
                                 name={collector.name}
-                                points={collector.points}
+                                collectionAmount={collectionAmounts[collector.id] || 0} // 포인트 대신 수거량 표시
                                 date={collector.date}
+                                location1={collector.location1}
+                                location2={collector.location2}
                                 isActive={selectedCollector && selectedCollector.id === collector.id}
                                 onClick={() => handleCollectorSelect(collector)}
                                 handleCopy={handleCopy}
@@ -312,10 +562,11 @@ export default function CollectorAssignment() {
                                 </div>
                                 <div className="dropdown-container">
                                     <CustomDropdown
-                                        options={Object.keys(regionData)}
-                                        value={selectedRegion}
-                                        onChange={(value) => setSelectedRegion(value)}
+                                        options={Object.keys(regionData).filter((r) => r !== "광역시/도")}
+                                        value={collectorRegion || "광역시/도를 선택하세요"}
+                                        onChange={handleRegionChange}
                                         width="200px"
+                                        disabled={!selectedCollector}
                                     />
                                 </div>
                             </div>
@@ -349,20 +600,26 @@ export default function CollectorAssignment() {
                                 </div>
                                 <div className="dropdown-container">
                                     <CustomDropdown
-                                        options={regionData[selectedRegion] || []}
-                                        value={regionData[selectedRegion]?.[0] || ""}
-                                        onChange={(value) => console.log("Selected city:", value)}
+                                        options={regionData[collectorRegion] || []}
+                                        value={collectorCity || "시/군/구를 선택하세요"}
+                                        onChange={handleCityChange}
                                         width="200px"
+                                        disabled={!collectorRegion || !selectedCollector}
                                     />
                                 </div>
                             </div>
 
                             <div className="h-12 flex items-center pt-6 md:mt-0 md:ml-[20px]">
                                 <button
-                                    className="bg-[#E8F1F7] text-[#21262B] px-6 py-2 rounded-2xl hover:bg-gray-200 transition-colors"
-                                    onClick={() => console.log("담당지역 변경 clicked")}
+                                    className={`px-6 py-2 rounded-2xl transition-colors ${
+                                        !collectorRegion || !collectorCity
+                                            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                            : "bg-[#E8F1F7] text-[#21262B] hover:bg-gray-200"
+                                    }`}
+                                    onClick={handleSaveChanges}
+                                    disabled={!collectorRegion || !collectorCity || !selectedCollector || isSaving}
                                 >
-                                    변경사항 저장
+                                    {isSaving ? "저장 중..." : "변경사항 저장"}
                                 </button>
                             </div>
                         </div>
@@ -430,17 +687,12 @@ export default function CollectorAssignment() {
 
                                         {/* Chart bars */}
                                         <div className="absolute bottom-0 left-10 right-0 flex justify-between h-full items-end">
-                                            <ChartBar height={10} date="02.03" />
-                                            <ChartBar height={8} date="02.04" />
-                                            <ChartBar height={8} date="02.05" />
-                                            <ChartBar height={0} date="02.06" />
-                                            <ChartBar height={0} date="02.07" />
-                                            <ChartBar height={20} date="02.08" />
-                                            <ChartBar height={25} date="02.09" />
-                                            <ChartBar height={0} date="02.10" />
-                                            <ChartBar height={0} date="02.11" />
-                                            <ChartBar height={30} date="02.12" />
-                                            <ChartBar height={0} date="02.13" />
+                                            {chartData.length > 0
+                                                ? chartData.map((item, index) => <ChartBar key={index} height={item.height} date={item.date} />)
+                                                : // Display empty bars if no data
+                                                Array.from({ length: 11 }).map((_, index) => (
+                                                    <ChartBar key={index} height={0} date={`--.-${index + 1}`} />
+                                                ))}
                                         </div>
                                     </div>
 
@@ -461,102 +713,62 @@ export default function CollectorAssignment() {
 
             {/* 스크롤바 스타일 */}
             <style jsx>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
-                
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: #f1f1f1;
-                    border-radius: 10px;
-                }
-                
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #c1c1c1;
-                    border-radius: 10px;
-                    height: 50px;
-                }
-                
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #a1a1a1;
-                }
-            `}</style>
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #c1c1c1;
+          border-radius: 10px;
+          height: 50px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #a1a1a1;
+        }
+      `}</style>
 
             {/* Custom styles for dropdown scrollbar */}
             <style jsx global>{`
-                .dropdown-container select {
-                    max-height: 38px; /* Height of a single option */
-                }
-
-                /* This targets the dropdown options when open */
-                .dropdown-container select option {
-                    padding: 8px 12px;
-                }
-
-                /* These styles will be applied by the browser for the dropdown menu */
-                @media screen and (-webkit-min-device-pixel-ratio:0) {
-                    select {
-                        height: 38px;
-                    }
-                    
-                    select:focus {
-                        overflow: -moz-scrollbars-vertical;
-                        overflow-y: auto;
-                    }
-                }
-
-                /* For Firefox */
-                @-moz-document url-prefix() {
-                    select {
-                        scrollbar-width: thin;
-                        scrollbar-color: #d1d1d1 transparent;
-                    }
-                    
-                    select:focus {
-                        overflow: auto;
-                    }
-                }
-
-                /* For Webkit browsers */
-                select::-webkit-scrollbar {
-                    width: 6px;
-                }
-
-                select::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-
-                select::-webkit-scrollbar-thumb {
-                    background: #d1d1d1;
-                    border-radius: 10px;
-                }
-
-                select::-webkit-scrollbar-thumb:hover {
-                    background: #b1b1b1;
-                }
-
-                .custom-dropdown-scrollbar::-webkit-scrollbar {
-                  width: 6px;
-                }
-
-                .custom-dropdown-scrollbar::-webkit-scrollbar-track {
-                  background: transparent;
-                }
-
-                .custom-dropdown-scrollbar::-webkit-scrollbar-thumb {
-                  background: #d1d1d1;
-                  border-radius: 10px;
-                }
-
-                .custom-dropdown-scrollbar::-webkit-scrollbar-thumb:hover {
-                  background: #b1b1b1;
-                }
-            `}</style>
+        .custom-dropdown-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        .custom-dropdown-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        .custom-dropdown-scrollbar::-webkit-scrollbar-thumb {
+          background: #d1d1d1;
+          border-radius: 10px;
+        }
+        
+        .custom-dropdown-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #b1b1b1;
+        }
+      `}</style>
         </div>
     )
 }
 
-// Update the UserListItem component to apply text-base and font-bold to the name, and text-sm and font-normal to the other text
-function UserListItem({ name, userId, points, date, isActive, onClick, handleCopy, copiedId }) {
+// Update the UserListItem component to display collection amount instead of points
+function UserListItem({
+                          name,
+                          userId,
+                          collectionAmount,
+                          date,
+                          location1,
+                          location2,
+                          isActive,
+                          onClick,
+                          handleCopy,
+                          copiedId,
+                      }) {
     return (
         <div
             className={`p-4 border-b flex items-center justify-between cursor-pointer ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}
@@ -564,8 +776,12 @@ function UserListItem({ name, userId, points, date, isActive, onClick, handleCop
         >
             <div>
                 <h3 className="text-base text-[#21262B] font-bold">{name}</h3>
-                <p className="text-sm font-normal text-[#60697E] mt-1">총 수거량 {points}</p>
-                <p className="text-sm font-normal text-[#60697E]">{date}</p>
+                <p className="text-sm font-normal text-[#60697E] mt-1">총 수거량 {collectionAmount}</p>
+                {location1 && (
+                    <p className="text-xs font-normal text-blue-600 mt-1">
+                        담당: {location1} {location2 && `> ${location2}`}
+                    </p>
+                )}
             </div>
             <div className="pb-10 text-gray-400 relative">
                 <button onClick={(e) => handleCopy(e, userId, name)}>

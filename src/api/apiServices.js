@@ -170,6 +170,19 @@ export const updatePassword = async (newPassword) => {
     }
 };
 
+// ✅ 사용자 담당구역 변경 API
+export const changeUserLocation = async (userId, location1, location2) => {
+    try {
+        const response = await axiosInstance.patch(
+            `/admin/changeLocation/${userId}/${location1}/${location2}`
+        ); // PATCH 요청
+        return response.data; // 변경된 결과 반환
+    } catch (error) {
+        console.error("🚨 사용자 위치 변경 실패:", error);
+        throw error;
+    }
+};
+
 // ✅ 수거자 가입 요청 목록 조회 API
 export const fetchEmployeeRequests = async () => {
     try {
