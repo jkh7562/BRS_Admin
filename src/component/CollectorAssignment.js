@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useRef, useEffect } from "react"
 import SearchIcon from "../assets/검색.png"
 import CopyIcon from "../assets/copy.png"

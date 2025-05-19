@@ -4,7 +4,6 @@ import AlarmIcon from "../assets/알림.png"
 import DownIcon from "../assets/Down.png"
 import FireInfoIcon from "../assets/FireInfo.png"
 import BoxIcon from "../assets/수거함Black.png"
-import PlusIcon from "../assets/가입신청Black.png"
 import UserIcon from "../assets/user.png"
 import { getMyInfo, logout, fetchEmployeeRequests, findAllBox, checkPassword, updatePassword } from "../api/apiServices"
 
@@ -23,7 +22,7 @@ const Topbar = () => {
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
-        general: ""
+        general: "",
     })
     // 비밀번호 변경 성공 메시지 상태 추가
     const [passwordSuccess, setPasswordSuccess] = useState("")
@@ -104,30 +103,7 @@ const Topbar = () => {
                 if (requests && requests.length > 0) {
                     setEmployeeRequests(requests)
                     setHasNewRequests(true)
-
-                    // 신규 가입자 요청을 알람 형태로 변환하여 추가
-                    const newRequestAlarm = {
-                        id: `employee-requests-${Date.now()}`,
-                        type: "NEW_USER_REQUEST",
-                        count: requests.length,
-                        timestamp: new Date().toISOString(),
-                        requests: requests, // 원본 요청 데이터 저장
-                        priority: 2, // 화재 다음 우선순위
-                    }
-
-                    setAlarms((prev) => {
-                        // 이미 NEW_USER_REQUEST 타입의 알람이 있는지 확인
-                        const existingIndex = prev.findIndex((alarm) => alarm.type === "NEW_USER_REQUEST")
-                        if (existingIndex >= 0) {
-                            // 기존 알람 업데이트
-                            const updatedAlarms = [...prev]
-                            updatedAlarms[existingIndex] = newRequestAlarm
-                            return updatedAlarms
-                        } else {
-                            // 새 알람 추가
-                            return [...prev, newRequestAlarm]
-                        }
-                    })
+                    // 신규 가입자 알람 추가 코드 제거됨
                 }
             } catch (error) {
                 console.error("가입 요청 불러오기 실패:", error)
@@ -135,8 +111,6 @@ const Topbar = () => {
         }
 
         getEmployeeRequests()
-
-        // 주기적으로 신규 가입자 요청 확인 (5분마다) 코드 제거
 
         return () => {}
     }, [])
@@ -190,22 +164,8 @@ const Topbar = () => {
 
                 // 알람 타입에 따른 처리
                 if (alarmData.type === "NEW_USER_REQUEST") {
-                    // 신규 가입자 요청이 있으면 최신 정보 가져오기
-                    fetchEmployeeRequests()
-                        .then((requests) => {
-                            if (requests && requests.length > 0) {
-                                setEmployeeRequests(requests)
-                                alarmData.count = requests.length
-                                alarmData.requests = requests
-                                alarmData.priority = 2 // 화재 다음 우선순위
-                            }
-                            setAlarms((prev) => [...prev, alarmData])
-                        })
-                        .catch((error) => {
-                            console.error("가입 요청 불러오기 실패:", error)
-                            alarmData.priority = 2
-                            setAlarms((prev) => [...prev, alarmData])
-                        })
+                    // 신규 가입자 요청 알람은 처리하지 않음
+                    return
                 } else if (alarmData.type === "fire") {
                     // 화재 알람은 최우선 순위로 설정
                     alarmData.priority = 1
@@ -256,7 +216,7 @@ const Topbar = () => {
             currentPassword: "",
             newPassword: "",
             confirmPassword: "",
-            general: ""
+            general: "",
         })
         setPasswordSuccess("")
         setShowPasswordForm(true)
@@ -274,7 +234,7 @@ const Topbar = () => {
             currentPassword: "",
             newPassword: "",
             confirmPassword: "",
-            general: ""
+            general: "",
         })
         setPasswordSuccess("")
     }
@@ -287,9 +247,9 @@ const Topbar = () => {
         }))
 
         // 입력 시 해당 필드의 오류 메시지 초기화
-        setPasswordErrors(prev => ({
+        setPasswordErrors((prev) => ({
             ...prev,
-            [name]: ""
+            [name]: "",
         }))
     }
 
@@ -302,7 +262,7 @@ const Topbar = () => {
             currentPassword: "",
             newPassword: "",
             confirmPassword: "",
-            general: ""
+            general: "",
         })
         setPasswordSuccess("")
 
@@ -312,7 +272,7 @@ const Topbar = () => {
             currentPassword: "",
             newPassword: "",
             confirmPassword: "",
-            general: ""
+            general: "",
         }
 
         if (!passwordForm.currentPassword) {
@@ -331,8 +291,11 @@ const Topbar = () => {
         }
 
         // 2. 새 비밀번호와 확인 비밀번호 일치 여부 확인
-        if (passwordForm.newPassword && passwordForm.confirmPassword &&
-            passwordForm.newPassword !== passwordForm.confirmPassword) {
+        if (
+            passwordForm.newPassword &&
+            passwordForm.confirmPassword &&
+            passwordForm.newPassword !== passwordForm.confirmPassword
+        ) {
             newErrors.confirmPassword = "새 비밀번호와 확인 비밀번호가 일치하지 않습니다."
             hasError = true
         }
@@ -349,7 +312,7 @@ const Topbar = () => {
             if (checkResult !== "Success") {
                 setPasswordErrors({
                     ...newErrors,
-                    currentPassword: "현재 비밀번호가 일치하지 않습니다."
+                    currentPassword: "현재 비밀번호가 일치하지 않습니다.",
                 })
                 return
             }
@@ -376,14 +339,14 @@ const Topbar = () => {
             } else {
                 setPasswordErrors({
                     ...newErrors,
-                    general: "비밀번호 변경에 실패했습니다. 다시 시도해주세요."
+                    general: "비밀번호 변경에 실패했습니다. 다시 시도해주세요.",
                 })
             }
         } catch (error) {
             console.error("비밀번호 변경 중 오류 발생:", error)
             setPasswordErrors({
                 ...newErrors,
-                general: "서버 오류로 비밀번호 변경에 실패했습니다. 다시 시도해주세요."
+                general: "서버 오류로 비밀번호 변경에 실패했습니다. 다시 시도해주세요.",
             })
         }
     }
@@ -417,72 +380,122 @@ const Topbar = () => {
     const getAlarmInfo = (alarmType) => {
         switch (alarmType) {
             case "fire":
+            case "FIRE":
                 return {
-                    title: "화재가 감지됐어요",
+                    title: "화재 발생",
                     icon: FireInfoIcon,
-                    bgColor: "bg-red-600", // 더 눈에 띄는 빨간색으로 변경
+                    bgColor: "bg-red-600",
                     textColor: "text-white",
+                }
+            case "FIRE_IN_PROGRESS":
+                return {
+                    title: "화재처리 진행",
+                    icon: FireInfoIcon,
+                    bgColor: "bg-red-500",
+                    textColor: "text-white",
+                }
+            case "FIRE_COMPLETED":
+                return {
+                    title: "화재처리 완료",
+                    icon: FireInfoIcon,
+                    bgColor: "bg-red-400",
+                    textColor: "text-white",
+                }
+            case "FIRE_CONFIRMED":
+                return {
+                    title: "화재처리 확정",
+                    icon: FireInfoIcon,
+                    bgColor: "bg-red-300",
+                    textColor: "text-white",
+                }
+            case "COLLECTION_NEEDED":
+                return {
+                    title: "수거 필요",
+                    icon: BoxIcon,
+                    bgColor: "bg-white",
+                    textColor: "text-[#21262B]",
+                }
+            case "COLLECTION_RECOMMENDED":
+                return {
+                    title: "수거 권장",
+                    icon: BoxIcon,
+                    bgColor: "bg-white",
+                    textColor: "text-[#21262B]",
+                }
+            case "COLLECTION_IN_PROGRESS":
+                return {
+                    title: "수거 진행",
+                    icon: BoxIcon,
+                    bgColor: "bg-white",
+                    textColor: "text-[#21262B]",
+                }
+            case "COLLECTION_COMPLETED":
+                return {
+                    title: "수거 완료",
+                    icon: BoxIcon,
+                    bgColor: "bg-white",
+                    textColor: "text-[#21262B]",
+                }
+            case "COLLECTION_CONFIRMED":
+                return {
+                    title: "수거 확정",
+                    icon: BoxIcon,
+                    bgColor: "bg-white",
+                    textColor: "text-[#21262B]",
                 }
             case "INSTALL_REQUEST":
                 return {
-                    title: "수거함 설치 요청",
+                    title: "설치 요청",
                     icon: BoxIcon,
                     bgColor: "bg-white",
                     textColor: "text-[#21262B]",
                 }
             case "INSTALL_IN_PROGRESS":
                 return {
-                    title: "수거함 설치 진행 중",
+                    title: "설치 진행 중",
                     icon: BoxIcon,
                     bgColor: "bg-white",
                     textColor: "text-[#21262B]",
                 }
             case "INSTALL_COMPLETED":
                 return {
-                    title: "수거함 설치 완료",
+                    title: "설치 완료",
                     icon: BoxIcon,
                     bgColor: "bg-white",
                     textColor: "text-[#21262B]",
                 }
             case "INSTALL_CONFIRMED":
                 return {
-                    title: "수거함 설치 확정",
+                    title: "설치 확정",
                     icon: BoxIcon,
                     bgColor: "bg-white",
                     textColor: "text-[#21262B]",
                 }
             case "REMOVE_REQUEST":
                 return {
-                    title: "수거함 제거 요청",
+                    title: "제거 요청",
                     icon: BoxIcon,
                     bgColor: "bg-white",
                     textColor: "text-[#21262B]",
                 }
             case "REMOVE_IN_PROGRESS":
                 return {
-                    title: "수거함 제거 진행 중",
+                    title: "제거 진행 중",
                     icon: BoxIcon,
                     bgColor: "bg-white",
                     textColor: "text-[#21262B]",
                 }
             case "REMOVE_COMPLETED":
                 return {
-                    title: "수거함 제거 완료",
+                    title: "제거 완료",
                     icon: BoxIcon,
                     bgColor: "bg-white",
                     textColor: "text-[#21262B]",
                 }
             case "REMOVE_CONFIRMED":
                 return {
-                    title: "수거함 제거 확정",
+                    title: "제거 확정",
                     icon: BoxIcon,
-                    bgColor: "bg-white",
-                    textColor: "text-[#21262B]",
-                }
-            case "NEW_USER_REQUEST":
-                return {
-                    title: "신규 수거자 가입신청",
-                    icon: PlusIcon,
                     bgColor: "bg-white",
                     textColor: "text-[#21262B]",
                 }
@@ -498,48 +511,122 @@ const Topbar = () => {
 
     // 알람 메시지 포맷팅
     const formatAlarmMessage = (alarm) => {
+        // If this is a grouped alarm with count, return the count message
+        if (alarm.count) {
+            switch (alarm.type) {
+                case "COLLECTION_NEEDED":
+                    return `수거 필요 ${alarm.count}건이 있습니다.`
+                case "COLLECTION_RECOMMENDED":
+                    return `수거 권장 ${alarm.count}건이 있습니다.`
+                case "COLLECTION_IN_PROGRESS":
+                    return `수거 진행 ${alarm.count}건이 있습니다.`
+                case "COLLECTION_COMPLETED":
+                    return `수거 완료 ${alarm.count}건이 있습니다.`
+                case "COLLECTION_CONFIRMED":
+                    return `수거 확정 ${alarm.count}건이 있습니다.`
+                case "FIRE":
+                    return `화재 발생 ${alarm.count}건이 있습니다.`
+                case "FIRE_IN_PROGRESS":
+                    return `화재처리 진행 ${alarm.count}건이 있습니다.`
+                case "FIRE_COMPLETED":
+                    return `화재처리 완료 ${alarm.count}건이 있습니다.`
+                case "FIRE_CONFIRMED":
+                    return `화재처리 확정 ${alarm.count}건이 있습니다.`
+                case "INSTALL_REQUEST":
+                    return `설치 요청 ${alarm.count}건이 있습니다.`
+                case "INSTALL_IN_PROGRESS":
+                    return `설치 진행 ${alarm.count}건이 있습니다.`
+                case "INSTALL_COMPLETED":
+                    return `설치 완료 ${alarm.count}건이 있습니다.`
+                case "INSTALL_CONFIRMED":
+                    return `설치 확정 ${alarm.count}건이 있습니다.`
+                case "REMOVE_REQUEST":
+                    return `제거 요청 ${alarm.count}건이 있습니다.`
+                case "REMOVE_IN_PROGRESS":
+                    return `제거 진행 ${alarm.count}건이 있습니다.`
+                case "REMOVE_COMPLETED":
+                    return `제거 완료 ${alarm.count}건이 있습니다.`
+                case "REMOVE_CONFIRMED":
+                    return `제거 확정 ${alarm.count}건이 있습니다.`
+                default:
+                    return `${alarm.count}건의 알림이 있습니다.`
+            }
+        }
+
+        // For backward compatibility, handle individual alarms
         switch (alarm.type) {
             case "fire":
-                return `boxId_${alarm.boxId} 수거함에서 화재가 감지됐어요.`
+                return "화재 발생 알림이 있습니다."
             case "INSTALL_REQUEST":
-                return `boxId_${alarm.boxId} 수거함 설치가 요청되었어요.`
+                return "설치 요청 알림이 있습니다."
             case "INSTALL_IN_PROGRESS":
-                return `boxId_${alarm.boxId} 수거함 설치가 진행 중이에요.`
+                return "설치 진행 알림이 있습니다."
             case "INSTALL_COMPLETED":
-                return `boxId_${alarm.boxId} 수거함 설치가 완료되었어요.`
+                return "설치 완료 알림이 있습니다."
             case "INSTALL_CONFIRMED":
-                return `boxId_${alarm.boxId} 수거함 설치가 확정되었어요.`
+                return "설치 확정 알림이 있습니다."
             case "REMOVE_REQUEST":
-                return `boxId_${alarm.boxId} 수거함 제거가 요청되었어요.`
+                return "제거 요청 알림이 있습니다."
             case "REMOVE_IN_PROGRESS":
-                return `boxId_${alarm.boxId} 수거함 제거가 진행 중이에요.`
+                return "제거 진행 알림이 있습니다."
             case "REMOVE_COMPLETED":
-                return `boxId_${alarm.boxId} 수거함 제거가 완료되었어요.`
+                return "제거 완료 알림이 있습니다."
             case "REMOVE_CONFIRMED":
-                return `boxId_${alarm.boxId} 수거함 제거가 확정되었어요.`
-            case "NEW_USER_REQUEST":
-                // 실제 요청 데이터가 있으면 그 개수를 표시
-                if (alarm.requests && alarm.requests.length > 0) {
-                    return `${alarm.requests.length}건의 가입신청이 들어왔어요.`
-                }
-                return `${alarm.count || "여러"}건의 가입신청이 들어왔어요.`
+                return "제거 확정 알림이 있습니다."
             default:
                 return alarm.message || "새로운 알림이 있습니다."
         }
     }
 
+    // Add a function to group alarms by type and count them
+    const groupAlarmsByType = (alarms) => {
+        // Create a map to count alarms by type
+        const alarmCounts = {}
+
+        // Count alarms by type
+        alarms.forEach((alarm) => {
+            const type = alarm.type
+            if (!alarmCounts[type]) {
+                alarmCounts[type] = {
+                    count: 0,
+                    priority: alarm.priority || 3,
+                    timestamp: alarm.timestamp || new Date().toISOString(),
+                    type: type,
+                }
+            }
+            alarmCounts[type].count++
+
+            // Use the most recent timestamp
+            if (alarm.timestamp && new Date(alarm.timestamp) > new Date(alarmCounts[type].timestamp)) {
+                alarmCounts[type].timestamp = alarm.timestamp
+            }
+        })
+
+        // Convert the map to an array
+        return Object.values(alarmCounts).map((alarm) => ({
+            id: `${alarm.type}-group-${Date.now()}`,
+            type: alarm.type,
+            count: alarm.count,
+            timestamp: alarm.timestamp,
+            priority: alarm.priority,
+        }))
+    }
+
     // 테스트용 더미 알람 데이터 (실제 구현 시 제거)
     const dummyAlarms = [
         /*{ id: 1, type: "fire", location: "서울특별시 송파구 가락로 111", timestamp: new Date().toISOString(), priority: 1 },
-                { id: 2, type: "INSTALL_COMPLETED", location: "선문대 동문 앞", timestamp: new Date().toISOString(), priority: 3 },
-                { id: 3, type: "REMOVE_COMPLETED", location: "선문대 서문 앞", timestamp: new Date().toISOString(), priority: 3 }*/
+                    { id: 2, type: "INSTALL_COMPLETED", location: "선문대 동문 앞", timestamp: new Date().toISOString(), priority: 3 },
+                    { id: 3, type: "REMOVE_COMPLETED", location: "선문대 서문 앞", timestamp: new Date().toISOString(), priority: 3 }*/
     ]
 
     // 실제 알람과 더미 알람 합치기 (테스트용, 실제 구현 시 alarms만 사용)
     const allAlarms = [...alarms, ...dummyAlarms]
 
     // 우선순위에 따라 알람 정렬 (1: 화재, 2: 신규가입, 3: 기타)
-    const sortedAlarms = [...allAlarms].sort((a, b) => {
+    // NEW_USER_REQUEST 타입 알람 제외
+    const filteredAlarms = [...allAlarms].filter((alarm) => alarm.type !== "NEW_USER_REQUEST")
+    const groupedAlarms = groupAlarmsByType(filteredAlarms)
+    const sortedAlarms = groupedAlarms.sort((a, b) => {
         // 우선순위로 먼저 정렬
         if (a.priority !== b.priority) {
             return a.priority - b.priority
@@ -568,11 +655,7 @@ const Topbar = () => {
                         {isProfileDropdownOpen && (
                             <div className="profile-dropdown absolute top-full right-0 mt-2 w-80 bg-white rounded-md shadow-lg z-50 overflow-hidden">
                                 <div className="p-4 flex items-center gap-3">
-                                    <img
-                                        src={UserIcon || "/placeholder.svg"}
-                                        alt="profile"
-                                        className="w-14 h-14 rounded-full"
-                                    />
+                                    <img src={UserIcon || "/placeholder.svg"} alt="profile" className="w-14 h-14 rounded-full" />
                                     <div>
                                         <p className="text-xl font-medium text-[#21262B]">{userInfo.name}</p>
                                         <p className="text-[#60697E]">ID: {userInfo.id}</p>
@@ -605,7 +688,7 @@ const Topbar = () => {
                                                         value={passwordForm.currentPassword}
                                                         onChange={handlePasswordChange}
                                                         placeholder="현재 비밀번호"
-                                                        className={`w-full px-3 py-2 border ${passwordErrors.currentPassword ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                                                        className={`w-full px-3 py-2 border ${passwordErrors.currentPassword ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
                                                         required
                                                     />
                                                     {passwordErrors.currentPassword && (
@@ -620,7 +703,7 @@ const Topbar = () => {
                                                         value={passwordForm.newPassword}
                                                         onChange={handlePasswordChange}
                                                         placeholder="새 비밀번호"
-                                                        className={`w-full px-3 py-2 border ${passwordErrors.newPassword ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                                                        className={`w-full px-3 py-2 border ${passwordErrors.newPassword ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
                                                         required
                                                     />
                                                     {passwordErrors.newPassword && (
@@ -635,7 +718,7 @@ const Topbar = () => {
                                                         value={passwordForm.confirmPassword}
                                                         onChange={handlePasswordChange}
                                                         placeholder="새 비밀번호 확인"
-                                                        className={`w-full px-3 py-2 border ${passwordErrors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                                                        className={`w-full px-3 py-2 border ${passwordErrors.confirmPassword ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
                                                         required
                                                     />
                                                     {passwordErrors.confirmPassword && (
@@ -643,13 +726,9 @@ const Topbar = () => {
                                                     )}
                                                 </div>
 
-                                                {passwordErrors.general && (
-                                                    <p className="text-red-500 text-sm">{passwordErrors.general}</p>
-                                                )}
+                                                {passwordErrors.general && <p className="text-red-500 text-sm">{passwordErrors.general}</p>}
 
-                                                {passwordSuccess && (
-                                                    <p className="text-green-500 text-sm font-medium">{passwordSuccess}</p>
-                                                )}
+                                                {passwordSuccess && <p className="text-green-500 text-sm font-medium">{passwordSuccess}</p>}
                                             </div>
 
                                             <div className="flex gap-2 mt-4">
