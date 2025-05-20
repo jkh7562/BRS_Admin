@@ -1,15 +1,67 @@
-import { useState, useEffect } from "react"
-import { Map } from "react-kakao-maps-sdk"
+import { useState, useEffect, useRef } from "react"
+import { Map, MapMarker } from "react-kakao-maps-sdk"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import SearchIcon from "../../assets/검색.png"
 import CopyIcon from "../../assets/copy.png"
 import DownIcon from "../../assets/Down.png"
 import RightIcon from "../../assets/Vector-right.png"
+import GreenIcon from "../../assets/아이콘 GREEN.png"
+import YellowIcon from "../../assets/아이콘 YELLOW.png"
+import RedIcon from "../../assets/아이콘 RED.png"
+import { findAllBox, getBoxLog } from "../../api/apiServices"
+
+// 좌표 파싱 함수
+const parseCoordinates = (location) => {
+    if (!location) return 0
+
+    const coordsMatch = location.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/)
+    if (coordsMatch) {
+        return {
+            lng: Number.parseFloat(coordsMatch[1]),
+            lat: Number.parseFloat(coordsMatch[2]),
+        }
+    }
+
+    return 0 // 기본값
+}
+
+// 최대 수거량 계산 함수
+const getMaxVolume = (box) => {
+    if (!box) return 0
+
+    const volume1 = box.volume1 || 0
+    const volume2 = box.volume2 || 0
+    const volume3 = box.volume3 || 0
+
+    return Math.max(volume1, volume2, volume3)
+}
+
+// 날짜 포맷 함수
+const formatDate = (dateString) => {
+    if (!dateString) return "-"
+
+    const date = new Date(dateString)
+    return date
+        .toLocaleDateString("ko-KR", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+        })
+        .replace(/\./g, "/")
+        .replace(",", "")
+}
 
 const N_boxControlLogPage = () => {
+    // 지도 ref 추가
+    const mapRef = useRef(null)
+
     // 복사된 박스 ID 상태 추가 (N_boxControlLogPage 컴포넌트 내부 상단에 추가)
     const [copiedBoxId, setCopiedBoxId] = useState(null)
+    // 주소 저장을 위한 상태 추가
+    const [addressMap, setAddressMap] = useState({})
 
     // 검색어 상태 추가 (N_boxControlLogPage 컴포넌트 내부 상단에 추가)
     const [boxSearchTerm, setBoxSearchTerm] = useState("")
@@ -19,6 +71,14 @@ const N_boxControlLogPage = () => {
     const [year, setYear] = useState("")
     const [month, setMonth] = useState("")
     const [day, setDay] = useState("")
+
+    // Add this after the existing state declarations
+    const [boxData, setBoxData] = useState([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [isLogLoading, setIsLogLoading] = useState(true)
+
+    // 로그 데이터 상태 추가
+    const [logData, setLogData] = useState([])
 
     // Generate years (current year and 2 previous years)
     const currentYear = new Date().getFullYear()
@@ -96,134 +156,154 @@ const N_boxControlLogPage = () => {
         }
     }, [month])
 
+    // Replace the selectedBox state initialization with:
+    const [selectedBox, setSelectedBox] = useState(null)
+
     const [logType, setLogType] = useState("discharge")
-    const [selectedBox, setSelectedBox] = useState({
-        name: "선문대학교 동문 앞 수거함",
-        location: "36.8082 / 127.009",
-        date: "2025/03/16",
-    })
 
-    // Sample data for collection boxes
-    const boxList = [
-        {
-            id: 1,
-            name: "선문대학교 동문 앞 수거함",
-            location: "36.8082 / 127.009",
-            date: "2025/03/16",
-            isActive: true,
-        },
-        {
-            id: 2,
-            name: "선문대학교 서문 앞 수거함",
-            location: "36.8082 / 127.009",
-            date: "2025/03/17",
-            isActive: false,
-        },
-        {
-            id: 3,
-            name: "선문대학교 상봉마을 수거함",
-            location: "36.8082 / 127.009",
-            date: "2025/03/13",
-            isActive: false,
-        },
-        {
-            id: 4,
-            name: "선문대학교 인문관 1층 수거함",
-            location: "36.8082 / 127.009",
-            date: "2025/03/09",
-            isActive: false,
-        },
-        {
-            id: 5,
-            name: "선문대학교 도서관 앞 수거함",
-            location: "36.8082 / 127.009",
-            date: "2025/03/05",
-            isActive: false,
-        },
-    ]
+    // Add this useEffect to set the initial selected box when data is loaded
+    useEffect(() => {
+        if (boxData.length > 0 && !selectedBox) {
+            setSelectedBox(boxData[0])
+        }
+    }, [boxData, selectedBox])
 
-    // 검색어에 따라 필터링된 박스 목록 계산 (boxList 변수 아래에 추가)
-    const filteredBoxList = boxList.filter(
+    useEffect(() => {
+        if (selectedBox && mapRef.current) {
+            const coords = parseCoordinates(selectedBox.location)
+            if (coords && coords !== 0) {
+                // 지도 중심 이동
+                mapRef.current.setCenter(new window.kakao.maps.LatLng(coords.lat, coords.lng))
+            }
+        }
+    }, [selectedBox])
+
+    // 좌표를 주소로 변환하는 함수
+    const convertCoordsToAddress = async (boxId, location) => {
+        const coords = parseCoordinates(location)
+        if (!coords || coords === 0) return
+
+        // 이미 변환된 주소가 있으면 스킵
+        if (addressMap[boxId]) return
+
+        try {
+            // 카카오맵 API의 geocoder 서비스 사용
+            const geocoder = new window.kakao.maps.services.Geocoder()
+
+            geocoder.coord2Address(coords.lng, coords.lat, (result, status) => {
+                if (status === window.kakao.maps.services.Status.OK) {
+                    const address = result[0].address.address_name || "주소 정보 없음"
+
+                    // 주소 상태 업데이트
+                    setAddressMap((prev) => ({
+                        ...prev,
+                        [boxId]: address,
+                    }))
+                }
+            })
+        } catch (error) {
+            console.error("주소 변환 오류:", error)
+        }
+    }
+
+    // Replace the existing useEffect for fetching box data with this:
+    useEffect(() => {
+        const fetchBoxData = async () => {
+            try {
+                setIsLoading(true)
+                const response = await findAllBox()
+                // Filter boxes with the required install_status
+                const filteredBoxes = response.filter((box) =>
+                    ["INSTALL_CONFIRMED", "REMOVE_REQUEST", "REMOVE_IN_PROGRESS"].includes(box.installStatus),
+                )
+                console.log(filteredBoxes)
+                setBoxData(filteredBoxes)
+
+                // 각 박스의 좌표를 주소로 변환
+                filteredBoxes.forEach((box) => {
+                    if (box.location) {
+                        convertCoordsToAddress(box.id, box.location)
+                    }
+                })
+            } catch (error) {
+                console.error("Error fetching box data:", error)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        fetchBoxData()
+    }, [])
+
+    // 로그 데이터 가져오기
+    useEffect(() => {
+        const fetchLogData = async () => {
+            if (!selectedBox) return
+
+            try {
+                setIsLogLoading(true)
+                const response = await getBoxLog(selectedBox.id)
+                console.log("Box logs:", response)
+                setLogData(response || [])
+            } catch (error) {
+                console.error("Error fetching box logs:", error)
+                setLogData([])
+            } finally {
+                setIsLogLoading(false)
+            }
+        }
+
+        fetchLogData()
+    }, [selectedBox, year, month, day, logType])
+
+    // Replace the boxList and filteredBoxList variables with this:
+    const filteredBoxList = boxData.filter(
         (box) =>
             box.name.toLowerCase().includes(boxSearchTerm.toLowerCase()) ||
-            box.location.toLowerCase().includes(boxSearchTerm.toLowerCase()),
+            (box.location && box.location.toLowerCase().includes(boxSearchTerm.toLowerCase())),
     )
 
-    // Add this dummy data array after the boxList array (around line 75)
-    const logData = [
-        {
-            id: 1,
-            userName: "홍길동",
-            date: "2025/03/06",
-            boxName: "선문대학교 동문 앞 수거함",
-            dischargeInfo: "건전지 1개, 방전 배터리 3개",
-        },
-        {
-            id: 2,
-            userName: "정몽식",
-            date: "2025/03/06",
-            boxName: "선문대학교 동문 앞 수거함",
-            dischargeInfo: "건전지 11개, 방전 배터리 5개, 잔여 용량 배터리 7개",
-        },
-        {
-            id: 3,
-            userName: "공지철",
-            date: "2025/03/06",
-            boxName: "선문대학교 동문 앞 수거함",
-            dischargeInfo: "방전 배터리 8개",
-        },
-        {
-            id: 4,
-            userName: "김유신",
-            date: "2025/03/06",
-            boxName: "선문대학교 동문 앞 수거함",
-            dischargeInfo: "건전지 2개, 잔여 용량 배터리 1개",
-        },
-        {
-            id: 5,
-            userName: "이순신",
-            date: "2025/03/05",
-            boxName: "선문대학교 서문 앞 수거함",
-            dischargeInfo: "건전지 5개, 방전 배터리 2개",
-        },
-        {
-            id: 6,
-            userName: "강감찬",
-            date: "2025/03/05",
-            boxName: "선문대학교 서문 앞 수거함",
-            dischargeInfo: "잔여 용량 배터리 4개",
-        },
-        {
-            id: 7,
-            userName: "장영실",
-            date: "2025/03/04",
-            boxName: "선문대학교 상봉마을 수거함",
-            dischargeInfo: "건전지 3개, 방전 배터리 1개",
-        },
-        {
-            id: 8,
-            userName: "세종대왕",
-            date: "2025/03/04",
-            boxName: "선문대학교 상봉마을 수거함",
-            dischargeInfo: "건전지 7개, 방전 배터리 6개, 잔여 용량 배터리 2개",
-        },
-    ]
-
-    // 검색어에 따라 필터링된 로그 데이터 계산 (logData 변수 아래에 추가)
+    // 필터링된 로그 데이터
     const filteredLogData = logData.filter((log) => {
-        const searchTerm = logSearchTerm.toLowerCase()
-        return (
-            log.userName.toLowerCase().includes(searchTerm) ||
-            log.boxName.toLowerCase().includes(searchTerm) ||
-            log.dischargeInfo.toLowerCase().includes(searchTerm)
-        )
+        // 로그 타입 필터링
+        if (logType === "discharge" && log.type !== "DISCHARGE") return false
+        if (logType === "collection" && log.type !== "COLLECTION") return false
+
+        // 날짜 필터링
+        if (year || month || day) {
+            const logDate = new Date(log.date)
+
+            if (year && logDate.getFullYear().toString() !== year) return false
+
+            if (month) {
+                const logMonth = (logDate.getMonth() + 1).toString().padStart(2, "0")
+                if (logMonth !== month) return false
+            }
+
+            if (day) {
+                const logDay = logDate.getDate().toString().padStart(2, "0")
+                if (logDay !== day) return false
+            }
+        }
+
+        // 검색어 필터링
+        if (logSearchTerm) {
+            const searchTerm = logSearchTerm.toLowerCase()
+            const boxName = boxData.find((box) => box.id === log.box_id)?.name || ""
+
+            return (
+                (log.user_id && log.user_id.toLowerCase().includes(searchTerm)) || boxName.toLowerCase().includes(searchTerm)
+            )
+        }
+
+        return true
     })
 
-    // Stats data
+    // Replace the statsData object with this:
     const statsData = {
-        totalBoxes: 63,
-        batteryCount: 263,
-        activeBatteries: 32,
+        totalBoxes: selectedBox?.volume1 || 0,
+        batteryCount: selectedBox?.volume2 || 0,
+        activeBatteries: selectedBox?.volume3 || 0,
     }
 
     const [controlStates, setControlStates] = useState({
@@ -266,6 +346,24 @@ const N_boxControlLogPage = () => {
         setLogSearchTerm(e.target.value)
     }
 
+    // 박스 선택 및 지도 포커싱 핸들러
+    const handleBoxSelect = (box) => {
+        setSelectedBox(box)
+
+        // 좌표 파싱
+        const coords = parseCoordinates(box.location)
+        if (coords && coords !== 0 && mapRef.current) {
+            // 지도 중심 이동
+            mapRef.current.setCenter(new window.kakao.maps.LatLng(coords.lat, coords.lng))
+        }
+    }
+
+    // 박스 이름 가져오기
+    const getBoxName = (boxId) => {
+        const box = boxData.find((box) => box.id === boxId)
+        return box ? box.name : "알 수 없는 수거함"
+    }
+
     return (
         <div className="flex min-h-screen w-full bg-[#F3F3F5]">
             <Sidebar />
@@ -295,18 +393,22 @@ const N_boxControlLogPage = () => {
 
                                 {/* Box list with scrollbar */}
                                 <div className="overflow-auto flex-1 custom-scrollbar ml-4">
-                                    {filteredBoxList.length > 0 ? (
+                                    {isLoading ? (
+                                        <div className="p-4 text-center text-gray-500">데이터 로딩 중...</div>
+                                    ) : filteredBoxList.length > 0 ? (
                                         filteredBoxList.map((box) => (
                                             <BoxListItem
                                                 key={box.id}
                                                 id={box.id}
                                                 name={box.name}
-                                                location={box.location}
-                                                date={box.date}
-                                                isActive={box.id === selectedBox?.id || box.id === 1}
-                                                onClick={() => setSelectedBox(box)}
+                                                location={box.location || "위치 정보 없음"}
+                                                date={box.install_date || "날짜 정보 없음"}
+                                                isActive={selectedBox?.id ? box.id === selectedBox.id : box.id === filteredBoxList[0]?.id}
+                                                onClick={() => handleBoxSelect(box)}
                                                 handleCopy={handleCopy}
                                                 copiedBoxId={copiedBoxId}
+                                                addressMap={addressMap}
+                                                box={box}
                                             />
                                         ))
                                     ) : (
@@ -319,22 +421,54 @@ const N_boxControlLogPage = () => {
                             <div className="flex-1 relative flex flex-col">
                                 {/* Map title overlay */}
                                 <div className="p-10 pb-9 bg-white">
-                                    <h2 className="text-2xl text-[#21262B] font-bold mb-1">{selectedBox.name}</h2>
+                                    <h2 className="text-2xl text-[#21262B] font-bold mb-1">{selectedBox?.name || "수거함 선택 필요"}</h2>
                                     <p className="text-[#60697E]">
-                                        <span className="font-bold">좌표정보</span>{" "}
-                                        <span className="font-normal">{selectedBox.location}</span>
-                                        <span className="float-right text-sm">설치일자 {selectedBox.date}</span>
+                                        <span className="font-bold pr-1">주소</span>{" "}
+                                        <span className="font-normal">
+                      {selectedBox ? addressMap[selectedBox.id] || "주소 변환 중..." : "-"}
+                    </span>
                                     </p>
                                 </div>
 
                                 {/* Map */}
                                 <div className="flex-1 w-full px-10 pb-10">
                                     <Map
-                                        center={{ lat: 36.8082, lng: 127.009 }}
+                                        ref={mapRef}
+                                        center={{
+                                            lat: selectedBox?.latitude || 36.8082,
+                                            lng: selectedBox?.longitude || 127.009,
+                                        }}
                                         style={{ width: "100%", height: "100%" }}
                                         level={3}
                                         className={"border rounded-2xl"}
-                                    />
+                                    >
+                                        {filteredBoxList.map((box) => {
+                                            const coords = parseCoordinates(box.location)
+                                            if (coords && coords !== 0) {
+                                                const maxVolume = getMaxVolume(box)
+                                                let markerIcon = GreenIcon
+
+                                                if (maxVolume > 80) {
+                                                    markerIcon = RedIcon
+                                                } else if (maxVolume > 50) {
+                                                    markerIcon = YellowIcon
+                                                }
+
+                                                return (
+                                                    <MapMarker
+                                                        key={box.id}
+                                                        position={{ lat: coords.lat, lng: coords.lng }}
+                                                        image={{
+                                                            src: markerIcon,
+                                                            size: { width: 34, height: 40 },
+                                                        }}
+                                                        onClick={() => handleBoxSelect(box)}
+                                                    />
+                                                )
+                                            }
+                                            return null
+                                        })}
+                                    </Map>
                                 </div>
                             </div>
                         </div>
@@ -608,7 +742,7 @@ const N_boxControlLogPage = () => {
                     <div className="relative mt-4 mb-4 w-1/3">
                         <input
                             type="text"
-                            placeholder="로그 검색 (사용자, 수거함, 정보)"
+                            placeholder="로그 검색 (사용자, 수거함)"
                             className="w-full py-2 pl-4 pr-10 rounded-2xl border border-black/20 text-sm focus:outline-none"
                             value={logSearchTerm}
                             onChange={handleLogSearch}
@@ -625,11 +759,10 @@ const N_boxControlLogPage = () => {
                                 {/* 고정된 헤더 테이블 */}
                                 <table className="w-full table-fixed border-b border-gray-200">
                                     <colgroup>
-                                        <col style={{ width: "10%" }} />
-                                        <col style={{ width: "10%" }} />
-                                        <col style={{ width: "15%" }} />
+                                        <col style={{ width: "20%" }} />
+                                        <col style={{ width: "20%" }} />
+                                        <col style={{ width: "20%" }} />
                                         <col style={{ width: "30%" }} />
-                                        <col style={{ width: "15%" }} />
                                     </colgroup>
                                     <thead className="text-left bg-white">
                                     <tr className="w-full">
@@ -637,7 +770,6 @@ const N_boxControlLogPage = () => {
                                         <th className="py-4 px-6 text-sm font-bold text-gray-500">배출일자</th>
                                         <th className="py-4 px-6 text-sm font-bold text-gray-500">수거함 이름</th>
                                         <th className="py-4 px-6 text-sm font-bold text-gray-500">배출정보</th>
-                                        <th className="py-4 px-6 text-sm font-bold text-gray-500"></th>
                                     </tr>
                                     </thead>
                                 </table>
@@ -647,26 +779,25 @@ const N_boxControlLogPage = () => {
                             <div className="h-[300px] max-h-[300px] overflow-auto scrollbar-container">
                                 <table className="w-full table-fixed border-collapse">
                                     <colgroup>
-                                        <col style={{ width: "10%" }} />
-                                        <col style={{ width: "10%" }} />
-                                        <col style={{ width: "15%" }} />
+                                        <col style={{ width: "20%" }} />
+                                        <col style={{ width: "20%" }} />
+                                        <col style={{ width: "20%" }} />
                                         <col style={{ width: "30%" }} />
-                                        <col style={{ width: "15%" }} />
                                     </colgroup>
                                     <tbody>
-                                    {filteredLogData.length > 0 ? (
+                                    {isLogLoading ? (
+                                        <tr>
+                                            <td colSpan={5} className="py-8 text-center text-gray-500">
+                                                로그 데이터 로딩 중...
+                                            </td>
+                                        </tr>
+                                    ) : filteredLogData.length > 0 ? (
                                         filteredLogData.map((log) => (
-                                            <tr key={log.id} className="hover:bg-[#D1E3EE]/50">
-                                                <td className="py-4 px-6 text-sm text-gray-500">{log.userName}</td>
-                                                <td className="py-4 px-6 text-sm text-gray-500">{log.date}</td>
-                                                <td className="py-4 px-6 text-sm text-gray-500">{log.boxName}</td>
-                                                <td className="py-4 px-6 text-sm text-gray-500">{log.dischargeInfo}</td>
-                                                <td className="py-4 px-6 text-right">
-                                                    <button className="pl-14 text-sm text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
-                                                        사용자 상세정보 보기{" "}
-                                                        <img src={RightIcon || "/placeholder.svg"} alt="오른쪽 화살표" className="w-2 h-3 ml-1" />
-                                                    </button>
-                                                </td>
+                                            <tr key={log.log_id} className="hover:bg-blue-50">
+                                                <td className="py-4 px-6 text-sm text-gray-500">{log.userId || "-"}</td>
+                                                <td className="py-4 px-6 text-sm text-gray-500">{formatDate(log.date)}</td>
+                                                <td className="py-4 px-6 text-sm text-gray-500">{getBoxName(log.boxId)}</td>
+                                                <td className="py-4 px-6 text-sm text-gray-500">{/* 배출정보는 비워둠 */}</td>
                                             </tr>
                                         ))
                                     ) : (
@@ -686,11 +817,10 @@ const N_boxControlLogPage = () => {
                                 {/* 고정된 헤더 테이블 */}
                                 <table className="w-full table-fixed border-b border-gray-200">
                                     <colgroup>
-                                        <col style={{ width: "10%" }} />
-                                        <col style={{ width: "10%" }} />
-                                        <col style={{ width: "15%" }} />
+                                        <col style={{ width: "20%" }} />
+                                        <col style={{ width: "20%" }} />
+                                        <col style={{ width: "20%" }} />
                                         <col style={{ width: "30%" }} />
-                                        <col style={{ width: "15%" }} />
                                     </colgroup>
                                     <thead className="text-left bg-white">
                                     <tr className="w-full">
@@ -698,7 +828,6 @@ const N_boxControlLogPage = () => {
                                         <th className="py-4 px-6 text-sm font-bold text-gray-500">수거일자</th>
                                         <th className="py-4 px-6 text-sm font-bold text-gray-500">수거함 이름</th>
                                         <th className="py-4 px-6 text-sm font-bold text-gray-500">수거정보</th>
-                                        <th className="py-4 px-6 text-sm font-bold text-gray-500"></th>
                                     </tr>
                                     </thead>
                                 </table>
@@ -708,26 +837,25 @@ const N_boxControlLogPage = () => {
                             <div className="h-[300px] max-h-[300px] overflow-auto scrollbar-container">
                                 <table className="w-full table-fixed border-collapse">
                                     <colgroup>
-                                        <col style={{ width: "10%" }} />
-                                        <col style={{ width: "10%" }} />
-                                        <col style={{ width: "15%" }} />
+                                        <col style={{ width: "20%" }} />
+                                        <col style={{ width: "20%" }} />
+                                        <col style={{ width: "20%" }} />
                                         <col style={{ width: "30%" }} />
-                                        <col style={{ width: "15%" }} />
                                     </colgroup>
                                     <tbody>
-                                    {filteredLogData.length > 0 ? (
+                                    {isLogLoading ? (
+                                        <tr>
+                                            <td colSpan={5} className="py-8 text-center text-gray-500">
+                                                로그 데이터 로딩 중...
+                                            </td>
+                                        </tr>
+                                    ) : filteredLogData.length > 0 ? (
                                         filteredLogData.map((log) => (
-                                            <tr key={log.id} className="hover:bg-[#D1E3EE]/50">
-                                                <td className="py-4 px-6 text-sm text-gray-500">{log.userName}</td>
-                                                <td className="py-4 px-6 text-sm text-gray-500">{log.date}</td>
-                                                <td className="py-4 px-6 text-sm text-gray-500">{log.boxName}</td>
-                                                <td className="py-4 px-6 text-sm text-gray-500">{log.dischargeInfo}</td>
-                                                <td className="py-4 px-6 text-right">
-                                                    <button className="pl-14 text-sm text-gray-500 hover:text-gray-700 flex items-center justify-end gap-1">
-                                                        사용자 상세정보 보기{" "}
-                                                        <img src={RightIcon || "/placeholder.svg"} alt="오른쪽 화살표" className="w-2 h-3 ml-1" />
-                                                    </button>
-                                                </td>
+                                            <tr key={log.log_id} className="hover:bg-blue-50">
+                                                <td className="py-4 px-6 text-sm text-gray-500">{log.userId || "-"}</td>
+                                                <td className="py-4 px-6 text-sm text-gray-500">{formatDate(log.date)}</td>
+                                                <td className="py-4 px-6 text-sm text-gray-500">{getBoxName(log.boxId)}</td>
+                                                <td className="py-4 px-6 text-sm text-gray-500">{/* 수거정보는 비워둠 */}</td>
                                             </tr>
                                         ))
                                     ) : (
@@ -771,7 +899,13 @@ const N_boxControlLogPage = () => {
     )
 }
 
-function BoxListItem({ id, name, location, date, isActive, onClick, handleCopy, copiedBoxId }) {
+function BoxListItem({ id, name, location, box, isActive, onClick, handleCopy, copiedBoxId, addressMap }) {
+    // 주소 정보 가져오기
+    const address = addressMap[id] || "주소 변환 중..."
+
+    // 최대 수거량 계산
+    const maxVolume = getMaxVolume(box)
+
     return (
         <div
             className={`p-4 border-b flex justify-between cursor-pointer ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}
@@ -780,8 +914,8 @@ function BoxListItem({ id, name, location, date, isActive, onClick, handleCopy, 
             <div className="flex items-start">
                 <div>
                     <h3 className="text-base text-[#21262B] font-bold pb-2">{name}</h3>
-                    <p className="text-sm font-normal text-[#60697E]">설치좌표 {location}</p>
-                    <p className="text-sm font-normal text-[#60697E]">설치일자 {date}</p>
+                    <p className="text-sm font-normal text-[#60697E]">{address}</p>
+                    <p className="text-sm font-normal text-[#60697E]">수거량: {maxVolume}%</p>
                 </div>
             </div>
             <div className="text-gray-400 self-start relative">
