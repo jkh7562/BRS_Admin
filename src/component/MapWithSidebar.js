@@ -491,8 +491,41 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
         if (parts.length < 1) return { region: null }
 
         // 첫 번째 부분이 시/도
+        let region = parts[0]
+
+        // 지역명 정규화
+        const regionNormalizationMap = {
+            // 특별시/광역시
+            서울: "서울특별시",
+            부산: "부산광역시",
+            인천: "인천광역시",
+            대구: "대구광역시",
+            광주: "광주광역시",
+            대전: "대전광역시",
+            울산: "울산광역시",
+            세종: "세종특별자치시",
+            // 도
+            경기: "경기도",
+            강원: "강원도",
+            충북: "충청북도",
+            충남: "충청남도",
+            전북: "전라북도",
+            전남: "전라남도",
+            경북: "경상북도",
+            경남: "경상남도",
+            제주: "제주특별자치도",
+            // 특별자치도
+            제주도: "제주특별자치도",
+            세종시: "세종특별자치시",
+        }
+
+        // 약식 지역명을 정규화된 이름으로 변환
+        if (regionNormalizationMap[region]) {
+            region = regionNormalizationMap[region]
+        }
+
         return {
-            region: parts[0],
+            region: region,
         }
     }, [])
 
@@ -544,9 +577,42 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
                 // 주소 기반 필터링 - 주소가 있는 경우만 적용
                 const address = addressMap[box.id] || ""
                 if (address) {
-                    // 주소의 첫 부분이 선택한 지역과 일치하는지 확인
-                    // 예: "서울특별시"로 시작하는 주소는 "서울특별시" 지역에만 표시
-                    return address.startsWith(region)
+                    // 지역명 정규화 매핑
+                    const regionNormalizationMap = {
+                        // 특별시/광역시
+                        서울: "서울특별시",
+                        부산: "부산광역시",
+                        인천: "인천광역시",
+                        대구: "대구광역시",
+                        광주: "광주광역시",
+                        대전: "대전광역시",
+                        울산: "울산광역시",
+                        세종: "세종특별자치시",
+                        // 도
+                        경기: "경기도",
+                        강원: "강원도",
+                        충북: "충청북도",
+                        충남: "충청남도",
+                        전북: "전라북도",
+                        전남: "전라남도",
+                        경북: "경상북도",
+                        경남: "경상남도",
+                        제주: "제주특별자치도",
+                        // 특별자치도
+                        제주도: "제주특별자치도",
+                        세종시: "세종특별자치시",
+                    }
+
+                    // 주소에서 첫 부분(지역명) 추출
+                    const addressRegion = address.split(" ")[0]
+
+                    // 선택한 지역과 주소의 지역이 일치하는지 확인
+                    // 정규화된 이름으로 비교
+                    return (
+                        addressRegion === region ||
+                        regionNormalizationMap[addressRegion] === region ||
+                        addressRegion === regionNormalizationMap[region]
+                    )
                 }
 
                 // 주소가 없는 경우에는 좌표 기반으로 확인
@@ -867,7 +933,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
 
             // POINT 형식 문자열인 경우 파싱
             if (typeof location.lat === "undefined" && location.geometry) {
-                const coordsMatch = location.geometry.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/)
+                const coordsMatch = location.geometry.match(/POINT\s*$$\s*([-\d.]+)\s+([-\d.]+)\s*$$/)
                 if (coordsMatch) {
                     lng = Number.parseFloat(coordsMatch[1])
                     lat = Number.parseFloat(coordsMatch[2])
