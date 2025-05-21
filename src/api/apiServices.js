@@ -398,3 +398,15 @@ export const fetchCoordinates = async () => {
         throw error;
     }
 };
+
+// ✅ 서버 전체 상태 확인 API (Flask 포함)
+export const fetchServerStatus = async () => {
+    try {
+        const response = await axiosInstance.get("/admin/serverStatus");
+        console.log("✅ 서버 상태:", response.data);
+        return response.data; // 예: { userApp: "UP", flaskServer: "UP", ... }
+    } catch (error) {
+        console.error("❌ 서버 상태 확인 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};

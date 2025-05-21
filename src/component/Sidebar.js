@@ -1,68 +1,48 @@
-import { useState, useEffect } from "react"  // useEffect 추가
-import { useNavigate, useLocation } from "react-router-dom"
-import { logout } from "../api/apiServices"
-import logoImage from "../assets/로고.png"
-import mainIcon_on from "../assets/Main_on.png"
-import mainIcon from "../assets/Main.png"
-import installIcon_on from "../assets/설치_제거_on.png"
-import installIcon from "../assets/설치_제거.png"
-import logIcon_on from "../assets/제어_로그_on.png"
-import logIcon from "../assets/제어_로그.png"
-import assignIcon_on from "../assets/배치_on.png"
-import assignIcon from "../assets/배치.png"
-import monitorIcon_on from "../assets/모니터링_on.png"
-import monitorIcon from "../assets/모니터링.png"
-import joinIcon_on from "../assets/가입관리_on.png"
-import joinIcon from "../assets/가입관리.png"
-import orderIcon_on from "../assets/주문내역_on.png"
-import orderIcon from "../assets/주문내역.png"
-import springIcon from "../assets/spring.png"
-import SQLIcon from "../assets/SQL.png"
-import reactIcon from "../assets/React.png"
-import flaskIcon from "../assets/Flask.png"
-import logoutIcon from "../assets/logout.png"
-import infoIcon from "../assets/추가정보.png"
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { logout, fetchServerStatus } from "../api/apiServices";
+
+import logoImage from "../assets/로고.png";
+import mainIcon_on from "../assets/Main_on.png";
+import mainIcon from "../assets/Main.png";
+import installIcon_on from "../assets/설치_제거_on.png";
+import installIcon from "../assets/설치_제거.png";
+import logIcon_on from "../assets/제어_로그_on.png";
+import logIcon from "../assets/제어_로그.png";
+import assignIcon_on from "../assets/배치_on.png";
+import assignIcon from "../assets/배치.png";
+import monitorIcon_on from "../assets/모니터링_on.png";
+import monitorIcon from "../assets/모니터링.png";
+import joinIcon_on from "../assets/가입관리_on.png";
+import joinIcon from "../assets/가입관리.png";
+import orderIcon_on from "../assets/주문내역_on.png";
+import orderIcon from "../assets/주문내역.png";
+import springIcon from "../assets/spring.png";
+import SQLIcon from "../assets/SQL.png";
+import reactIcon from "../assets/React.png";
+import flaskIcon from "../assets/Flask.png";
+import logoutIcon from "../assets/logout.png";
+import infoIcon from "../assets/추가정보.png";
 
 const Sidebar = () => {
-    const [activeMenu, setActiveMenu] = useState("main")
-    const navigate = useNavigate()
-    const location = useLocation()
+    const [activeMenu, setActiveMenu] = useState("main");
     const [openSection, setOpenSection] = useState({
-        spring: true,
-        mysql: true,
-        react: true,
-        flask: true,
-    })
-    // 툴팁 표시 여부를 관리하는 상태 추가
-    const [showTooltip, setShowTooltip] = useState(false)
+        spring: false,
+        mysql: false,
+        react: false,
+        flask: false,
+    });
+    const [showTooltip, setShowTooltip] = useState(false);
+    const [serverStatus, setServerStatus] = useState({
+        appServer: "UNKNOWN",
+        database: "UNKNOWN",
+        userApp: "UNKNOWN",
+        employeeApp: "UNKNOWN",
+        flaskServer: "UNKNOWN",
+    });
 
-    const toggleSection = (key) => {
-        setOpenSection((prev) => ({ ...prev, [key]: !prev[key] }))
-    }
-
-    // 툴팁 토글 함수
-    const toggleTooltip = (e) => {
-        e.stopPropagation() // 이벤트 버블링 방지
-        setShowTooltip(!showTooltip)
-    }
-
-    // 툴팁 외부 클릭 시 닫기 함수
-    const handleClickOutside = (e) => {
-        if (showTooltip && !e.target.closest('.tooltip-container')) {
-            setShowTooltip(false)
-        }
-    }
-
-    // 컴포넌트가 마운트될 때 document에 이벤트 리스너 추가 (useState -> useEffect로 수정)
-    useEffect(() => {
-        // 이벤트 리스너 추가
-        document.addEventListener('mousedown', handleClickOutside)
-
-        // 컴포넌트 언마운트 시 이벤트 리스너 제거
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside)
-        }
-    }, [showTooltip]) // showTooltip이 변경될 때마다 이펙트 재실행
+    const navigate = useNavigate();
+    const location = useLocation();
 
     const menuList = [
         {
@@ -85,7 +65,7 @@ const Sidebar = () => {
             label: "수거함 제어 / 로그",
             icon: logIcon,
             iconOn: logIcon_on,
-            className: "w-6 h-5", // 크기 조정
+            className: "w-6 h-5",
             route: "/n_BoxControlLogPage",
         },
         {
@@ -100,7 +80,7 @@ const Sidebar = () => {
             label: "모니터링",
             icon: monitorIcon,
             iconOn: monitorIcon_on,
-            className: "w-6 h-5", // 크기 조정
+            className: "w-6 h-5",
             route: "/n_MonitoringPage",
         },
         {
@@ -108,21 +88,65 @@ const Sidebar = () => {
             label: "가입관리",
             icon: joinIcon,
             iconOn: joinIcon_on,
-            route: "/n_UserApprovalPage"
+            route: "/n_UserApprovalPage",
         },
         {
             key: "order",
             label: "주문내역",
             icon: orderIcon,
             iconOn: orderIcon_on,
-            route: "/n_OrderHistoryPage"
+            route: "/n_OrderHistoryPage",
         },
-    ]
+    ];
+
+    useEffect(() => {
+        document.addEventListener("mousedown", handleClickOutside);
+        const interval = setInterval(loadServerStatus, 5 * 60 * 1000);
+        loadServerStatus();
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            clearInterval(interval);
+        };
+    }, []);
+
+    const loadServerStatus = async () => {
+        try {
+            const status = await fetchServerStatus();
+            setServerStatus(status);
+        } catch (error) {
+            console.error("서버 상태 로드 실패:", error);
+        }
+    };
+
+    const getStatusDotColor = (status) => {
+        if (status === "UP") return "bg-[#6DDFC0]";
+        if (status === "DOWN") return "bg-[#FF6B6B]";
+        return "bg-gray-400";
+    };
+
+    const isGroupUp = (...services) => {
+        return services.every((key) => serverStatus[key] === "UP");
+    };
+
+    const toggleSection = (key) => {
+        setOpenSection((prev) => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    const toggleTooltip = (e) => {
+        e.stopPropagation();
+        setShowTooltip(!showTooltip);
+    };
+
+    const handleClickOutside = (e) => {
+        if (showTooltip && !e.target.closest(".tooltip-container")) {
+            setShowTooltip(false);
+        }
+    };
 
     const handleLogoutClick = async () => {
         try {
-            await logout(); // ✅ logout API 호출
-            navigate("/n_LoginPage"); // ✅ 성공하면 로그인페이지로 이동
+            await logout();
+            navigate("/n_LoginPage");
         } catch (error) {
             console.error("❌ 로그아웃 실패:", error);
             alert("로그아웃에 실패했습니다. 다시 시도해주세요.");
@@ -132,20 +156,17 @@ const Sidebar = () => {
     return (
         <aside className="w-[340px] sticky top-0 z-50 h-screen text-white" style={{ backgroundColor: "#101213" }}>
             <div className="sidebar-content h-full overflow-y-auto p-5">
-                {/* 로고 클릭 시 메인으로 이동 */}
                 <div className="mb-20 pl-8 mt-2 cursor-pointer" onClick={() => navigate("/n_MainPage")}>
-                    <img src={logoImage || "/placeholder.svg"} alt="batter logo" className="w-[93px]"/>
+                    <img src={logoImage} alt="batter logo" className="w-[93px]" />
                 </div>
 
                 <ul className="space-y-10 text-base pl-8">
                     {menuList.map((menu) => {
-                        const isActive = location.pathname === menu.route
+                        const isActive = location.pathname === menu.route;
                         return (
                             <li
                                 key={menu.key}
-                                onClick={() => {
-                                    if (menu.route) navigate(menu.route)
-                                }}
+                                onClick={() => navigate(menu.route)}
                                 className={`flex items-center gap-5 cursor-pointer ${
                                     isActive ? "text-white" : "text-[#A5ACBA]"
                                 }`}
@@ -153,27 +174,20 @@ const Sidebar = () => {
                                 <img
                                     src={isActive ? menu.iconOn : menu.icon}
                                     alt={menu.label}
-                                    className={menu.className ? menu.className : "w-6 h-6"}
+                                    className={menu.className || "w-6 h-6"}
                                 />
                                 {menu.label}
                             </li>
-                        )
+                        );
                     })}
                 </ul>
 
+                {/* 서버 상태 */}
                 <div className="mt-12 pt-4 text-base space-y-2 pl-6">
                     <div className="flex items-center gap-44 text-[#A5ACBA] relative">
                         <p>서버 관리</p>
-                        {/* 툴팁 컨테이너 */}
                         <div className="tooltip-container relative">
-                            <img
-                                src={infoIcon || "/placeholder.svg"}
-                                alt="info"
-                                className="w-4 h-4 cursor-pointer"
-                                onClick={toggleTooltip}
-                            />
-
-                            {/* 툴팁 말풍선 */}
+                            <img src={infoIcon} alt="info" className="w-4 h-4 cursor-pointer" onClick={toggleTooltip} />
                             {showTooltip && (
                                 <div className="absolute right-0 mt-2 w-64 bg-white text-gray-800 rounded-md shadow-lg p-4 z-50">
                                     <div className="absolute -top-2 right-1 w-4 h-4 bg-white transform rotate-45"></div>
@@ -190,100 +204,89 @@ const Sidebar = () => {
                     </div>
 
                     {/* Spring Boot */}
-                    <p
-                        className="pt-6 pb-2 flex items-center gap-2 text-[#A5ACBA] cursor-pointer"
-                        onClick={() => toggleSection("spring")}
-                    >
-                        <img src={springIcon || "/placeholder.svg"} alt="Spring Boot" className="w-8 h-8"/>
+                    <p className="pt-6 pb-2 flex items-center gap-2 text-[#A5ACBA] cursor-pointer" onClick={() => toggleSection("spring")}>
+                        <img src={springIcon} alt="Spring Boot" className="w-8 h-8" />
                         Spring Boot
+                        <span className={`w-2 h-2 rounded-full ${getStatusDotColor(isGroupUp("appServer", "userApp") ? "UP" : "DOWN")} ml-2`}></span>
                     </p>
                     {openSection.spring && (
                         <>
                             <p className="ml-10 pb-2 flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-[#6DDFC0] inline-block"></span> App
+                                <span className={`w-2 h-2 rounded-full ${getStatusDotColor(serverStatus.appServer)} inline-block`}></span> App
                             </p>
                             <p className="ml-10 pb-2 flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-[#6DDFC0] inline-block"></span> Web
+                                <span className={`w-2 h-2 rounded-full ${getStatusDotColor(serverStatus.userApp)} inline-block`}></span> Web
                             </p>
                         </>
                     )}
 
                     {/* MySQL */}
-                    <p
-                        className="pt-4 pb-2 flex items-center gap-2 text-[#A5ACBA] cursor-pointer"
-                        onClick={() => toggleSection("mysql")}
-                    >
-                        <img src={SQLIcon || "/placeholder.svg"} alt="MySQL" className="w-8 h-8"/>
+                    <p className="pt-4 pb-2 flex items-center gap-2 text-[#A5ACBA] cursor-pointer" onClick={() => toggleSection("mysql")}>
+                        <img src={SQLIcon} alt="MySQL" className="w-8 h-8" />
                         MySQL
+                        <span className={`w-2 h-2 rounded-full ${getStatusDotColor(isGroupUp("database") ? "UP" : "DOWN")} ml-2`}></span>
                     </p>
                     {openSection.mysql && (
                         <p className="ml-10 pb-2 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-[#6DDFC0] inline-block"></span> DataBase
+                            <span className={`w-2 h-2 rounded-full ${getStatusDotColor(serverStatus.database)} inline-block`}></span> DataBase
                         </p>
                     )}
 
                     {/* React */}
-                    <p
-                        className="pt-4 pb-2 flex items-center gap-2 text-[#A5ACBA] cursor-pointer"
-                        onClick={() => toggleSection("react")}
-                    >
-                        <img src={reactIcon || "/placeholder.svg"} alt="React" className="w-8 h-8"/>
+                    <p className="pt-4 pb-2 flex items-center gap-2 text-[#A5ACBA] cursor-pointer" onClick={() => toggleSection("react")}>
+                        <img src={reactIcon} alt="React" className="w-8 h-8" />
                         React
+                        <span className={`w-2 h-2 rounded-full ${getStatusDotColor(isGroupUp("userApp") ? "UP" : "DOWN")} ml-2`}></span>
                     </p>
                     {openSection.react && (
-                        <>
-                            <p className="ml-10 pb-2 flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-[#6DDFC0] inline-block"></span> 관리자
-                            </p>
-                        </>
+                        <p className="ml-10 pb-2 flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${getStatusDotColor(serverStatus.userApp)} inline-block`}></span> 관리자
+                        </p>
                     )}
 
                     {/* Flask */}
-                    <p
-                        className="pt-4 pb-2 flex items-center gap-2 text-[#A5ACBA] cursor-pointer"
-                        onClick={() => toggleSection("flask")}
-                    >
-                        <img src={flaskIcon || "/placeholder.svg"} alt="Flask" className="w-8 h-8"/>
+                    <p className="pt-4 pb-2 flex items-center gap-2 text-[#A5ACBA] cursor-pointer" onClick={() => toggleSection("flask")}>
+                        <img src={flaskIcon} alt="Flask" className="w-8 h-8" />
                         Flask
+                        <span className={`w-2 h-2 rounded-full ${getStatusDotColor(isGroupUp("flaskServer") ? "UP" : "DOWN")} ml-2`}></span>
                     </p>
                     {openSection.flask && (
                         <p className="ml-10 pb-2 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-[#6DDFC0] inline-block"></span> AI
+                            <span className={`w-2 h-2 rounded-full ${getStatusDotColor(serverStatus.flaskServer)} inline-block`}></span> AI
                         </p>
                     )}
                 </div>
-                {/* 로그아웃 + 버전 */}
+
+                {/* 로그아웃 및 버전 */}
                 <div className="mt-12 pl-6 pr-6 flex items-center justify-between text-[#A5ACBA] text-sm">
                     <div onClick={handleLogoutClick} className="flex items-center gap-4 cursor-pointer">
-                        <img src={logoutIcon || "/placeholder.svg"} alt="logout" className="w-5 h-5"/>
+                        <img src={logoutIcon} alt="logout" className="w-5 h-5" />
                         <span>로그아웃</span>
                     </div>
                     <span className="text-xs text-[#7A7F8A]">version 25.3.1</span>
                 </div>
             </div>
 
-            {/* 스크롤바 스타일 */}
             <style jsx>{`
-                .sidebar-content::-webkit-scrollbar {
-                    width: 0px;  /* 스크롤바 너비를 0으로 설정하여 보이지 않게 함 */
-                }
-                
-                .sidebar-content {
-                    scrollbar-width: none;  /* Firefox에서 스크롤바 숨기기 */
-                    -ms-overflow-style: none;  /* IE와 Edge에서 스크롤바 숨기기 */
-                }
-                
-                /* IE에서 스크롤바 숨기기 */
-                .sidebar-content::-webkit-scrollbar-thumb {
-                    background-color: transparent;
-                }
-                
-                .sidebar-content::-webkit-scrollbar-track {
-                    background-color: transparent;
-                }
-            `}</style>
-        </aside>
-    )
-}
+        .sidebar-content::-webkit-scrollbar {
+          width: 0px;
+        }
 
-export default Sidebar
+        .sidebar-content {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb {
+          background-color: transparent;
+        }
+
+        .sidebar-content::-webkit-scrollbar-track {
+          background-color: transparent;
+        }
+      `}</style>
+        </aside>
+    );
+};
+
+export default Sidebar;
