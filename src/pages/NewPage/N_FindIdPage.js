@@ -12,7 +12,7 @@ const N_FindIdPage = () => {
     const [isSearching, setIsSearching] = useState(true); // true: 검색 모드, false: 결과 모드
 
     const handleBackClick = () => {
-        navigate("/n_LoginPage");
+        navigate("/");
     };
 
     const handleSignupClick = () => {

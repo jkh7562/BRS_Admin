@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import bgImage from "../../assets/Login_Background.jpg"
-import { loginUser } from "../../api/apiServices" // ✅ 로그인 API import 추가
+import { loginUser, findAllBox } from "../../api/apiServices" // ✅ 로그인 API import 추가
 
 const N_LoginPage = () => {
     const navigate = useNavigate()

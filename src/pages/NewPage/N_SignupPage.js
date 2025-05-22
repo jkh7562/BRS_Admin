@@ -18,7 +18,7 @@ const N_SignupPage = () => {
     const [signupMessage, setSignupMessage] = useState({ text: "", isSuccess: null });
 
     const handleBackClick = () => {
-        navigate("/n_LoginPage");
+        navigate("/");
     };
 
     const handleSendSms = async () => {

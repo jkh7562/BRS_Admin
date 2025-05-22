@@ -354,7 +354,7 @@ const Topbar = () => {
     const handleLogoutClick = async () => {
         try {
             await logout()
-            navigate("/n_LoginPage")
+            navigate("/")
         } catch (error) {
             console.error("❌ 로그아웃 실패:", error)
             alert("로그아웃에 실패했습니다. 다시 시도해주세요.")

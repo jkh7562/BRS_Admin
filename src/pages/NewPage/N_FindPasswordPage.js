@@ -15,7 +15,7 @@ const N_FindPasswordPage = () => {
     const [successMessage, setSuccessMessage] = useState("");
 
     const handleBackClick = () => {
-        navigate("/n_LoginPage");
+        navigate("/");
     };
 
     const handleSignupClick = () => {
