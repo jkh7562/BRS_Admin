@@ -988,41 +988,41 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     )
 
     const handleCopy = useCallback((e, boxId, text) => {
-        e.stopPropagation(); // 이벤트 버블링 방지
+        e.stopPropagation() // 이벤트 버블링 방지
 
         try {
             // 임시 텍스트 영역 생성
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
+            const textArea = document.createElement("textarea")
+            textArea.value = text
 
             // 화면 밖으로 위치시키기
-            textArea.style.position = "fixed";
-            textArea.style.left = "-999999px";
-            textArea.style.top = "-999999px";
-            document.body.appendChild(textArea);
+            textArea.style.position = "fixed"
+            textArea.style.left = "-999999px"
+            textArea.style.top = "-999999px"
+            document.body.appendChild(textArea)
 
             // 텍스트 선택 및 복사
-            textArea.focus();
-            textArea.select();
+            textArea.focus()
+            textArea.select()
 
-            const successful = document.execCommand("copy");
+            const successful = document.execCommand("copy")
 
             // 임시 요소 제거
-            document.body.removeChild(textArea);
+            document.body.removeChild(textArea)
 
             if (successful) {
                 // 복사 성공
-                setCopiedId(boxId);
+                setCopiedId(boxId)
                 setTimeout(() => {
-                    setCopiedId(null);
-                }, 1500);
+                    setCopiedId(null)
+                }, 1500)
             } else {
-                console.error("execCommand 복사 실패");
+                console.error("execCommand 복사 실패")
             }
         } catch (err) {
-            console.error("복사 실패:", err);
+            console.error("복사 실패:", err)
         }
-    }, []);
+    }, [])
 
     // ✅ 아이콘 결정 (화재 우선) - useMemo로 최적화
     const getMarkerIcon = useCallback(
@@ -1193,12 +1193,19 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
             setIsSubmitting(true)
 
             try {
-                await requestInstallBox({
+                const response = await requestInstallBox({
                     name: newBoxName,
                     ipAddress: newBoxIpAddress,
                     longitude: newPinPosition.lng,
                     latitude: newPinPosition.lat,
                 })
+
+                // 응답 메시지가 "Fail"인 경우 중복 이름 오류로 처리
+                if (response === "Fail") {
+                    alert("설치 요청 실패: 동일한 이름의 수거함이 이미 존재합니다. 다른 이름을 사용해주세요.")
+                    setIsSubmitting(false)
+                    return
+                }
 
                 alert("설치 요청이 성공적으로 전송되었습니다.")
 
