@@ -441,7 +441,7 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
     const handleAccept = async () => {
         if (selectedUser && selectedUser.boxId) {
             try {
-                await requestInstallConfirmed(selectedUser.boxId)
+                await requestInstallConfirmed(selectedUser.id)
                 alert("확정되었습니다.")
                 // 성공 후 알람 데이터 다시 로드
                 const alarmsData = await fetchUnresolvedAlarms()

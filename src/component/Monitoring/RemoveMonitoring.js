@@ -442,7 +442,7 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
     const handleAccept = async () => {
         if (selectedUser && selectedUser.boxId) {
             try {
-                await requestRemoveConfirmed(selectedUser.boxId)
+                await requestRemoveConfirmed(selectedUser.id)
                 console.log(selectedUser.boxId)
                 alert("확정되었습니다.")
                 // 성공 후 알람 데이터 다시 로드
