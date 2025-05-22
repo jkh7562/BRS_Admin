@@ -215,9 +215,27 @@ const N_OrderHistoryPage = () => {
     const handleCopyUserId = (e, userId) => {
         e.stopPropagation() // 이벤트 버블링 방지 (사용자 선택 방지)
 
-        navigator.clipboard
-            .writeText(userId)
-            .then(() => {
+        try {
+            // 임시 텍스트 영역 생성
+            const textArea = document.createElement("textarea")
+            textArea.value = userId
+
+            // 화면 밖으로 위치시키기
+            textArea.style.position = "fixed"
+            textArea.style.left = "-999999px"
+            textArea.style.top = "-999999px"
+            document.body.appendChild(textArea)
+
+            // 텍스트 선택 및 복사
+            textArea.focus()
+            textArea.select()
+
+            const successful = document.execCommand("copy")
+
+            // 임시 요소 제거
+            document.body.removeChild(textArea)
+
+            if (successful) {
                 // 복사 성공 시 상태 업데이트
                 setCopiedUserId(userId)
 
@@ -225,10 +243,12 @@ const N_OrderHistoryPage = () => {
                 setTimeout(() => {
                     setCopiedUserId(null)
                 }, 1500)
-            })
-            .catch((err) => {
-                console.error("복사 실패:", err)
-            })
+            } else {
+                console.error("execCommand 복사 실패")
+            }
+        } catch (err) {
+            console.error("복사 실패:", err)
+        }
     }
 
     // 주문 상세 토글 함수

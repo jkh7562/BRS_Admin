@@ -32,10 +32,10 @@ const N_UserApprovalPage = lazy(() => import('../pages/NewPage/N_UserApprovalPag
 const N_OrderHistoryPage = lazy(() => import('../pages/NewPage/N_OrderHistoryPage'))
 
 const root = createBrowserRouter([
-    {
+    /*{
         path:"",
         element:<Suspense fallback={Loading}><LoginPage/></Suspense>
-    },
+    },*/
     {
         path:"signup",
         element:<Suspense fallback={Loading}><SignupPage/></Suspense>
@@ -93,7 +93,7 @@ const root = createBrowserRouter([
         element:<Suspense fallback={Loading}><MonitoringPage/></Suspense>
     },
     {
-        path:"n_LoginPage",
+        path:"",
         element:<Suspense fallback={Loading}><N_LoginPage/></Suspense>
     },
     {

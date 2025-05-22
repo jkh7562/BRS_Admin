@@ -988,23 +988,41 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     )
 
     const handleCopy = useCallback((e, boxId, text) => {
-        e.stopPropagation() // 이벤트 버블링 방지
+        e.stopPropagation(); // 이벤트 버블링 방지
 
-        navigator.clipboard
-            .writeText(text)
-            .then(() => {
-                // 복사된 항목 ID 저장
-                setCopiedId(boxId)
+        try {
+            // 임시 텍스트 영역 생성
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
 
-                // 1.5초 후 상태 초기화
+            // 화면 밖으로 위치시키기
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+
+            // 텍스트 선택 및 복사
+            textArea.focus();
+            textArea.select();
+
+            const successful = document.execCommand("copy");
+
+            // 임시 요소 제거
+            document.body.removeChild(textArea);
+
+            if (successful) {
+                // 복사 성공
+                setCopiedId(boxId);
                 setTimeout(() => {
-                    setCopiedId(null)
-                }, 1500)
-            })
-            .catch((err) => {
-                console.error("복사 실패:", err)
-            })
-    }, [])
+                    setCopiedId(null);
+                }, 1500);
+            } else {
+                console.error("execCommand 복사 실패");
+            }
+        } catch (err) {
+            console.error("복사 실패:", err);
+        }
+    }, []);
 
     // ✅ 아이콘 결정 (화재 우선) - useMemo로 최적화
     const getMarkerIcon = useCallback(

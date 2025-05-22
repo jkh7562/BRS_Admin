@@ -298,25 +298,48 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
         loadAlarms()
     }, [])
 
-    // 복사 핸들러 함수 추가
+    // 복사 핸들러 함수 수정 - 수거함 이름만 복사하도록 변경
     const handleCopy = (e, userId, text) => {
-        e.stopPropagation() // 이벤트 버블링 방지
+        e.stopPropagation(); // 이벤트 버블링 방지
 
-        navigator.clipboard
-            .writeText(text)
-            .then(() => {
-                // 복사된 항목 ID 저장
-                setCopiedId(userId)
+        // 수거함 이름만 추출 (괄호 앞 부분만)
+        const boxNameOnly = text.split('(')[0].trim();
+
+        try {
+            // 임시 텍스트 영역 생성
+            const textArea = document.createElement("textarea");
+            textArea.value = boxNameOnly;
+
+            // 화면 밖으로 위치시키기
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+
+            // 텍스트 선택 및 복사
+            textArea.focus();
+            textArea.select();
+
+            const successful = document.execCommand("copy");
+
+            // 임시 요소 제거
+            document.body.removeChild(textArea);
+
+            if (successful) {
+                // 복사 성공
+                setCopiedId(userId);
 
                 // 1.5초 후 상태 초기화
                 setTimeout(() => {
-                    setCopiedId(null)
-                }, 1500)
-            })
-            .catch((err) => {
-                console.error("복사 실패:", err)
-            })
-    }
+                    setCopiedId(null);
+                }, 1500);
+            } else {
+                console.error("execCommand 복사 실패");
+            }
+        } catch (err) {
+            console.error("복사 실패:", err);
+        }
+    };
 
     // 사용자 선택 핸들러
     const handleUserSelect = (alarm) => {
@@ -484,7 +507,7 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
                     <div className="relative flex-1">
                         <input
                             type="text"
-                            placeholder="수거자 이름 검색"
+                            placeholder="수거함 이름 검색"
                             className="w-full py-2 px-5 rounded-2xl border border-gray-300 text-sm focus:outline-none"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -740,6 +763,9 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
 }
 
 function UserListItem({ userId, name, status, date, isActive, onClick, handleCopy, copiedId }) {
+    // 수거함 이름 추출 (괄호 앞 부분만)
+    const boxName = name.split('(')[0].trim();
+
     return (
         <div
             className={`p-4 border-b flex justify-between cursor-pointer ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}

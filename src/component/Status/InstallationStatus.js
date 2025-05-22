@@ -96,12 +96,36 @@ export default function InstallationStatus({ statuses, addressData = {}, process
     // 주소 복사 함수
     const copyAddress = () => {
         if (addressText) {
-            navigator.clipboard
-                .writeText(addressText)
-                .then(() => alert("주소가 클립보드에 복사되었습니다."))
-                .catch((err) => console.error("주소 복사 실패:", err))
+            try {
+                // 임시 텍스트 영역 생성
+                const textArea = document.createElement("textarea");
+                textArea.value = addressText;
+
+                // 화면 밖으로 위치시키기
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                textArea.style.top = "-999999px";
+                document.body.appendChild(textArea);
+
+                // 텍스트 선택 및 복사
+                textArea.focus();
+                textArea.select();
+
+                const successful = document.execCommand("copy");
+
+                // 임시 요소 제거
+                document.body.removeChild(textArea);
+
+                if (successful) {
+                    alert("주소가 클립보드에 복사되었습니다.");
+                } else {
+                    console.error("주소 복사 실패");
+                }
+            } catch (err) {
+                console.error("주소 복사 실패:", err);
+            }
         }
-    }
+    };
 
     if (isLoading) {
         return (
@@ -260,15 +284,42 @@ function UserListItem({ boxId, name, status, date, isActive, onClick }) {
     const [copied, setCopied] = useState(false)
 
     const handleCopy = (e) => {
-        e.stopPropagation()
-        navigator.clipboard.writeText(name)
-        setCopied(true)
+        e.stopPropagation();
 
-        // 1초 후에 체크마크 숨기기
-        setTimeout(() => {
-            setCopied(false)
-        }, 1000)
-    }
+        try {
+            // 임시 텍스트 영역 생성
+            const textArea = document.createElement("textarea");
+            textArea.value = name;
+
+            // 화면 밖으로 위치시키기
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+
+            // 텍스트 선택 및 복사
+            textArea.focus();
+            textArea.select();
+
+            const successful = document.execCommand("copy");
+
+            // 임시 요소 제거
+            document.body.removeChild(textArea);
+
+            if (successful) {
+                setCopied(true);
+
+                // 1초 후에 체크마크 숨기기
+                setTimeout(() => {
+                    setCopied(false);
+                }, 1000);
+            } else {
+                console.error("복사 실패");
+            }
+        } catch (err) {
+            console.error("복사 실패:", err);
+        }
+    };
 
     return (
         <div

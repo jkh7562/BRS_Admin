@@ -200,11 +200,45 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
         }
     }, [boxes])
     const handleCopy = (e, userId, text) => {
-        e.stopPropagation()
-        navigator.clipboard.writeText(text).then(() => {
-            setCopiedId(userId)
-            setTimeout(() => setCopiedId(null), 1500)
-        })
+        e.stopPropagation();
+
+        // 수거함 이름만 추출 (괄호 앞 부분만)
+        const boxNameOnly = text.split('(')[0].trim();
+
+        try {
+            // 임시 텍스트 영역 생성
+            const textArea = document.createElement("textarea");
+            textArea.value = boxNameOnly;
+
+            // 화면 밖으로 위치시키기
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+
+            // 텍스트 선택 및 복사
+            textArea.focus();
+            textArea.select();
+
+            const successful = document.execCommand("copy");
+
+            // 임시 요소 제거
+            document.body.removeChild(textArea);
+
+            if (successful) {
+                // 복사 성공
+                setCopiedId(userId);
+
+                // 1.5초 후 상태 초기화
+                setTimeout(() => {
+                    setCopiedId(null);
+                }, 1500);
+            } else {
+                console.error("execCommand 복사 실패");
+            }
+        } catch (err) {
+            console.error("복사 실패:", err);
+        }
     }
 
     const handleUserSelect = (alarm) => {
@@ -318,7 +352,7 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
                     <div className="relative flex-1">
                         <input
                             type="text"
-                            placeholder="수거자 이름 또는 수거함 검색"
+                            placeholder="수거함 이름 또는 수거함 검색"
                             className="w-full py-2 px-5 rounded-2xl border border-gray-300 text-sm focus:outline-none"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
