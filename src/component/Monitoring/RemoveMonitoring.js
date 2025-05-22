@@ -361,10 +361,16 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
 
     // 검색어와 선택된 옵션에 따라 필터링된 알람 목록 계산
     const filteredAlarms = alarms.filter((alarm) => {
-        // 이름으로 검색 필터링 (userId 또는 사용자 이름)
+        // 이름으로 검색 필터링 (userId, 사용자 이름 또는 수거함 이름)
         const user = users[alarm.userId] || {}
+        const box = boxes[alarm.boxId] || {}
         const userName = user.name || alarm.userId || ""
-        const nameMatch = userName.toLowerCase().includes(searchTerm.toLowerCase())
+        const boxName = box.name || `수거함 ID: ${alarm.boxId}` || ""
+
+        // 사용자 이름 또는 수거함 이름이 검색어를 포함하는지 확인
+        const nameMatch =
+            userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            boxName.toLowerCase().includes(searchTerm.toLowerCase())
 
         // 상태로 필터링 (전체 옵션이면 모든 상태 포함)
         const status = getStatusFromType(alarm.type)
@@ -375,7 +381,7 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
 
         return nameMatch && statusMatch && regionMatch
     })
-
+    
     // 현재 선택된 알람의 수거함 정보
     const selectedBox = selectedUser ? boxes[selectedUser.boxId] : null
 

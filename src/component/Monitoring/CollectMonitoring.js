@@ -246,12 +246,24 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
 
     const filteredAlarms = alarms.filter((alarm) => {
         const user = users[alarm.userId] || {}
-        const nameMatch = (user.name || "").toLowerCase().includes(searchTerm.toLowerCase())
         const box = boxes[alarm.boxId] || {}
+
+        // 사용자 이름과 수거함 이름 모두로 검색
+        const userName = user.name || alarm.userId || ""
+        const boxName = box.name || `수거함 ID: ${alarm.boxId}` || ""
+
+        // 사용자 이름 또는 수거함 이름이 검색어를 포함하는지 확인
+        const nameMatch =
+            userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            boxName.toLowerCase().includes(searchTerm.toLowerCase())
+
         const status = typeToStatusMap[alarm.type] || alarm.type
         const statusMatch = selectedOption === "전체" || selectedOption === status
         const regionMatch = matchesRegionFilter(alarm.boxId)
-        return (isSimpleStatus(alarm.type) ? box.name : nameMatch) && statusMatch && regionMatch
+
+        // 단순 상태(COLLECTION_RECOMMENDED, COLLECTION_NEEDED)인 경우에도
+        // 이름 검색을 적용하도록 수정
+        return nameMatch && statusMatch && regionMatch
     })
 
     const selectedBox = selectedUser ? boxes[selectedUser.boxId] : null

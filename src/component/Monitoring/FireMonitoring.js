@@ -257,10 +257,17 @@ export default function FireMonitoring() {
 
     // 검색어와 선택된 옵션에 따라 필터링된 알람 목록 계산
     const filteredAlarms = alarms.filter((alarm) => {
-        // 수거함 이름으로 검색 필터링
+        // 수거함 이름과 사용자 이름으로 검색 필터링
         const box = boxes[alarm.boxId] || {}
+        const user = users[alarm.userId] || {}
+
         const boxName = box.name || `수거함 ID: ${alarm.boxId}` || ""
-        const nameMatch = boxName.toLowerCase().includes(searchTerm.toLowerCase())
+        const userName = user.name || alarm.userId || ""
+
+        // 수거함 이름 또는 사용자 이름이 검색어를 포함하는지 확인
+        const nameMatch =
+            boxName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            userName.toLowerCase().includes(searchTerm.toLowerCase())
 
         // 상태로 필터링 (전체 옵션이면 모든 상태 포함)
         const status = getStatusFromType(alarm.type)
