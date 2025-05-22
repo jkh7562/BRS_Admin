@@ -88,7 +88,7 @@ const root = createBrowserRouter([
     },
     {
         path: "n_MainPage",
-        element: <Suspense fallback={Loading}><N_MainPage /></Suspense>
+        element: <ProtectedRoute><Suspense fallback={Loading}><N_MainPage /></Suspense></ProtectedRoute>
     },
     {
         path: "n_BoxAddRemovePage",
