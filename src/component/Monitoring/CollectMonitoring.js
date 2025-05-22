@@ -347,13 +347,16 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
                             const user = users[alarm.userId] || {}
                             const box = boxes[alarm.boxId] || {}
                             const status = typeToStatusMap[alarm.type] || alarm.type
-                            const name = isSimpleStatus(alarm.type) ? box.name : user.name || alarm.userId
                             const date = new Date(alarm.date).toLocaleDateString("ko-KR").replace(/\. /g, ".").replace(/\.$/, "")
+
+                            // 수거함 이름과 사용자 이름을 조합하여 표시
+                            const displayName = `${box.name || "수거함 정보 없음"} (${user.name || alarm.userId || "사용자 정보 없음"})`
+
                             return (
                                 <UserListItem
                                     key={alarm.id}
                                     userId={alarm.id}
-                                    name={name}
+                                    name={displayName}
                                     status={status}
                                     date={date}
                                     isActive={selectedUser && selectedUser.id === alarm.id}

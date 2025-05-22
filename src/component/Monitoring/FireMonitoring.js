@@ -404,11 +404,14 @@ export default function FireMonitoring() {
                             const date = new Date(alarm.date)
                             const formattedDate = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`
 
+                            // 수거함 이름과 사용자 이름을 조합하여 표시
+                            const displayName = `${box.name || `수거함 ID: ${alarm.boxId}` || "수거함 정보 없음"} (${user.name || alarm.userId || "사용자 정보 없음"})`
+
                             return (
                                 <UserListItem
                                     key={`alarm-${alarm.id}`}
                                     userId={`alarm-${alarm.id}`}
-                                    name={box.name || `수거함 ID: ${alarm.boxId}` || "수거함 정보 없음"}
+                                    name={displayName}
                                     status={getStatusFromType(alarm.type)}
                                     date={formattedDate}
                                     isActive={selectedUser && selectedUser.id === alarm.id}
@@ -434,10 +437,8 @@ export default function FireMonitoring() {
                         <p className="text-[#60697E]">
                             <span className="font-bold">화재처리 주소</span>{" "}
                             <span className="font-normal">
-  {selectedUser && addressMap[selectedUser.boxId]
-      ? addressMap[selectedUser.boxId].fullAddress
-      : ""}
-</span>
+                {selectedUser && addressMap[selectedUser.boxId] ? addressMap[selectedUser.boxId].fullAddress : ""}
+              </span>
                             <span className="float-right text-sm">
                 알림 일자{" "}
                                 {new Date(selectedUser.date)

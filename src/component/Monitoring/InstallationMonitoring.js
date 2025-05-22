@@ -536,7 +536,7 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
                                 <UserListItem
                                     key={`alarm-${alarm.id}`}
                                     userId={`alarm-${alarm.id}`}
-                                    name={user.name || alarm.userId || "사용자 정보 없음"}
+                                    name={`${box.name || "수거함 정보 없음"} (${user.name || alarm.userId || "사용자 정보 없음"})`}
                                     status={getStatusFromType(alarm.type)}
                                     date={formattedDate}
                                     isActive={selectedUser && selectedUser.id === alarm.id}
