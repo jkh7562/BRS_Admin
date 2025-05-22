@@ -42,7 +42,7 @@ const root = createBrowserRouter([
     { path: "n_FindIdPage", element: <Suspense fallback={Loading}><N_FindIdPage /></Suspense> },
     { path: "n_FindPasswordPage", element: <Suspense fallback={Loading}><N_FindPasswordPage /></Suspense> },
 
-    {
+    /*{
         path: "main",
         element: <ProtectedRoute><Suspense fallback={Loading}><MainPage /></Suspense></ProtectedRoute>
     },
@@ -85,7 +85,7 @@ const root = createBrowserRouter([
     {
         path: "monitoringPage",
         element: <ProtectedRoute><Suspense fallback={Loading}><MonitoringPage /></Suspense></ProtectedRoute>
-    },
+    },*/
     {
         path: "n_MainPage",
         element: <ProtectedRoute><Suspense fallback={Loading}><N_MainPage /></Suspense></ProtectedRoute>
