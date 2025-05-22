@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import NavigationBar from "../../component/NavigationBar";
-import useOrderHistory from "../../hooks/useOrderHistory";
+import NavigationBar from "../component/NavigationBar";
+import useOrderHistory from "../hooks/useOrderHistory";
 
 const OrderHistoryPage = () => {
     const [searchTerm, setSearchTerm] = useState("");

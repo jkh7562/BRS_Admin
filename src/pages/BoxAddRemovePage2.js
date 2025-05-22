@@ -1,16 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import NavigationBar from "../../component/NavigationBar"
+import NavigationBar from "../component/NavigationBar"
 import { Map, MapMarker, Circle, CustomOverlayMap } from "react-kakao-maps-sdk"
-import { fetchFilteredRecommendedBoxes, fetchCoordinates } from "../../api/apiServices"
+import { fetchFilteredRecommendedBoxes, fetchCoordinates } from "../api/apiServices"
 import axios from "axios"
 
-import pin from "../../assets/pin.png"
+import pin from "../assets/pin.png"
 
 // 커스텀 아이콘 import
-import child_safety from "../../assets/child_safety.png"
-import fire_station from "../../assets/fire-station.png"
+import child_safety from "../assets/child_safety.png"
+import fire_station from "../assets/fire-station.png"
 
 // 어린이보호구역 반경 (미터)
 const SAFETY_ZONE_RADIUS = 300

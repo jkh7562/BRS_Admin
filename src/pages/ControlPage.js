@@ -1,5 +1,5 @@
 import React from "react";
-import NavigationBar from "../../component/NavigationBar"; // NavigationBar 컴포넌트 임포트
+import NavigationBar from "../component/NavigationBar"; // NavigationBar 컴포넌트 임포트
 
 const ControlPage = () => {
     return (

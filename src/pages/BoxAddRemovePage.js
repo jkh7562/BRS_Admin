@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { fetchBoxes } from "../../slices/boxSlice";
-import NavigationBar from "../../component/NavigationBar";
+import { fetchBoxes } from "../slices/boxSlice";
+import NavigationBar from "../component/NavigationBar";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
-import { requestInstallBox, requestRemoveBox, requestInstallConfirmed, requestRemoveConfirmed } from "../../api/apiServices";
+import { requestInstallBox, requestRemoveBox, requestInstallConfirmed, requestRemoveConfirmed } from "../api/apiServices";
 /* import useBoxes from "../hooks/useBoxes"; */ // useBoxes 주석처리
 
 const BoxAddRemovePage = () => {

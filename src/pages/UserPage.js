@@ -1,6 +1,6 @@
 import React from "react";
-import NavigationBar from "../../component/NavigationBar";
-import useUserData from "../../hooks/useUserData";
+import NavigationBar from "../component/NavigationBar";
+import useUserData from "../hooks/useUserData";
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const UserPage = () => {

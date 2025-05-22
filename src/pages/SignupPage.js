@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom"; // useNavigate 가져오기
-import TextAnimation from "../../component/TextAnimation"; // TextAnimation 컴포넌트 가져오기
-import useSignup from "../../hooks/useSignup"; // 커스텀 훅 가져오기
+import TextAnimation from "../component/TextAnimation"; // TextAnimation 컴포넌트 가져오기
+import useSignup from "../hooks/useSignup"; // 커스텀 훅 가져오기
 
 const SignupPage = () => {
     const navigate = useNavigate();
