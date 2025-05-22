@@ -1,6 +1,6 @@
 import React from "react";
-import NavigationBar from "../component/NavigationBar";
-import useEmployeeRequests from "../hooks/useEmployeeRequests";
+import NavigationBar from "../../component/NavigationBar";
+import useEmployeeRequests from "../../hooks/useEmployeeRequests";
 
 const UserApprovalPage = () => {
     const {

@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import NavigationBar from "../component/NavigationBar";
+import NavigationBar from "../../component/NavigationBar";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
 
 // 더미 데이터 (변경 없음)

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import TextAnimation from "../component/TextAnimation";
-import useFindId from "../hooks/useFindId";
+import TextAnimation from "../../component/TextAnimation";
+import useFindId from "../../hooks/useFindId";
 
 const FindIdPage = () => {
     const navigate = useNavigate();

@@ -1,6 +1,6 @@
 import React from "react";
-import NavigationBar from "../component/NavigationBar";
-import useCollectorData from "../hooks/useCollectorData";
+import NavigationBar from "../../component/NavigationBar";
+import useCollectorData from "../../hooks/useCollectorData";
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const CollectorPage = () => {

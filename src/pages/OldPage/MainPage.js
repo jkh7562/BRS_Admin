@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUsers } from "../slices/userSlice";
-import NavigationBar from "../component/NavigationBar";
+import { fetchUsers } from "../../slices/userSlice";
+import NavigationBar from "../../component/NavigationBar";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
 //import { getAllLocations } from "../api/apiServices"; // ✅ 추천 수거함 API 추가
-import useGraph from "../hooks/useGraph";
-import useBoxes from "../hooks/useBoxes";
-import greenIcon from "../assets/아이콘 GREEN.svg";
-import greenSelectIcon from "../assets/아이콘 GREEN 선택효과.svg";
+import useGraph from "../../hooks/useGraph";
+import useBoxes from "../../hooks/useBoxes";
+import greenIcon from "../../assets/아이콘 GREEN.svg";
+import greenSelectIcon from "../../assets/아이콘 GREEN 선택효과.svg";
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const MainPage = () => {

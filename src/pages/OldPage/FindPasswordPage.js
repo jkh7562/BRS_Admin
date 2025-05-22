@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom"; // useNavigate 가져오기
-import TextAnimation from "../component/TextAnimation"; // TextAnimation 컴포넌트 import
-import useResetPassword from "../hooks/useResetPassword"; // ✅ 비밀번호 찾기 훅 import
+import TextAnimation from "../../component/TextAnimation"; // TextAnimation 컴포넌트 import
+import useResetPassword from "../../hooks/useResetPassword"; // ✅ 비밀번호 찾기 훅 import
 
 const FindPasswordPage = () => {
     const navigate = useNavigate(); // 뒤로가기 버튼용 네비게이트 함수

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import NavigationBar from "../component/NavigationBar";
-import useLogs from "../hooks/useLogs";
+import NavigationBar from "../../component/NavigationBar";
+import useLogs from "../../hooks/useLogs";
 
 const LogPage = () => {
     const {

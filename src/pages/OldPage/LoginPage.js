@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
-import TextAnimation from "../component/TextAnimation"
-import useLogin from "../hooks/useLogin"
+import TextAnimation from "../../component/TextAnimation"
+import useLogin from "../../hooks/useLogin"
 
 const LoginPage = () => {
     const { formData, handleChange, handleLogin, errorMessage } = useLogin()

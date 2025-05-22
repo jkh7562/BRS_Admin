@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import NavigationBar from "../component/NavigationBar";
+import NavigationBar from "../../component/NavigationBar";
 import { Map } from "react-kakao-maps-sdk";
 
 const collectors = [
