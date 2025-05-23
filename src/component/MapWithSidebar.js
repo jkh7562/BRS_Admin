@@ -22,7 +22,8 @@ import {
     requestRemoveBox,
     fetchFilteredRecommendedBoxes,
     fetchCoordinates,
-} from "../api/apiServices" // 경로는 실제 API 파일 위치에 맞게 조정해주세요
+    getBoxImage,
+} from "../api/apiServices"
 
 // 메모이제이션된 마커 컴포넌트
 const BoxMarker = memo(({ box, icon, size, onClick }) => {
@@ -136,8 +137,6 @@ const ActionButton = memo(({ onClick, className, disabled, children }) => {
 })
 ActionButton.displayName = "ActionButton"
 
-// Replace the MapLegend component with this updated version
-// 메모이제이션된 범례 컴포넌트
 // 메모이제이션된 범례 컴포넌트
 const MapLegend = memo(({ isAddRemovePage }) => {
     const [isCollapsed, setIsCollapsed] = useState(false)
@@ -299,6 +298,86 @@ const RegionFilter = memo(({ region, setRegion, regions, boxCount, showRecommend
 })
 RegionFilter.displayName = "RegionFilter"
 
+// 우측 사이드바 컴포넌트 추가
+const RightSidebar = memo(({ selectedBox, addressMap, selectedBoxImage, imageLoading, imageError }) => {
+    if (!selectedBox) {
+        return (
+            <div className="w-[300px] h-full flex flex-col border-l bg-white p-6">
+                <div className="flex items-center justify-center h-full text-gray-500">수거함을 선택해주세요</div>
+            </div>
+        )
+    }
+
+    const maxVolume = Math.max(selectedBox.volume1 || 0, selectedBox.volume2 || 0, selectedBox.volume3 || 0)
+    const getVolumeStatus = (volume) => {
+        if (volume <= 50) return { text: "양호", color: "text-green-600" }
+        if (volume <= 80) return { text: "주의", color: "text-yellow-600" }
+        return { text: "위험", color: "text-red-600" }
+    }
+
+    const volumeStatus = getVolumeStatus(maxVolume)
+
+    return (
+        <div className="w-[300px] h-full flex flex-col border-l bg-white">
+            <div className="p-6 border-b">
+                <h2 className="text-xl font-bold text-[#21262B] mb-2">{selectedBox.name}</h2>
+                <p className="text-sm text-[#60697E]">{addressMap[selectedBox.id] || "주소 변환중..."}</p>
+            </div>
+
+            <div className="p-6 border-b">
+                <h3 className="text-lg font-semibold mb-4">수거함 정보</h3>
+                <div className="space-y-3">
+                    <div className="flex justify-between">
+                        <span className="text-sm text-[#60697E]">수거량:</span>
+                        <span className={`text-sm font-medium ${volumeStatus.color}`}>
+              {maxVolume}% ({volumeStatus.text})
+            </span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-sm text-[#60697E]">상태:</span>
+                        <span className="text-sm font-medium">{selectedBox.status === "fire" ? "화재 감지" : "정상"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-sm text-[#60697E]">좌표:</span>
+                        <span className="text-sm text-[#60697E]">
+              {selectedBox.lat.toFixed(6)}, {selectedBox.lng.toFixed(6)}
+            </span>
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex-1 p-6">
+                <h3 className="text-lg font-semibold mb-4">수거함 이미지</h3>
+                <div className="w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
+                    {imageLoading ? (
+                        <div className="w-full h-full flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
+                        </div>
+                    ) : imageError || !selectedBoxImage ? (
+                        <div className="w-full h-full flex items-center justify-center text-gray-500">
+                            <div className="text-center">
+                                <div className="text-2xl mb-2">📷</div>
+                                <div className="text-sm">이미지를 불러올 수 없습니다</div>
+                            </div>
+                        </div>
+                    ) : (
+                        <img
+                            src={selectedBoxImage || "/placeholder.svg"}
+                            alt={`${selectedBox.name} 이미지`}
+                            className="w-full h-full object-cover"
+                            onError={() => {
+                                // 이미지 로드 실패 시 처리
+                                console.error(`수거함 ${selectedBox.id} 이미지 로드 실패`)
+                            }}
+                        />
+                    )}
+                </div>
+            </div>
+        </div>
+    )
+})
+RightSidebar.displayName = "RightSidebar"
+
 const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange = () => {} }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true)
     const [selectedBoxId, setSelectedBoxId] = useState(0)
@@ -308,8 +387,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     const [isDragging, setIsDragging] = useState(false)
     const dragStartTimeRef = useRef(0)
     const [showRecommendedLocations, setShowRecommendedLocations] = useState(false)
-    const [mapClickEnabled, setMapClickEnabled] = useState(true) // 지도 클릭 활성화 상태
-    // Remove the showLegend state variable from the component
+    const [mapClickEnabled, setMapClickEnabled] = useState(true)
     const [newPinPosition, setNewPinPosition] = useState(null)
     const [showNewPinOverlay, setShowNewPinOverlay] = useState(false)
     const [newBoxName, setNewBoxName] = useState("")
@@ -348,6 +426,11 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
 
     // 지역 필터링 상태 - 광역시/도 단위만 사용
     const [region, setRegion] = useState("전체")
+
+    // 우측 사이드바 관련 상태 추가
+    const [selectedBoxImage, setSelectedBoxImage] = useState(null)
+    const [imageLoading, setImageLoading] = useState(false)
+    const [imageError, setImageError] = useState(false)
 
     // 별 좌표 범위 (대략적인 값)
     const regionBounds = useMemo(
@@ -669,6 +752,42 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
         }
     }, [])
 
+    // 선택된 박스 이미지 로드 useEffect 추가
+    useEffect(() => {
+        const loadBoxImage = async () => {
+            // isAddRemovePage가 false이고 선택된 박스가 있을 때만 이미지 로드
+            if (isAddRemovePage || !selectedBoxId) {
+                setSelectedBoxImage(null)
+                setImageError(false)
+                return
+            }
+
+            try {
+                setImageLoading(true)
+                setImageError(false)
+
+                // getBoxImage API를 사용하여 이미지 URL 가져오기
+                const imageUrl = await getBoxImage(selectedBoxId)
+                setSelectedBoxImage(imageUrl)
+            } catch (error) {
+                console.log(`박스 ID ${selectedBoxId}에 대한 이미지를 불러올 수 없습니다.`)
+                setImageError(true)
+                setSelectedBoxImage(null)
+            } finally {
+                setImageLoading(false)
+            }
+        }
+
+        loadBoxImage()
+
+        // 컴포넌트 언마운트 시 이미지 URL 리소스 해제
+        return () => {
+            if (selectedBoxImage) {
+                URL.revokeObjectURL(selectedBoxImage)
+            }
+        }
+    }, [selectedBoxId, isAddRemovePage])
+
     // 주소 변환 로직 수정 - 완전히 새로운 접근 방식
     useEffect(() => {
         // filteredBoxes가 비어있거나 지오코더가 없으면 실행하지 않음
@@ -737,15 +856,6 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
 
         fetchAddresses()
     }, [filteredBoxes, addressMap])
-
-    // 기존 주소 변환 로직 제거 (아래 코드 삭제)
-    // useEffect(() => {
-    //   // 이미 주소를 가져왔거나 filteredBoxes가 비어있거나 지오코더가 없으면 실행하지 않음
-    //   if (addressFetchedRef.current || filteredBoxes.length === 0 || !geocoderRef.current) {
-    //     return;
-    //   }
-    //   ...
-    // }, [filteredBoxes, addressMap]);
 
     // 모든 데이터 로드 함수 - useCallback으로 최적화
     const loadAllData = useCallback(async () => {
@@ -917,9 +1027,6 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
             setMapClickEnabled(true)
         }, 100)
     }, [])
-
-    // Add a new state variable to track if we're showing an overlay for a recommended location
-    // const [isRecommendedLocationOverlay, setIsRecommendedLocationOverlay] = useState(false)
 
     // 추천 위치 마커 클릭 핸들러 추가
     const handleRecommendedLocationClick = useCallback(
@@ -1257,17 +1364,6 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
         ],
     )
 
-    // 오버레이 닫기
-    const closeOverlaysOriginal = useCallback(
-        (e) => {
-            e.stopPropagation() // 이벤트 전파 방지
-            setShowNewPinOverlay(false)
-            setShowExistingPinOverlay(false)
-            setNewPinPosition(null)
-        },
-        [setShowNewPinOverlay, setShowExistingPinOverlay, setNewPinPosition],
-    )
-
     // 선택된 박스 정보 가져오기
     const getSelectedBox = useCallback(() => {
         return filteredBoxes.find((box) => box.id === selectedBoxId) || null
@@ -1277,8 +1373,6 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     const handleZoomChanged = useCallback((map) => {
         setMapLevel(map.getLevel())
     }, [])
-
-    // 컴포넌트 마운트 시 즉시 데이터 로드하도록 변경
 
     // 제거 요청 핸들러
     const handleRemoveRequest = useCallback(
@@ -1338,6 +1432,9 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
             loadAllData,
         ],
     )
+
+    // 우측 사이드바 표시 여부 결정
+    const showRightSidebar = !isAddRemovePage && selectedBoxId
 
     return (
         <div className="flex bg-white rounded-2xl shadow-md overflow-hidden h-[570px] relative">
@@ -1406,7 +1503,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
             </div>
 
             {/* 지도 */}
-            <div className="absolute top-0 left-0 w-full h-full z-0">
+            <div className={`absolute top-0 left-0 h-full z-0 ${showRightSidebar ? "right-[300px]" : "right-0"} w-auto`}>
                 <Map
                     center={{ lat: 36.8, lng: 127.0729 }}
                     style={{ width: "100%", height: "100%" }}
@@ -1729,6 +1826,18 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
                     </div>
                 )}
             </div>
+
+            {/* 우측 사이드바 - isAddRemovePage가 false이고 박스가 선택되었을 때만 표시 */}
+            {showRightSidebar && (
+                <RightSidebar
+                    selectedBox={getSelectedBox()}
+                    addressMap={addressMap}
+                    selectedBoxImage={selectedBoxImage}
+                    imageLoading={imageLoading}
+                    imageError={imageError}
+                />
+            )}
+
             {/* 스크롤바 스타일 */}
             <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {

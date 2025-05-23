@@ -333,6 +333,34 @@ export const getCollectionImage = async (boxLogId: number | string): Promise<str
     }
 };
 
+// ✅ 분리 아이템 이미지 조회 API
+export const getItemsImage = async (boxLogId: number | string) => {
+    try {
+        const response = await axiosInstance.get(`/admin/itemsImage/${boxLogId}`, {
+            responseType: 'json', // Map<String, byte[]>를 JSON으로 받음
+        });
+
+        // 결과를 저장할 객체 생성
+        const imageUrls = {};
+
+        // 각 이미지 키에 대해 Blob 생성 및 URL 변환
+        for (const [key, byteArray] of Object.entries(response.data)) {
+            if (byteArray) {
+                // byte[] 배열을 Blob으로 변환
+                const blob = new Blob([new Uint8Array(byteArray)], { type: 'image/jpeg' });
+
+                // Blob을 URL로 변환
+                imageUrls[key] = URL.createObjectURL(blob);
+            }
+        }
+
+        return imageUrls; // { battery: url1, discharged: url2, notDischarged: url3 }
+    } catch (error) {
+        console.error("❌ 아이템 이미지 조회 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
 // ✅ 화재 이미지 조회 API
 export const getFireImage = async (alarmId: number | string): Promise<string> => {
     try {
