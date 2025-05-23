@@ -3,7 +3,7 @@ import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import SearchIcon from "../../assets/검색.png"
 import CopyIcon from "../../assets/copy.png"
-import { fetchOrderList, fetchOrderItemsByOrderId, fetchOrdersByUserId } from "../../api/apiServices" // API 함수 import
+import { fetchOrderList, fetchOrdersByUserId } from "../../api/apiServices" // API 함수 import
 
 const N_OrderHistoryPage = () => {
     // 상태 관리
@@ -24,7 +24,6 @@ const N_OrderHistoryPage = () => {
 
                 // 모든 주문 내역 가져오기
                 const orderListData = await fetchOrderList()
-                console.log("주문 내역 데이터:", orderListData)
 
                 // 주문 데이터 포맷팅
                 const formattedOrders = formatOrderData(orderListData)
@@ -52,7 +51,11 @@ const N_OrderHistoryPage = () => {
 
     // 주문 데이터 포맷팅 함수
     const formatOrderData = (orders) => {
-        return orders.map((order) => {
+        return orders.map((orderData) => {
+            // 새 API 구조에서 order와 items 분리
+            const order = orderData.order || orderData
+            const items = orderData.items || []
+
             // 날짜 및 시간 포맷팅
             const dateObj = new Date(order.date)
             const formattedDate = `${dateObj.getFullYear()}/${String(dateObj.getMonth() + 1).padStart(2, "0")}/${String(dateObj.getDate()).padStart(2, "0")}`
@@ -61,15 +64,23 @@ const N_OrderHistoryPage = () => {
             const hour12 = hours % 12 || 12
             const formattedTime = `${ampm} ${hour12}:${String(dateObj.getMinutes()).padStart(2, "0")}:${String(dateObj.getSeconds()).padStart(2, "0")}`
 
+            // 상품 정보 포맷팅
+            const formattedItems = items.map((item) => ({
+                name: `상품 ID: ${item.itemId || "정보 없음"}`,
+                price: item.price,
+                quantity: item.count,
+                totalPrice: item.price * item.count,
+            }))
+
             return {
                 id: order.id,
-                userId: order.userId, // API 응답의 userId 필드 사용
+                userId: order.userId,
                 date: formattedDate,
                 time: formattedTime,
                 totalAmount: order.totalPrice,
-                items: [],
+                items: formattedItems,
                 expanded: false,
-                originalDate: order.date, // 정렬을 위해 원본 날짜 보존
+                originalDate: order.date,
             }
         })
     }
@@ -78,12 +89,16 @@ const N_OrderHistoryPage = () => {
     const extractUniqueUsers = (orders) => {
         const userMap = new Map()
 
-        orders.forEach((order) => {
-            if (!userMap.has(order.userId)) {
+        orders.forEach((orderData) => {
+            // 새 API 구조에서 order 객체 내부의 userId 접근
+            const order = orderData.order || orderData
+            const userId = order.userId
+
+            if (!userMap.has(userId)) {
                 // userId 필드를 사용하여 사용자 정보 추출
-                userMap.set(order.userId, {
-                    userId: order.userId, // userId 필드 사용
-                    name: `${order.userId}`, // ID: 접두사 없이 userId만 표시
+                userMap.set(userId, {
+                    userId: userId, // userId 필드 사용
+                    name: `${userId}`, // ID: 접두사 없이 userId만 표시
                     date: "",
                     time: "",
                     selected: false,
@@ -139,44 +154,21 @@ const N_OrderHistoryPage = () => {
 
             // 사용자별 주문 내역 가져오기
             const userOrdersData = await fetchOrdersByUserId(userId)
-            console.log(`사용자 ${userId}의 주문 내역:`, userOrdersData)
+            console.log(`=== fetchOrdersByUserId(${userId}) API 응답 구조 확인 ===`)
+            console.log("전체 데이터:", userOrdersData)
+            console.log("데이터 타입:", typeof userOrdersData)
+            console.log("배열 여부:", Array.isArray(userOrdersData))
+            if (userOrdersData && userOrdersData.length > 0) {
+                console.log("첫 번째 항목 구조:", JSON.stringify(userOrdersData[0], null, 2))
+                console.log("첫 번째 항목의 키들:", Object.keys(userOrdersData[0]))
+            }
+            console.log("=======================================")
 
-            // 주문 데이터 포맷팅
+            // 주문 데이터 포맷팅 - 이미 상품 정보가 포함되어 있음
             const formattedUserOrders = formatOrderData(userOrdersData)
 
-            // 각 주문의 상품 정보 가져오기
-            const ordersWithItems = await Promise.all(
-                formattedUserOrders.map(async (order) => {
-                    try {
-                        const orderItems = await fetchOrderItemsByOrderId(order.id)
-                        console.log(`주문 ${order.id}의 상품 정보:`, orderItems)
-
-                        // 상품 정보 포맷팅
-                        const formattedItems = orderItems.map((item) => ({
-                            name: `상품 ID: ${item.itemId || item.item_id || "정보 없음"}`, // itemId 또는 item_id 필드 사용
-                            price: item.price,
-                            quantity: item.count,
-                            totalPrice: item.price * item.count,
-                        }))
-
-                        return {
-                            ...order,
-                            items: formattedItems,
-                            expanded: formattedUserOrders.length === 1, // 주문이 하나만 있으면 자동으로 펼치기
-                        }
-                    } catch (err) {
-                        console.error(`주문 ${order.id}의 상품 정보 로딩 실패:`, err)
-                        return {
-                            ...order,
-                            items: [],
-                            expanded: false,
-                        }
-                    }
-                }),
-            )
-
             // 날짜순으로 정렬 (최신순)
-            const sortedOrders = [...ordersWithItems].sort((a, b) => {
+            const sortedOrders = [...formattedUserOrders].sort((a, b) => {
                 const dateA = new Date(a.originalDate)
                 const dateB = new Date(b.originalDate)
                 return dateB - dateA // 내림차순 (최신순)

@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import SearchIcon from "../../assets/검색.png"
 import CopyIcon from "../../assets/copy.png"
@@ -21,41 +23,41 @@ export default function UserInfoSection() {
     const [copiedId, setCopiedId] = useState(null)
 
     const handleCopy = (e, userId, text) => {
-        e.stopPropagation(); // 이벤트 버블링 방지
+        e.stopPropagation() // 이벤트 버블링 방지
 
         try {
             // 임시 텍스트 영역 생성
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
+            const textArea = document.createElement("textarea")
+            textArea.value = text
 
             // 화면 밖으로 위치시키기
-            textArea.style.position = "fixed";
-            textArea.style.left = "-999999px";
-            textArea.style.top = "-999999px";
-            document.body.appendChild(textArea);
+            textArea.style.position = "fixed"
+            textArea.style.left = "-999999px"
+            textArea.style.top = "-999999px"
+            document.body.appendChild(textArea)
 
             // 텍스트 선택 및 복사
-            textArea.focus();
-            textArea.select();
+            textArea.focus()
+            textArea.select()
 
-            const successful = document.execCommand("copy");
+            const successful = document.execCommand("copy")
 
             // 임시 요소 제거
-            document.body.removeChild(textArea);
+            document.body.removeChild(textArea)
 
             if (successful) {
                 // 복사 성공
-                setCopiedId(userId);
+                setCopiedId(userId)
                 setTimeout(() => {
-                    setCopiedId(null);
-                }, 1500);
+                    setCopiedId(null)
+                }, 1500)
             } else {
-                console.error("execCommand 복사 실패");
+                console.error("execCommand 복사 실패")
             }
         } catch (err) {
-            console.error("복사 실패:", err);
+            console.error("복사 실패:", err)
         }
-    };
+    }
 
     // 툴팁 상태 관리 추가
     const [tooltips, setTooltips] = useState({
@@ -136,8 +138,36 @@ export default function UserInfoSection() {
 
         try {
             setLoading((prev) => ({ ...prev, orders: true }))
-            const orders = await fetchOrdersByUserId(userId)
-            setUserOrders(orders || [])
+            const ordersData = await fetchOrdersByUserId(userId)
+            console.log(`=== fetchOrdersByUserId(${userId}) API 응답 구조 확인 ===`)
+            console.log("전체 데이터:", ordersData)
+            console.log("데이터 타입:", typeof ordersData)
+            console.log("배열 여부:", Array.isArray(ordersData))
+            if (ordersData && ordersData.length > 0) {
+                console.log("첫 번째 항목 구조:", JSON.stringify(ordersData[0], null, 2))
+                console.log("첫 번째 항목의 키들:", Object.keys(ordersData[0]))
+            }
+            console.log("=======================================")
+
+            // 새 API 구조 처리 (order와 items 구조)
+            const formattedOrders = ordersData.map((orderData) => {
+                const order = orderData.order || orderData
+                const items = orderData.items || []
+
+                // 상품 정보 추출
+                const productInfo = items.length > 0 ? items[0] : {}
+
+                return {
+                    id: order.id,
+                    date: order.date,
+                    orderNumber: order.id,
+                    productCode: productInfo.itemId || "정보 없음",
+                    quantity: productInfo.count || 0,
+                    usedPoints: order.totalPrice || 0,
+                }
+            })
+
+            setUserOrders(formattedOrders || [])
         } catch (error) {
             console.error("주문 내역 로딩 실패:", error)
             setUserOrders([])
@@ -471,7 +501,7 @@ export default function UserInfoSection() {
                                             hour12: true,
                                         })}
                                         code={order.orderNumber || order.id}
-                                        amount={`${order.productCode || "101"} (수량${order.quantity || 1} : ${order.usedPoints || 60}마일리지)`}
+                                        amount={`${order.productCode || "정보 없음"} (수량${order.quantity || 0} : ${order.usedPoints || 0}마일리지)`}
                                     />
                                 ))
                             )}
