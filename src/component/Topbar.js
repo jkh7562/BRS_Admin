@@ -361,19 +361,21 @@ const Topbar = () => {
         }
     }
 
-    // 알람 클릭 핸들러
-    const handleAlarmClick = (alarm) => {
-        // 알람 타입에 따라 다른 페이지로 이동
-        if (alarm.type === "NEW_USER_REQUEST") {
-            navigate("/n_UserApprovalPage") // 가입 관리 페이지로 이동
-        } else if (alarm.type === "fire") {
-            navigate("/n_MonitoringPage") // 모니터링 페이지로 이동
-        } else if (alarm.type.startsWith("INSTALL_") || alarm.type.startsWith("REMOVE_")) {
-            navigate("/n_BoxAddRemovePage") // 수거함 설치/제거 페이지로 이동
+    // 알람 클릭 핸들러 - 직접 URL 이동 방식으로 변경
+    const handleAlarmClick = (e, alarm) => {
+        console.log("알람 클릭됨:", alarm.type)
+
+        // 이벤트 기본 동작 방지
+        if (e) {
+            e.preventDefault()
+            e.stopPropagation()
         }
 
         // 알림 사이드바 닫기
         setIsNotificationSidebarOpen(false)
+
+        // 사이드바와 동일한 단순한 navigate 방식 사용
+        navigate("/n_MonitoringPage")
     }
 
     // 알람 타입에 따른 제목과 아이콘 가져오기
@@ -612,15 +614,17 @@ const Topbar = () => {
         }))
     }
 
-    // 테스트용 더미 알람 데이터 (실제 구현 시 제거)
-    const dummyAlarms = [
-        /*{ id: 1, type: "fire", location: "서울특별시 송파구 가락로 111", timestamp: new Date().toISOString(), priority: 1 },
-                    { id: 2, type: "INSTALL_COMPLETED", location: "선문대 동문 앞", timestamp: new Date().toISOString(), priority: 3 },
-                    { id: 3, type: "REMOVE_COMPLETED", location: "선문대 서문 앞", timestamp: new Date().toISOString(), priority: 3 }*/
-    ]
+    // 테스트용 더미 알람 데이터 (실제 구현 시 제거) - 주석을 해제하여 테스트용 알람 활성화
+    // const dummyAlarms = [
+    //   { id: 1, type: "fire", location: "서울특별시 송파구 가락로 111", timestamp: new Date().toISOString(), priority: 1 },
+    //   { id: 2, type: "INSTALL_COMPLETED", location: "선문대 동문 앞", timestamp: new Date().toISOString(), priority: 3 },
+    //   { id: 3, type: "REMOVE_COMPLETED", location: "선문대 서문 앞", timestamp: new Date().toISOString(), priority: 3 },
+    //   { id: 4, type: "COLLECTION_NEEDED", location: "선문대 정문 앞", timestamp: new Date().toISOString(), priority: 3 },
+    // ]
 
     // 실제 알람과 더미 알람 합치기 (테스트용, 실제 구현 시 alarms만 사용)
-    const allAlarms = [...alarms, ...dummyAlarms]
+    // const allAlarms = [...alarms, ...dummyAlarms]
+    const allAlarms = [...alarms]
 
     // 우선순위에 따라 알람 정렬 (1: 화재, 2: 신규가입, 3: 기타)
     // NEW_USER_REQUEST 타입 알람 제외
@@ -800,7 +804,11 @@ const Topbar = () => {
                                         className={`${bgColor} py-6 px-6 rounded-2xl shadow cursor-pointer hover:opacity-90 transition-opacity ${
                                             alarm.type === "fire" ? "animate-pulse-slow border-2 border-red-700" : ""
                                         }`}
-                                        onClick={() => handleAlarmClick(alarm)}
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            e.stopPropagation()
+                                            handleAlarmClick(e, alarm)
+                                        }}
                                     >
                                         <div className="flex items-start gap-2">
                                             <div className="w-full">

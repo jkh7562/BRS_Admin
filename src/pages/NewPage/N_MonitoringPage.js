@@ -84,6 +84,23 @@ const N_MonitoringPage = () => {
         }))
     }, [filters.region])
 
+    // 페이지 로드 시 localStorage에서 활성 탭 확인
+    useEffect(() => {
+        // localStorage에서 활성 탭 정보 가져오기
+        const activeTab = localStorage.getItem("activeMonitoringTab")
+
+        if (activeTab) {
+            // 활성 탭 설정
+            setFilters((prev) => ({
+                ...prev,
+                type: activeTab,
+            }))
+
+            // localStorage에서 활성 탭 정보 삭제 (일회성 사용)
+            localStorage.removeItem("activeMonitoringTab")
+        }
+    }, [])
+
     // 필터 변경 핸들러
     const handleFilterChange = (filterType, value) => {
         setFilters((prev) => ({
@@ -190,12 +207,11 @@ const N_MonitoringPage = () => {
                                     onClick={() => toggleDropdown("type")}
                                 >
                                     {filters.type}
-                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
+                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
                                 </button>
                                 {/* 타입 드롭다운 메뉴 */}
                                 {openDropdown.type && (
-                                    <div
-                                        className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[160px] overflow-hidden shadow-sm">
+                                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[160px] overflow-hidden shadow-sm">
                                         {["설치 현황", "제거 현황", "수거 현황", "화재 처리"].map((type) => (
                                             <div
                                                 key={type}
@@ -214,15 +230,13 @@ const N_MonitoringPage = () => {
                             </div>
 
                             <div className="relative dropdown-container">
-                                <button className="flex items-center gap-2 text-[#21262B]"
-                                        onClick={() => toggleDropdown("region")}>
+                                <button className="flex items-center gap-2 text-[#21262B]" onClick={() => toggleDropdown("region")}>
                                     {filters.region}
-                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
+                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
                                 </button>
                                 {/* 지역 드롭다운 메뉴 */}
                                 {openDropdown.region && (
-                                    <div
-                                        className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[200px] max-h-[200px] overflow-y-auto shadow-sm">
+                                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[200px] max-h-[200px] overflow-y-auto shadow-sm">
                                         {allRegions.map((region) => (
                                             <div
                                                 key={region}
@@ -247,12 +261,11 @@ const N_MonitoringPage = () => {
                                     disabled={isCityDisabled}
                                 >
                                     {filters.city}
-                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
+                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
                                 </button>
                                 {/* 도시 드롭다운 메뉴 */}
                                 {openDropdown.city && !isCityDisabled && (
-                                    <div
-                                        className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[120px] max-h-[240px] overflow-y-auto shadow-sm">
+                                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[120px] max-h-[240px] overflow-y-auto shadow-sm">
                                         <div
                                             className={`px-4 py-2 cursor-pointer font-normal ${
                                                 hoveredItem.city === "시/군/구" ? "bg-[#F5F5F5] rounded-lg" : ""
@@ -280,11 +293,11 @@ const N_MonitoringPage = () => {
                                 )}
                             </div>
                         </div>
-                        <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
+                        <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
                     </div>
 
                     {renderMonitoringComponent()}
-                    <div className="pb-32"/>
+                    <div className="pb-32" />
                 </main>
             </div>
 
