@@ -181,7 +181,8 @@ const N_MonitoringPage = () => {
                 <Topbar />
                 <main className="pt-24 px-24 pb-6 space-y-4">
                     <p className="font-bold text-[#272F42] text-xl">모니터링</p>
-                    <div className="relative pt-2">
+                    <span className="text-sm text-gray-500">현재 관리자(자신)의 관리 현황을 확인할 수 있습니다.</span>
+                    <div className="relative">
                         <div className="flex flex-wrap gap-7 mt-2 pb-1 font-bold relative z-10">
                             <div className="relative dropdown-container">
                                 <button
@@ -189,11 +190,12 @@ const N_MonitoringPage = () => {
                                     onClick={() => toggleDropdown("type")}
                                 >
                                     {filters.type}
-                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
+                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
                                 </button>
                                 {/* 타입 드롭다운 메뉴 */}
                                 {openDropdown.type && (
-                                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[160px] overflow-hidden shadow-sm">
+                                    <div
+                                        className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[160px] overflow-hidden shadow-sm">
                                         {["설치 현황", "제거 현황", "수거 현황", "화재 처리"].map((type) => (
                                             <div
                                                 key={type}
@@ -212,13 +214,15 @@ const N_MonitoringPage = () => {
                             </div>
 
                             <div className="relative dropdown-container">
-                                <button className="flex items-center gap-2 text-[#21262B]" onClick={() => toggleDropdown("region")}>
+                                <button className="flex items-center gap-2 text-[#21262B]"
+                                        onClick={() => toggleDropdown("region")}>
                                     {filters.region}
-                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
+                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
                                 </button>
                                 {/* 지역 드롭다운 메뉴 */}
                                 {openDropdown.region && (
-                                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[200px] max-h-[200px] overflow-y-auto shadow-sm">
+                                    <div
+                                        className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[200px] max-h-[200px] overflow-y-auto shadow-sm">
                                         {allRegions.map((region) => (
                                             <div
                                                 key={region}
@@ -243,11 +247,12 @@ const N_MonitoringPage = () => {
                                     disabled={isCityDisabled}
                                 >
                                     {filters.city}
-                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2" />
+                                    <img src={DownIcon || "/placeholder.svg"} alt="Down" className="w-3 h-2"/>
                                 </button>
                                 {/* 도시 드롭다운 메뉴 */}
                                 {openDropdown.city && !isCityDisabled && (
-                                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[120px] max-h-[240px] overflow-y-auto shadow-sm">
+                                    <div
+                                        className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg w-[120px] max-h-[240px] overflow-y-auto shadow-sm">
                                         <div
                                             className={`px-4 py-2 cursor-pointer font-normal ${
                                                 hoveredItem.city === "시/군/구" ? "bg-[#F5F5F5] rounded-lg" : ""
@@ -275,11 +280,11 @@ const N_MonitoringPage = () => {
                                 )}
                             </div>
                         </div>
-                        <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
+                        <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0"/>
                     </div>
 
                     {renderMonitoringComponent()}
-                    <div className="pb-32" />
+                    <div className="pb-32"/>
                 </main>
             </div>
 

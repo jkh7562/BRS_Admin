@@ -148,6 +148,7 @@ const N_UserApprovalPage = () => {
                 <Topbar />
                 <main className="pt-24 px-24 pb-6 space-y-6">
                     <p className="font-bold text-[#272F42] text-xl">가입관리</p>
+                    <span className="text-sm text-gray-500">가입신청한 예비 수거자에 대해 승인하거나 반려할 수 있습니다.</span>
 
                     {error && (
                         <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-4">
@@ -166,13 +167,15 @@ const N_UserApprovalPage = () => {
 
                     {isLoading ? (
                         <div className="flex justify-center items-center h-64">
-                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#21262B]"></div>
+                            <div
+                                className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#21262B]"></div>
                         </div>
                     ) : (
                         <div>
                             <div className="bg-white shadow rounded-2xl flex items-center mb-3 px-8 py-1">
                                 <div className="flex items-center font-nomal text-[#7A7F8A] mr-auto">
-                                    <img src={BellIcon || "/placeholder.svg"} alt="Bell" className="w-[13.49px] h-[15.65px] mr-2" />
+                                    <img src={BellIcon || "/placeholder.svg"} alt="Bell"
+                                         className="w-[13.49px] h-[15.65px] mr-2"/>
                                     <span>총 {filteredRegistrations.length}건의 새로운 가입신청이 있습니다</span>
                                 </div>
                                 <div className="relative">
@@ -190,13 +193,19 @@ const N_UserApprovalPage = () => {
                                     />
                                 </div>
                                 <div className="flex ml-8">
-                                    <button className="px-2 py-1 mr-2 flex items-center" onClick={() => toggleSortOrder(false)}>
-                                        <span className={`w-2 h-2 ${!isNewest ? "bg-[#21262B]" : "bg-gray-400"} rounded-full mr-2`}></span>
-                                        <span className={!isNewest ? "text-[#21262B] font-medium" : "text-[#60697E]"}>오래된순</span>
+                                    <button className="px-2 py-1 mr-2 flex items-center"
+                                            onClick={() => toggleSortOrder(false)}>
+                                        <span
+                                            className={`w-2 h-2 ${!isNewest ? "bg-[#21262B]" : "bg-gray-400"} rounded-full mr-2`}></span>
+                                        <span
+                                            className={!isNewest ? "text-[#21262B] font-medium" : "text-[#60697E]"}>오래된순</span>
                                     </button>
-                                    <button className="px-2 py-1 flex items-center" onClick={() => toggleSortOrder(true)}>
-                                        <span className={`w-2 h-2 ${isNewest ? "bg-[#21262B]" : "bg-gray-400"} rounded-full mr-2`}></span>
-                                        <span className={isNewest ? "text-[#21262B] font-medium" : "text-[#60697E]"}>최신순</span>
+                                    <button className="px-2 py-1 flex items-center"
+                                            onClick={() => toggleSortOrder(true)}>
+                                        <span
+                                            className={`w-2 h-2 ${isNewest ? "bg-[#21262B]" : "bg-gray-400"} rounded-full mr-2`}></span>
+                                        <span
+                                            className={isNewest ? "text-[#21262B] font-medium" : "text-[#60697E]"}>최신순</span>
                                     </button>
                                 </div>
                             </div>
@@ -218,7 +227,8 @@ const N_UserApprovalPage = () => {
                                                         </div>
                                                         <div className="flex gap-1">
                                                             <span className="text-gray-500 w-16">전화번호</span>
-                                                            <span className="text-[#21262B] font-bold">{reg.phone}</span>
+                                                            <span
+                                                                className="text-[#21262B] font-bold">{reg.phone}</span>
                                                         </div>
                                                     </div>
 
@@ -236,11 +246,13 @@ const N_UserApprovalPage = () => {
                                                     <div className="space-y-1">
                                                         <div className="flex gap-1">
                                                             <span className="text-[#7A7F8A] w-16">아이디</span>
-                                                            <span className="text-[#21262B] font-bold">{reg.userId || "정보 없음"}</span>
+                                                            <span
+                                                                className="text-[#21262B] font-bold">{reg.userId || "정보 없음"}</span>
                                                         </div>
                                                         <div className="flex gap-1">
                                                             <span className="text-[#7A7F8A] w-16">비밀번호</span>
-                                                            <span className="text-[#21262B] font-bold">{reg.password || "정보 없음"}</span>
+                                                            <span
+                                                                className="text-[#21262B] font-bold">{reg.password || "정보 없음"}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -256,12 +268,15 @@ const N_UserApprovalPage = () => {
                                             </div>
 
                                             <div className="w-full bg-white px-6">
-                                                <img src={BottomLine || "/placeholder.svg"} alt="Bottom Line" className="w-full h-[1px]" />
+                                                <img src={BottomLine || "/placeholder.svg"} alt="Bottom Line"
+                                                     className="w-full h-[1px]"/>
                                             </div>
 
-                                            <div className="p-6 bg-white flex justify-between items-center font-nomal text-[#7A7F8A]">
+                                            <div
+                                                className="p-6 bg-white flex justify-between items-center font-nomal text-[#7A7F8A]">
                                                 <div className="flex items-center">
-                                                    <img src={HomeIcon || "/placeholder.svg"} alt="Home" className="w-[17px] h-[15px] mr-2" />
+                                                    <img src={HomeIcon || "/placeholder.svg"} alt="Home"
+                                                         className="w-[17px] h-[15px] mr-2"/>
                                                     <span>{reg.address}</span>
                                                 </div>
                                                 <button
@@ -277,7 +292,7 @@ const N_UserApprovalPage = () => {
                             )}
                         </div>
                     )}
-                    <div className="pb-32" />
+                    <div className="pb-32"/>
                 </main>
             </div>
         </div>

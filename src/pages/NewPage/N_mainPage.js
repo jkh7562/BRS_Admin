@@ -326,9 +326,10 @@ const N_mainPage = () => {
 
                     {/* 수거함 현황 */}
                     <div className="pt-12 mb-4">
-                        <h3 className="text-xl font-bold mb-4 text-[#272F42]">수거함 현황</h3>
-                        <div className="relative mb-9">
-                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200" />
+                        <h3 className="text-xl font-bold text-[#272F42]">수거함 현황</h3>
+                        <span className="text-sm text-gray-500">각 수거함의 위치와 수거량 현황을 확인할 수 있습니다.</span>
+                        <div className="relative mt-4 mb-9">
+                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200"/>
                             <div className="flex items-center gap-6">
                                 {["전체 수거함", "수거 필요", "화재감지"].map((tab) => (
                                     <button
@@ -359,7 +360,8 @@ const N_mainPage = () => {
                                                     isVisible={tooltips.fire}
                                                     content={
                                                         <>
-                                                            <h3 className="font-bold text-sm mb-2 text-[#940000]">화재 감지 정보</h3>
+                                                            <h3 className="font-bold text-sm mb-2 text-[#940000]">화재 감지
+                                                                정보</h3>
                                                             <p className="text-xs">수거함 내부에 화재가 감지된 수거함 목록입니다.</p>
                                                             <p className="text-xs mt-2">화재 감지 시 즉시 알림이 발송됩니다.</p>
                                                             <p className="text-xs mt-2 font-semibold text-[#940000]">

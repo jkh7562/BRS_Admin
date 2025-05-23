@@ -756,6 +756,7 @@ const N_boxAddRemovePage = () => {
                 <Topbar />
                 <main className="pt-24 px-24 pb-6 space-y-4">
                     <p className="font-bold text-[#272F42] text-xl">수거함 설치 / 제거 요청</p>
+                    <span className="text-sm text-gray-500">지도의 빈공간을 클릭하면 설치요청, 설치된 상태(설치 확정)의 핀을 클릭하면 제거요청을 할 수 있습니다.</span>
                     <div>
                         <div className="relative mb-6">
                             <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
@@ -944,9 +945,8 @@ const N_boxAddRemovePage = () => {
                     )}
 
                     <div className="pt-14 pb-3">
-                        <div className="flex justify-between items-center">
-                            <p className="font-bold text-[#272F42] text-xl">지역별 설치 / 제거 상세 현황</p>
-                        </div>
+                        <p className="font-bold text-[#272F42] text-xl">지역별 설치 / 제거 관리 현황</p>
+                        <span className="text-sm text-gray-500">모든 관리자의 설치 / 제거 관리 현황을 확인할 수 있습니다.</span>
 
                         {/* 필터 UI 추가 */}
                         <div className="relative pt-2">
