@@ -16,7 +16,7 @@ import { findAllBox, getBoxLog, getBoxImage, getCollectionImage, getItemsImage }
 const parseCoordinates = (location) => {
     if (!location) return 0
 
-    const coordsMatch = location.match(/POINT\s*$$\s*([-\d.]+)\s+([-\d.]+)\s*$$/)
+    const coordsMatch = location.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/)
     if (coordsMatch) {
         return {
             lng: Number.parseFloat(coordsMatch[1]),
