@@ -62,9 +62,7 @@ export default function UserInfoSection() {
     // 툴팁 상태 관리 추가
     const [tooltips, setTooltips] = useState({
         totalDisposal: false,
-        totalPoints: false,
-        usedPoints: false,
-        remainingPoints: false,
+        currentPoints: false,
     })
 
     // 툴팁 토글 함수
@@ -319,7 +317,7 @@ export default function UserInfoSection() {
                                 </div>
                             </div>
 
-                            {/* Stats Cards */}
+                            {/* Stats Cards - 수정된 부분: 마일리지 관련 카드를 하나로 통합 */}
                             <div className="flex items-center mt-6 mb-6">
                                 <StatCard
                                     title="총 배출량"
@@ -339,50 +337,15 @@ export default function UserInfoSection() {
                                     <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
                                 </div>
                                 <StatCard
-                                    title="누적 마일리지"
+                                    title="현재 마일리지"
                                     value={`${selectedUser.point || 0}p`}
                                     number="1"
-                                    tooltipVisible={tooltips.totalPoints}
-                                    onTooltipToggle={(e) => toggleTooltip("totalPoints", e)}
+                                    tooltipVisible={tooltips.currentPoints}
+                                    onTooltipToggle={(e) => toggleTooltip("currentPoints", e)}
                                     tooltipContent={
                                         <>
-                                            <h3 className="font-bold text-sm mb-2">누적 마일리지</h3>
-                                            <p className="text-xs">사용자가 지금까지 적립한 총 마일리지입니다.</p>
-                                            <p className="text-xs mt-2">배터리 배출로 적립됩니다.</p>
-                                        </>
-                                    }
-                                />
-                                <div className="h-12 flex items-center">
-                                    <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
-                                </div>
-                                <StatCard
-                                    title="사용 마일리지"
-                                    value={`${calculateUsedPoints(userOrders)}p`}
-                                    number="1"
-                                    tooltipVisible={tooltips.usedPoints}
-                                    onTooltipToggle={(e) => toggleTooltip("usedPoints", e)}
-                                    tooltipContent={
-                                        <>
-                                            <h3 className="font-bold text-sm mb-2">사용 마일리지</h3>
-                                            <p className="text-xs">사용자가 지금까지 사용한 마일리지 총량입니다.</p>
-                                            <p className="text-xs mt-2">상품 구매에 사용된 마일리지만 포함됩니다.</p>
-                                        </>
-                                    }
-                                />
-                                <div className="h-12 flex items-center">
-                                    <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
-                                </div>
-                                <StatCard
-                                    title="잔여 마일리지"
-                                    value={`${(selectedUser.point || 0) - calculateUsedPoints(userOrders)}p`}
-                                    number="1"
-                                    tooltipVisible={tooltips.remainingPoints}
-                                    onTooltipToggle={(e) => toggleTooltip("remainingPoints", e)}
-                                    tooltipContent={
-                                        <>
-                                            <h3 className="font-bold text-sm mb-2">잔여 마일리지</h3>
-                                            <p className="text-xs">현재 사용 가능한 마일리지 잔액입니다.</p>
-                                            <p className="text-xs mt-2">누적 마일리지에서 사용 마일리지를 뺀 금액입니다.</p>
+                                            <h3 className="font-bold text-sm mb-2">현재 마일리지</h3>
+                                            <p className="text-xs">사용자가 현재 보유한 마일리지입니다.</p>
                                         </>
                                     }
                                 />
@@ -644,28 +607,22 @@ function StatCard({
     )
 }
 
-// 사용된 포인트 계산 함수
-function calculateUsedPoints(orders) {
-    if (!orders || orders.length === 0) return 0
-    return orders.reduce((total, order) => total + (order.usedPoints || 0), 0)
-}
-
 // 차트 데이터 생성 함수
 function generateChartData(logs, userId, period) {
     if (!logs) {
         // 더미 데이터 반환
         return [
-            { height: 10, date: "02.03" },
-            { height: 8, date: "02.04" },
-            { height: 8, date: "02.05" },
-            { height: 0, date: "02.06" },
-            { height: 0, date: "02.07" },
-            { height: 20, date: "02.08" },
-            { height: 25, date: "02.09" },
-            { height: 0, date: "02.10" },
-            { height: 0, date: "02.11" },
-            { height: 30, date: "02.12" },
-            { height: 0, date: "02.13" },
+            {height: 10, date: "02.03"},
+            {height: 8, date: "02.04"},
+            {height: 8, date: "02.05"},
+            {height: 0, date: "02.06"},
+            {height: 0, date: "02.07"},
+            {height: 20, date: "02.08"},
+            {height: 25, date: "02.09"},
+            {height: 0, date: "02.10"},
+            {height: 0, date: "02.11"},
+            {height: 30, date: "02.12"},
+            {height: 0, date: "02.13"},
         ]
     }
 
@@ -678,42 +635,42 @@ function generateChartData(logs, userId, period) {
     if (period === "일") {
         // 일별 데이터
         return [
-            { height: 10, date: "02.03" },
-            { height: 8, date: "02.04" },
-            { height: 8, date: "02.05" },
-            { height: 0, date: "02.06" },
-            { height: 0, date: "02.07" },
-            { height: 20, date: "02.08" },
-            { height: 25, date: "02.09" },
-            { height: 0, date: "02.10" },
-            { height: 0, date: "02.11" },
-            { height: 30, date: "02.12" },
-            { height: 0, date: "02.13" },
+            {height: 10, date: "02.03"},
+            {height: 8, date: "02.04"},
+            {height: 8, date: "02.05"},
+            {height: 0, date: "02.06"},
+            {height: 0, date: "02.07"},
+            {height: 20, date: "02.08"},
+            {height: 25, date: "02.09"},
+            {height: 0, date: "02.10"},
+            {height: 0, date: "02.11"},
+            {height: 30, date: "02.12"},
+            {height: 0, date: "02.13"},
         ]
     } else if (period === "월") {
         // 월별 데이터
         return [
-            { height: 15, date: "01" },
-            { height: 25, date: "02" },
-            { height: 30, date: "03" },
-            { height: 20, date: "04" },
-            { height: 35, date: "05" },
-            { height: 40, date: "06" },
-            { height: 30, date: "07" },
-            { height: 25, date: "08" },
-            { height: 20, date: "09" },
-            { height: 15, date: "10" },
-            { height: 10, date: "11" },
+            {height: 15, date: "01"},
+            {height: 25, date: "02"},
+            {height: 30, date: "03"},
+            {height: 20, date: "04"},
+            {height: 35, date: "05"},
+            {height: 40, date: "06"},
+            {height: 30, date: "07"},
+            {height: 25, date: "08"},
+            {height: 20, date: "09"},
+            {height: 15, date: "10"},
+            {height: 10, date: "11"},
         ]
     } else {
         // 연별 데이터
         return [
-            { height: 20, date: "2020" },
-            { height: 30, date: "2021" },
-            { height: 40, date: "2022" },
-            { height: 50, date: "2023" },
-            { height: 60, date: "2024" },
-            { height: 45, date: "2025" },
+            {height: 20, date: "2020"},
+            {height: 30, date: "2021"},
+            {height: 40, date: "2022"},
+            {height: 50, date: "2023"},
+            {height: 60, date: "2024"},
+            {height: 45, date: "2025"},
         ]
     }
 }

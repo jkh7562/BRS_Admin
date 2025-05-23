@@ -19,44 +19,44 @@ export default function CollectorInfoSection() {
         boxLogs: true,
         boxData: true,
     })
-    const [copiedId, setCopiedId] = useState(null);
+    const [copiedId, setCopiedId] = useState(null)
 
     const handleCopy = (e, userId, text) => {
-        e.stopPropagation(); // 이벤트 버블링 방지
+        e.stopPropagation() // 이벤트 버블링 방지
 
         try {
             // 임시 텍스트 영역 생성
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
+            const textArea = document.createElement("textarea")
+            textArea.value = text
 
             // 화면 밖으로 위치시키기
-            textArea.style.position = "fixed";
-            textArea.style.left = "-999999px";
-            textArea.style.top = "-999999px";
-            document.body.appendChild(textArea);
+            textArea.style.position = "fixed"
+            textArea.style.left = "-999999px"
+            textArea.style.top = "-999999px"
+            document.body.appendChild(textArea)
 
             // 텍스트 선택 및 복사
-            textArea.focus();
-            textArea.select();
+            textArea.focus()
+            textArea.select()
 
-            const successful = document.execCommand("copy");
+            const successful = document.execCommand("copy")
 
             // 임시 요소 제거
-            document.body.removeChild(textArea);
+            document.body.removeChild(textArea)
 
             if (successful) {
                 // 복사 성공
-                setCopiedId(userId);
+                setCopiedId(userId)
                 setTimeout(() => {
-                    setCopiedId(null);
-                }, 1500);
+                    setCopiedId(null)
+                }, 1500)
             } else {
-                console.error("execCommand 복사 실패");
+                console.error("execCommand 복사 실패")
             }
         } catch (err) {
-            console.error("복사 실패:", err);
+            console.error("복사 실패:", err)
         }
-    };
+    }
 
     // 툴팁 상태 관리 추가
     const [tooltips, setTooltips] = useState({
@@ -172,22 +172,15 @@ export default function CollectorInfoSection() {
         return `${totalAmount.toLocaleString()}g`
     }
 
-    // 선택된 수거자의 담당 지역 정보 가져오기
+    // 선택된 수거자의 담당 지역 정보 가져오기 - 수정된 부분
     const getCollectorRegion = () => {
         if (!selectedCollector) return { province: "정보 없음", city: "정보 없음" }
 
-        // 지역 정보가 있는 경우 파싱
-        const location = selectedCollector.location || ""
-        const parts = location.split(" ")
+        // location1과 location2 필드에서 지역 정보 가져오기
+        const province = selectedCollector.location1 || "정보 없음"
+        const city = selectedCollector.location2 || "정보 없음"
 
-        if (parts.length >= 2) {
-            return {
-                province: parts[0] || "정보 없음",
-                city: parts[1] || "정보 없음",
-            }
-        }
-
-        return { province: location || "정보 없음", city: "정보 없음" }
+        return { province, city }
     }
 
     // 차트 데이터 생성
@@ -239,14 +232,20 @@ export default function CollectorInfoSection() {
         return chartData
     }
 
-    // 알림 내역 생성 (박스 데이터 기반)
+    // 알림 내역 생성 (박스 데이터 기반) - 수정된 부분
     const generateNotifications = () => {
         if (!boxData || !selectedCollector) return []
 
-        // 선택된 수거자의 담당 지역 박스만 필터링
+        // 선택된 수거자의 담당 지역 박스만 필터링 (location1, location2 기준)
         const collectorBoxes = boxData.filter((box) => {
-            if (!box.location || !selectedCollector.location) return false
-            return box.location.includes(selectedCollector.location)
+            if (!box.location || !selectedCollector.location1 || !selectedCollector.location2) return false
+
+            // 박스 위치가 수거자의 담당 지역(location1, location2)과 일치하는지 확인
+            const boxLocation = box.location.toLowerCase()
+            const collectorProvince = selectedCollector.location1.toLowerCase()
+            const collectorCity = selectedCollector.location2.toLowerCase()
+
+            return boxLocation.includes(collectorProvince) && boxLocation.includes(collectorCity)
         })
 
         // 알림 내역 생성 (최신순 정렬)
@@ -438,14 +437,6 @@ export default function CollectorInfoSection() {
                                         </>
                                     }
                                 />
-                                <div className="h-12 flex items-center ml-[100px]">
-                                    <button
-                                        className="bg-[#E8F1F7] text-[#21262B] px-6 py-2 rounded-2xl hover:bg-gray-200 transition-colors"
-                                        onClick={() => console.log("담당지역 변경 clicked")}
-                                    >
-                                        담당지역 변경
-                                    </button>
-                                </div>
                             </div>
 
                             {/* Chart Section */}
@@ -620,7 +611,7 @@ function UserListItem({ collectorId, name, points, date, isActive, onClick, hand
                 )}
             </div>
         </div>
-    );
+    )
 }
 
 // 차트 바 컴포넌트
