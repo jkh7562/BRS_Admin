@@ -449,12 +449,22 @@ export const requestFireConfirmed = async (alarmId) => {
     }
 }
 
-// ✅ 관리자용 미해결 알람 조회 API
+// ✅ 관리자용 미해결 알람 조회 API(모든 관리자)
 export const fetchUnresolvedAlarms = async () => {
     try {
-        const response = await axiosInstance.get("/admin/alarm/unResolved", {
-            withCredentials: true, // 인증이 필요한 경우
-        });
+        const response = await axiosInstance.get("/admin/alarm/unResolved");
+        console.log("✅ 미해결 알람 조회 성공:", response.data);
+        return response.data; // Alarm[] 형태의 응답
+    } catch (error) {
+        console.error("❌ 미해결 알람 조회 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// ✅ 미해결된 알람 가져오기 API(모니터링)
+export const getUserUnresolvedAlarms = async () => {
+    try {
+        const response = await axiosInstance.get("/alarm/unResolved");
         console.log("✅ 미해결 알람 조회 성공:", response.data);
         return response.data; // Alarm[] 형태의 응답
     } catch (error) {

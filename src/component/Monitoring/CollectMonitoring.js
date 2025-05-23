@@ -6,7 +6,7 @@ import Sample from "../../assets/Sample.png"
 import DownIcon from "../../assets/Down.png"
 import Expansion from "../../assets/Expansion.png"
 import GreenIcon from "../../assets/아이콘 GREEN.png"
-import { fetchUnresolvedAlarms, findAllBox, findUserAll, requestCollectionConfirmed } from "../../api/apiServices"
+import { getUserUnresolvedAlarms, findAllBox, findUserAll, requestCollectionConfirmed } from "../../api/apiServices"
 
 const typeToStatusMap = {
     COLLECTION_NEEDED: "수거 필요",
@@ -152,7 +152,7 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [alarmData, userData, boxData] = await Promise.all([fetchUnresolvedAlarms(), findUserAll(), findAllBox()])
+                const [alarmData, userData, boxData] = await Promise.all([getUserUnresolvedAlarms(), findUserAll(), findAllBox()])
 
                 const userMap = {}
                 userData.forEach((u) => (userMap[u.id] = u))
@@ -329,7 +329,7 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
             await requestCollectionConfirmed(selectedUser.id)
             alert("수거 확정 완료")
 
-            const alarmData = await fetchUnresolvedAlarms()
+            const alarmData = await getUserUnresolvedAlarms()
             const collectionAlarms = alarmData.filter((a) => a.type.startsWith("COLLECTION_"))
             setAlarms(collectionAlarms)
 

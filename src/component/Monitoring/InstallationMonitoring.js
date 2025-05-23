@@ -6,7 +6,7 @@ import Sample from "../../assets/Sample.png"
 import DownIcon from "../../assets/Down.png"
 import Expansion from "../../assets/Expansion.png"
 import GreenIcon from "../../assets/아이콘 GREEN.png"
-import { fetchUnresolvedAlarms, findAllBox, findUserAll, requestInstallConfirmed, getBoxImage } from "../../api/apiServices"
+import { getUserUnresolvedAlarms, findAllBox, findUserAll, requestInstallConfirmed, getBoxImage } from "../../api/apiServices"
 
 export default function InstallationMonitoring({ selectedRegion = "광역시/도", selectedCity = "시/군/구" }) {
     // 지역명 정규화를 위한 매핑 테이블
@@ -274,7 +274,7 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
         const loadAlarms = async () => {
             try {
                 setIsLoading(true)
-                const alarmsData = await fetchUnresolvedAlarms()
+                const alarmsData = await getUserUnresolvedAlarms()
 
                 // 설치 관련 알람만 필터링
                 const installAlarms = alarmsData.filter(
@@ -512,7 +512,7 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
                 await requestInstallConfirmed(selectedUser.id)
                 alert("확정되었습니다.")
                 // 성공 후 알람 데이터 다시 로드
-                const alarmsData = await fetchUnresolvedAlarms()
+                const alarmsData = await getUserUnresolvedAlarms()
 
                 // 설치 관련 알람만 필터링
                 const installAlarms = alarmsData.filter(

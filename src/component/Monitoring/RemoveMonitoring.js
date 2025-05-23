@@ -7,7 +7,7 @@ import DownIcon from "../../assets/Down.png"
 import Expansion from "../../assets/Expansion.png"
 import RedIcon from "../../assets/아이콘 RED.png"
 import {
-    fetchUnresolvedAlarms,
+    getUserUnresolvedAlarms,
     findAllBox,
     findUserAll,
     requestRemoveConfirmed,
@@ -279,7 +279,7 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
         const loadAlarms = async () => {
             try {
                 setIsLoading(true)
-                const alarmsData = await fetchUnresolvedAlarms()
+                const alarmsData = await getUserUnresolvedAlarms()
 
                 console.log(alarmsData)
 
@@ -485,7 +485,7 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
                 console.log(selectedUser.boxId)
                 alert("확정되었습니다.")
                 // 성공 후 알람 데이터 다시 로드
-                const alarmsData = await fetchUnresolvedAlarms()
+                const alarmsData = await getUserUnresolvedAlarms()
 
                 // 제거 관련 알람만 필터링
                 const removeAlarms = alarmsData.filter(

@@ -7,7 +7,7 @@ import DownIcon from "../../assets/Down.png"
 import Expansion from "../../assets/Expansion.png"
 import FireIcon from "../../assets/아이콘 화재감지.svg"
 import {
-    fetchUnresolvedAlarms,
+    getUserUnresolvedAlarms,
     findAllBox,
     findUserAll,
     requestFireConfirmed,
@@ -194,7 +194,7 @@ export default function FireMonitoring() {
         const loadAlarms = async () => {
             try {
                 setIsLoading(true)
-                const alarmsData = await fetchUnresolvedAlarms()
+                const alarmsData = await getUserUnresolvedAlarms()
 
                 // 화재 관련 알람만 필터링
                 const fireAlarms = alarmsData.filter(
@@ -401,7 +401,7 @@ export default function FireMonitoring() {
             await requestFireConfirmed(selectedUser.id)
             alert("화재처리 확정 완료")
 
-            const alarmData = await fetchUnresolvedAlarms()
+            const alarmData = await getUserUnresolvedAlarms()
             const FireAlarms = alarmData.filter((a) => a.type.startsWith("FIRE"))
             setAlarms(FireAlarms)
 
