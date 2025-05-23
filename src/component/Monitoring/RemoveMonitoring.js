@@ -684,21 +684,6 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
                         <h2 className="text-2xl text-[#21262B] font-bold pb-1">
                             {selectedUserInfo ? selectedUserInfo.name : selectedUser.userId}
                         </h2>
-                        <p className="text-[#60697E]">
-                            <span className="font-bold">가입일자</span>
-                            <span className="ml-3 font-normal">
-                {selectedUserInfo && selectedUserInfo.date
-                    ? new Date(selectedUserInfo.date)
-                        .toLocaleDateString("ko-KR", {
-                            year: "numeric",
-                            month: "2-digit",
-                            day: "2-digit",
-                        })
-                        .replace(/\. /g, ".")
-                        .replace(/\.$/, "")
-                    : "2025.02.03"}
-              </span>
-                        </p>
                     </div>
 
                     <div className="space-y-2 text-sm text-[#60697E]">

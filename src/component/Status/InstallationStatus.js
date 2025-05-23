@@ -228,10 +228,6 @@ export default function InstallationStatus({ statuses, addressData = {}, process
                 <div className="w-[290px] h-full flex flex-col border-l p-8">
                     <div className="mb-10">
                         <h2 className="text-2xl text-[#21262B] font-bold pb-1">{selectedBox.user?.name || "미지정"}</h2>
-                        <p className="text-[#60697E]">
-                            <span className="font-bold">가입일자</span>
-                            <span className="ml-3 font-normal">{selectedBox.user?.createdAt || "정보 없음"}</span>
-                        </p>
                     </div>
 
                     <div className="space-y-2 text-sm text-[#60697E]">
