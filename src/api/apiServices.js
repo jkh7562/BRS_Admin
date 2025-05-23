@@ -301,6 +301,54 @@ export const uploadFile = async (formData) => {
     }
 };
 
+// ✅ 박스 이미지(설치 / 제거) 조회 API
+export const getBoxImage = async (boxId) => {
+    try {
+        const response = await axiosInstance.get(`/admin/boxImage/${boxId}`, {
+            responseType: 'blob', // 이미지 데이터를 blob으로 받기
+        });
+
+        // Blob을 URL로 변환하여 이미지 소스로 사용
+        const imageUrl = URL.createObjectURL(response.data);
+        return imageUrl;
+    } catch (error) {
+        console.error("❌ 박스 이미지 조회 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// ✅ 수거 이미지 조회 API
+export const getCollectionImage = async (boxLogId: number | string): Promise<string> => {
+    try {
+        const response = await axiosInstance.get(`/admin/collectionImage/${boxLogId}`, {
+            responseType: 'blob', // 이미지 데이터를 blob으로 받기
+        });
+
+        // Blob을 URL로 변환하여 이미지 소스로 사용
+        const imageUrl = URL.createObjectURL(response.data);
+        return imageUrl;
+    } catch (error) {
+        console.error("❌ 수거함 컬렉션 이미지 조회 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// ✅ 화재 이미지 조회 API
+export const getFireImage = async (alarmId: number | string): Promise<string> => {
+    try {
+        const response = await axiosInstance.get(`/admin/fireImage/${alarmId}`, {
+            responseType: 'blob', // 이미지 데이터를 blob으로 받기
+        });
+
+        // Blob을 URL로 변환하여 이미지 소스로 사용
+        const imageUrl = URL.createObjectURL(response.data);
+        return imageUrl;
+    } catch (error) {
+        console.error("❌ 화재 이미지 조회 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
 // ✅ 수거함 설치 요청 API (longitude / latitude 별도 전송)
 export const requestInstallBox = async ({ name, ipAddress, longitude, latitude }) => {
     try {

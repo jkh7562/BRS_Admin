@@ -6,7 +6,7 @@ import Sample from "../../assets/Sample.png"
 import DownIcon from "../../assets/Down.png"
 import Expansion from "../../assets/Expansion.png"
 import GreenIcon from "../../assets/아이콘 GREEN.png"
-import { fetchUnresolvedAlarms, findAllBox, findUserAll, requestInstallConfirmed } from "../../api/apiServices"
+import { fetchUnresolvedAlarms, findAllBox, findUserAll, requestInstallConfirmed, getBoxImage } from "../../api/apiServices"
 
 export default function InstallationMonitoring({ selectedRegion = "광역시/도", selectedCity = "시/군/구" }) {
     // 지역명 정규화를 위한 매핑 테이블
@@ -121,6 +121,10 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
     const [kakaoMap, setKakaoMap] = useState(null)
     // 지도 로드 상태
     const [mapLoaded, setMapLoaded] = useState(false)
+    // 박스 이미지 URL 상태 추가
+    const [boxImageUrl, setBoxImageUrl] = useState(null)
+    // 이미지 로딩 상태
+    const [imageLoading, setImageLoading] = useState(false)
 
     const options = ["전체", "설치요청", "설치 진행중", "설치 완료", "설치 확정"]
 
@@ -297,6 +301,41 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
 
         loadAlarms()
     }, [])
+
+    // 선택된 박스 이미지 로드
+    useEffect(() => {
+        const loadBoxImage = async () => {
+            // 이미지 URL 초기화
+            setBoxImageUrl(null);
+
+            // 선택된 사용자와 박스가 있고, 상태가 INSTALL_COMPLETED 또는 INSTALL_CONFIRMED인 경우에만 이미지 로드
+            if (selectedUser &&
+                selectedUser.boxId &&
+                (selectedUser.type === "INSTALL_COMPLETED" || selectedUser.type === "INSTALL_CONFIRMED")) {
+                try {
+                    setImageLoading(true);
+                    // getBoxImage API를 사용하여 이미지 URL 가져오기
+                    const imageUrl = await getBoxImage(selectedUser.boxId);
+                    setBoxImageUrl(imageUrl);
+                } catch (error) {
+                    console.error("박스 이미지 로딩 실패:", error);
+                    // 이미지 로드 실패 시 null로 설정하여 Sample 이미지가 표시되도록 함
+                    setBoxImageUrl(null);
+                } finally {
+                    setImageLoading(false);
+                }
+            }
+        };
+
+        loadBoxImage();
+
+        // 컴포넌트 언마운트 시 이미지 URL 리소스 해제
+        return () => {
+            if (boxImageUrl) {
+                URL.revokeObjectURL(boxImageUrl);
+            }
+        };
+    }, [selectedUser]);
 
     // 복사 핸들러 함수 수정 - 수거함 이름만 복사하도록 변경
     const handleCopy = (e, userId, text) => {
@@ -691,14 +730,20 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
                     {/* 사진은 INSTALL_COMPLETED 또는 INSTALL_CONFIRMED 상태일 때만 표시 */}
                     {isCompletedOrConfirmed && (
                         <div className="relative inline-block">
-                            <img
-                                src={selectedUser.file || Sample || "/placeholder.svg"}
-                                alt="사진"
-                                width="234px"
-                                height="189px"
-                                className="rounded-2xl mt-7 cursor-pointer"
-                                onClick={openModal}
-                            />
+                            {imageLoading ? (
+                                <div className="w-[234px] h-[189px] rounded-2xl mt-7 bg-gray-200 flex items-center justify-center">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
+                                </div>
+                            ) : (
+                                <img
+                                    src={boxImageUrl || selectedUser.file || Sample || "/placeholder.svg"}
+                                    alt="사진"
+                                    width="234px"
+                                    height="189px"
+                                    className="rounded-2xl mt-7 cursor-pointer object-cover"
+                                    onClick={openModal}
+                                />
+                            )}
                             <img
                                 src={Expansion || "/placeholder.svg"}
                                 alt="확대"
@@ -729,7 +774,7 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
                 >
                     <div className="relative max-w-4xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
                         <img
-                            src={selectedUser.file || Sample || "/placeholder.svg"}
+                            src={boxImageUrl || selectedUser.file || Sample || "/placeholder.svg"}
                             alt="사진 확대"
                             className="max-w-full max-h-[90vh] object-contain rounded-lg"
                         />

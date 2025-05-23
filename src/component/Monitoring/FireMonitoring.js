@@ -6,7 +6,13 @@ import Sample from "../../assets/Sample.png"
 import DownIcon from "../../assets/Down.png"
 import Expansion from "../../assets/Expansion.png"
 import FireIcon from "../../assets/아이콘 화재감지.svg"
-import { fetchUnresolvedAlarms, findAllBox, findUserAll, requestFireConfirmed } from "../../api/apiServices"
+import {
+    fetchUnresolvedAlarms,
+    findAllBox,
+    findUserAll,
+    requestFireConfirmed,
+    getFireImage,
+} from "../../api/apiServices"
 
 export default function FireMonitoring() {
     // 검색어 상태 추가
@@ -33,6 +39,9 @@ export default function FireMonitoring() {
     const [mapLoaded, setMapLoaded] = useState(false)
     const mapContainerRef = useRef(null)
     const geocoderRef = useRef(null)
+    // 화재 이미지 관련 상태 추가
+    const [fireImageUrl, setFireImageUrl] = useState(null)
+    const [imageLoading, setImageLoading] = useState(false)
 
     const options = ["전체", "화재 발생", "화재처리 진행", "화재처리 완료", "화재처리 확정"]
 
@@ -100,7 +109,7 @@ export default function FireMonitoring() {
     const parseCoordinates = (location) => {
         if (!location) return 0
 
-        const coordsMatch = location.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/)
+        const coordsMatch = location.match(/POINT\s*$$\s*([-\d.]+)\s+([-\d.]+)\s*$$/)
         if (coordsMatch) {
             return {
                 lng: Number.parseFloat(coordsMatch[1]),
@@ -213,46 +222,83 @@ export default function FireMonitoring() {
         loadAlarms()
     }, [])
 
+    // 화재 이미지 로드 useEffect 추가
+    useEffect(() => {
+        const loadFireImage = async () => {
+            // Reset image URL
+            setFireImageUrl(null)
+
+            // Only fetch image for FIRE_COMPLETED or FIRE_CONFIRMED status
+            if (
+                selectedUser &&
+                selectedUser.id &&
+                (selectedUser.type === "FIRE_COMPLETED" || selectedUser.type === "FIRE_CONFIRMED")
+            ) {
+                try {
+                    setImageLoading(true)
+                    // Use the getFireImage API to fetch the image URL
+                    const imageUrl = await getFireImage(selectedUser.id)
+                    setFireImageUrl(imageUrl)
+                } catch (error) {
+                    console.log(`알람 ID ${selectedUser.id}에 대한 화재 이미지를 불러올 수 없습니다.`)
+                    // Set to null on error to show the Sample image
+                    setFireImageUrl(null)
+                } finally {
+                    setImageLoading(false)
+                }
+            }
+        }
+
+        loadFireImage()
+
+        // Clean up the image URL when component unmounts or selectedUser changes
+        return () => {
+            if (fireImageUrl) {
+                URL.revokeObjectURL(fireImageUrl)
+            }
+        }
+    }, [selectedUser])
+
     // 복사 핸들러 함수 추가
     const handleCopy = (e, userId, text) => {
         e.stopPropagation() // 이벤트 버블링 방지
 
         // 수거함 이름만 추출 (괄호 앞 부분만)
-        const boxNameOnly = text.split('(')[0].trim();
+        const boxNameOnly = text.split("(")[0].trim()
 
         try {
             // 임시 텍스트 영역 생성
-            const textArea = document.createElement("textarea");
-            textArea.value = boxNameOnly;
+            const textArea = document.createElement("textarea")
+            textArea.value = boxNameOnly
 
             // 화면 밖으로 위치시키기
-            textArea.style.position = "fixed";
-            textArea.style.left = "-999999px";
-            textArea.style.top = "-999999px";
-            document.body.appendChild(textArea);
+            textArea.style.position = "fixed"
+            textArea.style.left = "-999999px"
+            textArea.style.top = "-999999px"
+            document.body.appendChild(textArea)
 
             // 텍스트 선택 및 복사
-            textArea.focus();
-            textArea.select();
+            textArea.focus()
+            textArea.select()
 
-            const successful = document.execCommand("copy");
+            const successful = document.execCommand("copy")
 
             // 임시 요소 제거
-            document.body.removeChild(textArea);
+            document.body.removeChild(textArea)
 
             if (successful) {
                 // 복사 성공
-                setCopiedId(userId);
+                setCopiedId(userId)
 
                 // 1.5초 후 상태 초기화
                 setTimeout(() => {
-                    setCopiedId(null);
-                }, 1500);
+                    setCopiedId(null)
+                }, 1500)
             } else {
-                console.error("execCommand 복사 실패");
+                console.error("execCommand 복사 실패")
             }
         } catch (err) {
-            console.error("복사 실패:", err);
+            console.error("복사 실패:", err)
         }
     }
 
@@ -581,14 +627,20 @@ export default function FireMonitoring() {
                     {/* 사진은 FIRE_COMPLETED 또는 FIRE_CONFIRMED 상태일 때만 표시 */}
                     {isCompletedOrConfirmed && (
                         <div className="relative inline-block">
-                            <img
-                                src={selectedUser.file || Sample || "/placeholder.svg"}
-                                alt="사진"
-                                width="234px"
-                                height="189px"
-                                className="rounded-2xl mt-7 cursor-pointer"
-                                onClick={openModal}
-                            />
+                            {imageLoading ? (
+                                <div className="w-[234px] h-[189px] rounded-2xl mt-7 bg-gray-200 flex items-center justify-center">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
+                                </div>
+                            ) : (
+                                <img
+                                    src={fireImageUrl || selectedUser.file || Sample || "/placeholder.svg"}
+                                    alt="화재 사진"
+                                    width="234px"
+                                    height="189px"
+                                    className="rounded-2xl mt-7 cursor-pointer object-cover"
+                                    onClick={openModal}
+                                />
+                            )}
                             <img
                                 src={Expansion || "/placeholder.svg"}
                                 alt="확대"
@@ -619,8 +671,8 @@ export default function FireMonitoring() {
                 >
                     <div className="relative max-w-4xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
                         <img
-                            src={selectedUser.file || Sample || "/placeholder.svg"}
-                            alt="사진 확대"
+                            src={fireImageUrl || selectedUser.file || Sample || "/placeholder.svg"}
+                            alt="화재 사진 확대"
                             className="max-w-full max-h-[90vh] object-contain rounded-lg"
                         />
                     </div>

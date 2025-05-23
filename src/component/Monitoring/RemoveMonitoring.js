@@ -6,7 +6,13 @@ import Sample from "../../assets/Sample.png"
 import DownIcon from "../../assets/Down.png"
 import Expansion from "../../assets/Expansion.png"
 import RedIcon from "../../assets/아이콘 RED.png"
-import { fetchUnresolvedAlarms, findAllBox, findUserAll, requestRemoveConfirmed } from "../../api/apiServices"
+import {
+    fetchUnresolvedAlarms,
+    findAllBox,
+    findUserAll,
+    requestRemoveConfirmed,
+    getBoxImage,
+} from "../../api/apiServices"
 
 export default function RemoveMonitoring({ selectedRegion = "광역시/도", selectedCity = "시/군/구" }) {
     // 지역명 정규화를 위한 매핑 테이블
@@ -120,6 +126,10 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
     const [kakaoMap, setKakaoMap] = useState(null)
     // 지도 로드 상태
     const [mapLoaded, setMapLoaded] = useState(false)
+    // 박스 이미지 URL 상태 추가
+    const [boxImageUrl, setBoxImageUrl] = useState(null)
+    // 이미지 로딩 상태
+    const [imageLoading, setImageLoading] = useState(false)
 
     const options = ["전체", "제거요청", "제거 진행중", "제거 완료", "제거 확정"]
 
@@ -301,46 +311,46 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
 
     // 복사 핸들러 함수 수정 - 수거함 이름만 복사하도록 변경
     const handleCopy = (e, userId, text) => {
-        e.stopPropagation(); // 이벤트 버블링 방지
+        e.stopPropagation() // 이벤트 버블링 방지
 
         // 수거함 이름만 추출 (괄호 앞 부분만)
-        const boxNameOnly = text.split('(')[0].trim();
+        const boxNameOnly = text.split("(")[0].trim()
 
         try {
             // 임시 텍스트 영역 생성
-            const textArea = document.createElement("textarea");
-            textArea.value = boxNameOnly;
+            const textArea = document.createElement("textarea")
+            textArea.value = boxNameOnly
 
             // 화면 밖으로 위치시키기
-            textArea.style.position = "fixed";
-            textArea.style.left = "-999999px";
-            textArea.style.top = "-999999px";
-            document.body.appendChild(textArea);
+            textArea.style.position = "fixed"
+            textArea.style.left = "-999999px"
+            textArea.style.top = "-999999px"
+            document.body.appendChild(textArea)
 
             // 텍스트 선택 및 복사
-            textArea.focus();
-            textArea.select();
+            textArea.focus()
+            textArea.select()
 
-            const successful = document.execCommand("copy");
+            const successful = document.execCommand("copy")
 
             // 임시 요소 제거
-            document.body.removeChild(textArea);
+            document.body.removeChild(textArea)
 
             if (successful) {
                 // 복사 성공
-                setCopiedId(userId);
+                setCopiedId(userId)
 
                 // 1.5초 후 상태 초기화
                 setTimeout(() => {
-                    setCopiedId(null);
-                }, 1500);
+                    setCopiedId(null)
+                }, 1500)
             } else {
-                console.error("execCommand 복사 실패");
+                console.error("execCommand 복사 실패")
             }
         } catch (err) {
-            console.error("복사 실패:", err);
+            console.error("복사 실패:", err)
         }
-    };
+    }
 
     // 사용자 선택 핸들러
     const handleUserSelect = (alarm) => {
@@ -404,7 +414,7 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
 
         return nameMatch && statusMatch && regionMatch
     })
-    
+
     // 현재 선택된 알람의 수거함 정보
     const selectedBox = selectedUser ? boxes[selectedUser.boxId] : null
 
@@ -499,6 +509,43 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
             }
         }
     }
+
+    // 선택된 박스 이미지 로드
+    useEffect(() => {
+        const loadBoxImage = async () => {
+            // 이미지 URL 초기화
+            setBoxImageUrl(null)
+
+            // 선택된 사용자와 박스가 있고, 상태가 REMOVE_COMPLETED 또는 REMOVE_CONFIRMED인 경우에만 이미지 로드
+            if (
+                selectedUser &&
+                selectedUser.boxId &&
+                (selectedUser.type === "REMOVE_COMPLETED" || selectedUser.type === "REMOVE_CONFIRMED")
+            ) {
+                try {
+                    setImageLoading(true)
+                    // getBoxImage API를 사용하여 이미지 URL 가져오기
+                    const imageUrl = await getBoxImage(selectedUser.boxId)
+                    setBoxImageUrl(imageUrl)
+                } catch (error) {
+                    console.log(`박스 ID ${selectedUser.boxId}에 대한 이미지를 불러올 수 없습니다.`)
+                    // 이미지 로드 실패 시 null로 설정하여 Sample 이미지가 표시되도록 함
+                    setBoxImageUrl(null)
+                } finally {
+                    setImageLoading(false)
+                }
+            }
+        }
+
+        loadBoxImage()
+
+        // 컴포넌트 언마운트 시 이미지 URL 리소스 해제
+        return () => {
+            if (boxImageUrl) {
+                URL.revokeObjectURL(boxImageUrl)
+            }
+        }
+    }, [selectedUser])
 
     return (
         <div className="flex h-[555px] bg-white rounded-2xl shadow-md overflow-hidden">
@@ -693,14 +740,20 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
                     {/* 사진은 REMOVE_COMPLETED 또는 REMOVE_CONFIRMED 상태일 때만 표시 */}
                     {isCompletedOrConfirmed && (
                         <div className="relative inline-block">
-                            <img
-                                src={selectedUser.file || Sample || "/placeholder.svg"}
-                                alt="사진"
-                                width="234px"
-                                height="189px"
-                                className="rounded-2xl mt-7 cursor-pointer"
-                                onClick={openModal}
-                            />
+                            {imageLoading ? (
+                                <div className="w-[234px] h-[189px] rounded-2xl mt-7 bg-gray-200 flex items-center justify-center">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
+                                </div>
+                            ) : (
+                                <img
+                                    src={boxImageUrl || selectedUser.file || Sample || "/placeholder.svg"}
+                                    alt="사진"
+                                    width="234px"
+                                    height="189px"
+                                    className="rounded-2xl mt-7 cursor-pointer object-cover"
+                                    onClick={openModal}
+                                />
+                            )}
                             <img
                                 src={Expansion || "/placeholder.svg"}
                                 alt="확대"
@@ -731,7 +784,7 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
                 >
                     <div className="relative max-w-4xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
                         <img
-                            src={selectedUser.file || Sample || "/placeholder.svg"}
+                            src={boxImageUrl || selectedUser.file || Sample || "/placeholder.svg"}
                             alt="사진 확대"
                             className="max-w-full max-h-[90vh] object-contain rounded-lg"
                         />
