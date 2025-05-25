@@ -6,7 +6,13 @@ import Sample from "../../assets/Sample.png"
 import DownIcon from "../../assets/Down.png"
 import Expansion from "../../assets/Expansion.png"
 import GreenIcon from "../../assets/아이콘 GREEN.png"
-import { getUserUnresolvedAlarms, findAllBox, findUserAll, requestCollectionConfirmed } from "../../api/apiServices"
+import {
+    getUserUnresolvedAlarms,
+    findAllBox,
+    findUserAll,
+    requestCollectionConfirmed,
+    getCollectionImage,
+} from "../../api/apiServices"
 
 const typeToStatusMap = {
     COLLECTION_NEEDED: "수거 필요",
@@ -96,6 +102,8 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
     const [showModal, setShowModal] = useState(false)
     const [copiedId, setCopiedId] = useState(null)
     const [selectedUser, setSelectedUser] = useState(null)
+    const [imageLoading, setImageLoading] = useState(false)
+    const [collectionImageUrl, setCollectionImageUrl] = useState(null)
 
     const [alarms, setAlarms] = useState([])
     const [users, setUsers] = useState({})
@@ -149,6 +157,7 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
             })
         })
     }
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -203,6 +212,59 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
             fetchAddressMap()
         }
     }, [boxes])
+
+    // 수거 이미지 로드 useEffect 추가
+    useEffect(() => {
+        const loadCollectionImage = async () => {
+            console.log("=== 수거 이미지 로딩 시작 ===")
+            console.log("selectedUser:", selectedUser)
+
+            // 이전 이미지 URL 정리
+            if (collectionImageUrl && collectionImageUrl.startsWith("blob:")) {
+                console.log("🗑️ 이전 이미지 URL 해제:", collectionImageUrl)
+                URL.revokeObjectURL(collectionImageUrl)
+            }
+
+            // 이미지 URL 초기화
+            setCollectionImageUrl(null)
+
+            // 선택된 사용자가 있고, COLLECTION_COMPLETED 또는 COLLECTION_CONFIRMED 상태이며, box_log_id가 있는 경우에만 이미지 로드
+            if (
+                selectedUser &&
+                selectedUser.boxLogId &&
+                (selectedUser.type === "COLLECTION_COMPLETED" || selectedUser.type === "COLLECTION_CONFIRMED")
+            ) {
+                try {
+                    setImageLoading(true)
+                    console.log(`📡 getCollectionImage API 호출: ${selectedUser.boxLogId}`)
+
+                    // getCollectionImage API 호출
+                    const imageUrl = await getCollectionImage(selectedUser.boxLogId)
+                    console.log(`✅ getCollectionImage API 응답:`, imageUrl)
+
+                    setCollectionImageUrl(imageUrl)
+                } catch (error) {
+                    console.error("❌ 수거 이미지 로딩 실패:", error)
+                    setCollectionImageUrl(null)
+                } finally {
+                    setImageLoading(false)
+                }
+            } else {
+                console.log("🚫 수거 이미지 로딩 조건 불만족")
+            }
+        }
+
+        loadCollectionImage()
+
+        // 컴포넌트 언마운트 시 이미지 URL 리소스 해제
+        return () => {
+            if (collectionImageUrl && collectionImageUrl.startsWith("blob:")) {
+                console.log("🗑️ useEffect cleanup - 이미지 URL 리소스 해제:", collectionImageUrl)
+                URL.revokeObjectURL(collectionImageUrl)
+            }
+        }
+    }, [selectedUser])
+
     const handleCopy = (e, userId, text) => {
         e.stopPropagation()
 
@@ -326,6 +388,7 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
             kakaoMap.setCenter(center)
         }, 150)
     }, [coordinates])
+
     const handleAccept = async () => {
         if (!selectedUser || !selectedUser.id) return
 
@@ -356,7 +419,7 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
                     <div className="relative flex-1">
                         <input
                             type="text"
-                            placeholder="수거함 이름 또는 수거함 검색"
+                            placeholder="수거함 이름 검색"
                             className="w-full py-2 px-5 rounded-2xl border border-gray-300 text-sm focus:outline-none"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -400,7 +463,7 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
                             const date = new Date(alarm.date).toLocaleDateString("ko-KR").replace(/\. /g, ".").replace(/\.$/, "")
 
                             // 수거함 이름과 사용자 이름을 조합하여 표시
-                            const displayName = `${box.name || "수���함 정보 없음"} (${user.name || alarm.userId || "사용자 정보 없음"})`
+                            const displayName = `${box.name || "수거함 정보 없음"} (${user.name || alarm.userId || "사용자 정보 없음"})`
 
                             return (
                                 <UserListItem
@@ -476,23 +539,33 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
                     </div>
                     {isCompletedOrConfirmed && (
                         <div className="relative inline-block mt-7">
-                            <div
-                                className="w-[234px] h-[189px] rounded-2xl overflow-hidden relative cursor-pointer"
-                                onClick={openModal}
-                            >
-                                <img src={Sample || "/placeholder.svg"} alt="사진" className="w-full h-full object-cover" />
-                                <img
-                                    src={Expansion || "/placeholder.svg"}
-                                    alt="확대"
-                                    className="absolute bottom-4 right-4 cursor-pointer"
-                                    width="20px"
-                                    height="20px"
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        openModal()
-                                    }}
-                                />
-                            </div>
+                            {imageLoading ? (
+                                <div className="w-[234px] h-[189px] rounded-2xl bg-gray-200 flex items-center justify-center">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
+                                </div>
+                            ) : (
+                                <div
+                                    className="w-[234px] h-[189px] rounded-2xl overflow-hidden relative cursor-pointer"
+                                    onClick={openModal}
+                                >
+                                    <img
+                                        src={collectionImageUrl || selectedUser.file || Sample || "/placeholder.svg"}
+                                        alt="수거 사진"
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <img
+                                        src={Expansion || "/placeholder.svg"}
+                                        alt="확대"
+                                        className="absolute bottom-4 right-4 cursor-pointer"
+                                        width="20px"
+                                        height="20px"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            openModal()
+                                        }}
+                                    />
+                                </div>
+                            )}
                         </div>
                     )}
                     {isCompleted && (
@@ -509,8 +582,8 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
                 >
                     <div className="relative max-w-4xl max-h-[90vh] p-4" onClick={(e) => e.stopPropagation()}>
                         <img
-                            src={Sample || "/placeholder.svg"}
-                            alt="사진 확대"
+                            src={collectionImageUrl || selectedUser.file || Sample || "/placeholder.svg"}
+                            alt="수거 사진 확대"
                             className="max-w-full max-h-full object-contain rounded-lg"
                         />
                         <button
@@ -524,22 +597,22 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
             )}
 
             <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #c1c1c1;
-          border-radius: 10px;
-          height: 50px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #a1a1a1;
-        }
-      `}</style>
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                    border-radius: 10px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: #c1c1c1;
+                    border-radius: 10px;
+                    height: 50px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: #a1a1a1;
+                }
+            `}</style>
         </div>
     )
 }
