@@ -6,7 +6,13 @@ import Sample from "../../assets/Sample.png"
 import DownIcon from "../../assets/Down.png"
 import Expansion from "../../assets/Expansion.png"
 import GreenIcon from "../../assets/아이콘 GREEN.png"
-import { getUserUnresolvedAlarms, findAllBox, findUserAll, requestInstallConfirmed, getBoxImage } from "../../api/apiServices"
+import {
+    getUserUnresolvedAlarms,
+    findAllBox,
+    findUserAll,
+    requestInstallConfirmed,
+    getBoxImage,
+} from "../../api/apiServices"
 
 export default function InstallationMonitoring({ selectedRegion = "광역시/도", selectedCity = "시/군/구" }) {
     // 지역명 정규화를 위한 매핑 테이블
@@ -305,80 +311,102 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
     // 선택된 박스 이미지 로드
     useEffect(() => {
         const loadBoxImage = async () => {
+            // 이전 이미지 URL 정리
+            if (boxImageUrl && boxImageUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(boxImageUrl)
+            }
+
             // 이미지 URL 초기화
-            setBoxImageUrl(null);
+            setBoxImageUrl(null)
 
             // 선택된 사용자와 박스가 있고, 상태가 INSTALL_COMPLETED 또는 INSTALL_CONFIRMED인 경우에만 이미지 로드
-            if (selectedUser &&
+            if (
+                selectedUser &&
                 selectedUser.boxId &&
-                (selectedUser.type === "INSTALL_COMPLETED" || selectedUser.type === "INSTALL_CONFIRMED")) {
+                (selectedUser.type === "INSTALL_COMPLETED" || selectedUser.type === "INSTALL_CONFIRMED")
+            ) {
                 try {
-                    setImageLoading(true);
+                    setImageLoading(true)
                     // getBoxImage API를 사용하여 이미지 URL 가져오기
-                    const imageUrl = await getBoxImage(selectedUser.boxId);
-                    setBoxImageUrl(imageUrl);
+                    const response = await getBoxImage(selectedUser.boxId)
+
+                    // 응답이 Blob인 경우 URL 생성
+                    if (response instanceof Blob) {
+                        const imageUrl = URL.createObjectURL(response)
+                        setBoxImageUrl(imageUrl)
+                    }
+                    // 응답이 이미 URL 문자열인 경우
+                    else if (typeof response === "string") {
+                        setBoxImageUrl(response)
+                    }
+                    // 응답이 객체이고 url 속성이 있는 경우
+                    else if (response && response.url) {
+                        setBoxImageUrl(response.url)
+                    } else {
+                        setBoxImageUrl(null)
+                    }
                 } catch (error) {
-                    console.error("박스 이미지 로딩 실패:", error);
+                    console.error("박스 이미지 로딩 실패:", error)
                     // 이미지 로드 실패 시 null로 설정하여 Sample 이미지가 표시되도록 함
-                    setBoxImageUrl(null);
+                    setBoxImageUrl(null)
                 } finally {
-                    setImageLoading(false);
+                    setImageLoading(false)
                 }
             }
-        };
+        }
 
-        loadBoxImage();
+        loadBoxImage()
 
         // 컴포넌트 언마운트 시 이미지 URL 리소스 해제
         return () => {
-            if (boxImageUrl) {
-                URL.revokeObjectURL(boxImageUrl);
+            if (boxImageUrl && boxImageUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(boxImageUrl)
             }
-        };
-    }, [selectedUser]);
+        }
+    }, [selectedUser])
 
     // 복사 핸들러 함수 수정 - 수거함 이름만 복사하도록 변경
     const handleCopy = (e, userId, text) => {
-        e.stopPropagation(); // 이벤트 버블링 방지
+        e.stopPropagation() // 이벤트 버블링 방지
 
         // 수거함 이름만 추출 (괄호 앞 부분만)
-        const boxNameOnly = text.split('(')[0].trim();
+        const boxNameOnly = text.split("(")[0].trim()
 
         try {
             // 임시 텍스트 영역 생성
-            const textArea = document.createElement("textarea");
-            textArea.value = boxNameOnly;
+            const textArea = document.createElement("textarea")
+            textArea.value = boxNameOnly
 
             // 화면 밖으로 위치시키기
-            textArea.style.position = "fixed";
-            textArea.style.left = "-999999px";
-            textArea.style.top = "-999999px";
-            document.body.appendChild(textArea);
+            textArea.style.position = "fixed"
+            textArea.style.left = "-999999px"
+            textArea.style.top = "-999999px"
+            document.body.appendChild(textArea)
 
             // 텍스트 선택 및 복사
-            textArea.focus();
-            textArea.select();
+            textArea.focus()
+            textArea.select()
 
-            const successful = document.execCommand("copy");
+            const successful = document.execCommand("copy")
 
             // 임시 요소 제거
-            document.body.removeChild(textArea);
+            document.body.removeChild(textArea)
 
             if (successful) {
                 // 복사 성공
-                setCopiedId(userId);
+                setCopiedId(userId)
 
                 // 1.5초 후 상태 초기화
                 setTimeout(() => {
-                    setCopiedId(null);
-                }, 1500);
+                    setCopiedId(null)
+                }, 1500)
             } else {
-                console.error("execCommand 복사 실패");
+                console.error("execCommand 복사 실패")
             }
         } catch (err) {
-            console.error("복사 실패:", err);
+            console.error("복사 실패:", err)
         }
-    };
+    }
 
     // 사용자 선택 핸들러
     const handleUserSelect = (alarm) => {
@@ -714,29 +742,34 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
 
                     {/* 사진은 INSTALL_COMPLETED 또는 INSTALL_CONFIRMED 상태일 때만 표시 */}
                     {isCompletedOrConfirmed && (
-                        <div className="relative inline-block">
+                        <div className="relative inline-block mt-7">
                             {imageLoading ? (
-                                <div className="w-[234px] h-[189px] rounded-2xl mt-7 bg-gray-200 flex items-center justify-center">
+                                <div className="w-[234px] h-[189px] rounded-2xl bg-gray-200 flex items-center justify-center">
                                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
                                 </div>
                             ) : (
-                                <img
-                                    src={boxImageUrl || selectedUser.file || Sample || "/placeholder.svg"}
-                                    alt="사진"
-                                    width="234px"
-                                    height="189px"
-                                    className="rounded-2xl mt-7 cursor-pointer object-cover"
+                                <div
+                                    className="w-[234px] h-[189px] rounded-2xl overflow-hidden relative cursor-pointer"
                                     onClick={openModal}
-                                />
+                                >
+                                    <img
+                                        src={boxImageUrl || selectedUser.file || Sample || "/placeholder.svg"}
+                                        alt="사진"
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <img
+                                        src={Expansion || "/placeholder.svg"}
+                                        alt="확대"
+                                        width="20px"
+                                        height="20px"
+                                        className="absolute bottom-4 right-4 cursor-pointer"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            openModal()
+                                        }}
+                                    />
+                                </div>
                             )}
-                            <img
-                                src={Expansion || "/placeholder.svg"}
-                                alt="확대"
-                                width="20px"
-                                height="20px"
-                                className="absolute bottom-4 right-4 cursor-pointer"
-                                onClick={openModal}
-                            />
                         </div>
                     )}
 
@@ -757,12 +790,18 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
                     className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
                     onClick={closeModal}
                 >
-                    <div className="relative max-w-4xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+                    <div className="relative max-w-4xl max-h-[90vh] p-4" onClick={(e) => e.stopPropagation()}>
                         <img
                             src={boxImageUrl || selectedUser.file || Sample || "/placeholder.svg"}
                             alt="사진 확대"
-                            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+                            className="max-w-full max-h-full object-contain rounded-lg"
                         />
+                        <button
+                            className="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-75 transition-all"
+                            onClick={closeModal}
+                        >
+                            ✕
+                        </button>
                     </div>
                 </div>
             )}
@@ -794,7 +833,7 @@ export default function InstallationMonitoring({ selectedRegion = "광역시/도
 
 function UserListItem({ userId, name, status, date, isActive, onClick, handleCopy, copiedId }) {
     // 수거함 이름 추출 (괄호 앞 부분만)
-    const boxName = name.split('(')[0].trim();
+    const boxName = name.split("(")[0].trim()
 
     return (
         <div

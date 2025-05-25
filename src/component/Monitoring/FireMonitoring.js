@@ -15,7 +15,7 @@ import {
 } from "../../api/apiServices"
 
 export default function FireMonitoring() {
-    // 검색어 상태 추가
+    // 검색어 상�� 추가
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedOption, setSelectedOption] = useState("전체")
     const [isOpen, setIsOpen] = useState(false)
@@ -109,7 +109,7 @@ export default function FireMonitoring() {
     const parseCoordinates = (location) => {
         if (!location) return 0
 
-        const coordsMatch = location.match(/POINT\s*$$\s*([-\d.]+)\s+([-\d.]+)\s*$$/)
+        const coordsMatch = location.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/)
         if (coordsMatch) {
             return {
                 lng: Number.parseFloat(coordsMatch[1]),
@@ -611,29 +611,34 @@ export default function FireMonitoring() {
 
                     {/* 사진은 FIRE_COMPLETED 또는 FIRE_CONFIRMED 상태일 때만 표시 */}
                     {isCompletedOrConfirmed && (
-                        <div className="relative inline-block">
+                        <div className="relative inline-block mt-7">
                             {imageLoading ? (
-                                <div className="w-[234px] h-[189px] rounded-2xl mt-7 bg-gray-200 flex items-center justify-center">
+                                <div className="w-[234px] h-[189px] rounded-2xl bg-gray-200 flex items-center justify-center">
                                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
                                 </div>
                             ) : (
-                                <img
-                                    src={fireImageUrl || selectedUser.file || Sample || "/placeholder.svg"}
-                                    alt="화재 사진"
-                                    width="234px"
-                                    height="189px"
-                                    className="rounded-2xl mt-7 cursor-pointer object-cover"
+                                <div
+                                    className="w-[234px] h-[189px] rounded-2xl overflow-hidden relative cursor-pointer"
                                     onClick={openModal}
-                                />
+                                >
+                                    <img
+                                        src={fireImageUrl || selectedUser.file || Sample || "/placeholder.svg"}
+                                        alt="화재 사진"
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <img
+                                        src={Expansion || "/placeholder.svg"}
+                                        alt="확대"
+                                        width="20px"
+                                        height="20px"
+                                        className="absolute bottom-4 right-4 cursor-pointer"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            openModal()
+                                        }}
+                                    />
+                                </div>
                             )}
-                            <img
-                                src={Expansion || "/placeholder.svg"}
-                                alt="확대"
-                                width="20px"
-                                height="20px"
-                                className="absolute bottom-4 right-4 cursor-pointer"
-                                onClick={openModal}
-                            />
                         </div>
                     )}
 
@@ -654,37 +659,43 @@ export default function FireMonitoring() {
                     className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
                     onClick={closeModal}
                 >
-                    <div className="relative max-w-4xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+                    <div className="relative max-w-4xl max-h-[90vh] p-4" onClick={(e) => e.stopPropagation()}>
                         <img
                             src={fireImageUrl || selectedUser.file || Sample || "/placeholder.svg"}
                             alt="화재 사진 확대"
-                            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+                            className="max-w-full max-h-full object-contain rounded-lg"
                         />
+                        <button
+                            className="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-75 transition-all"
+                            onClick={closeModal}
+                        >
+                            ✕
+                        </button>
                     </div>
                 </div>
             )}
 
             {/* 스크롤바 스타일 */}
             <style jsx>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
 
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: #f1f1f1;
-                    border-radius: 10px;
-                }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
 
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #c1c1c1;
-                    border-radius: 10px;
-                    height: 50px;
-                }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #c1c1c1;
+          border-radius: 10px;
+          height: 50px;
+        }
 
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #a1a1a1;
-                }
-            `}</style>
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #a1a1a1;
+        }
+      `}</style>
         </div>
     )
 }

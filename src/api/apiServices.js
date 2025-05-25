@@ -307,7 +307,7 @@ export const getBoxImage = async (boxId) => {
         const response = await axiosInstance.get(`/admin/boxImage/${boxId}`, {
             responseType: 'blob', // 이미지 데이터를 blob으로 받기
             headers: {
-                Accept: "image/jpeg"  // 여기서만 헤더 덮어씀
+                Accept: "image/*"  // 여기서만 헤더 덮어씀
             },
         });
 
@@ -326,7 +326,7 @@ export const getCollectionImage = async (boxLogId: number | string): Promise<str
         const response = await axiosInstance.get(`/admin/collectionImage/${boxLogId}`, {
             responseType: 'blob', // 이미지 데이터를 blob으로 받기
             headers: {
-                Accept: "image/jpeg"  // 여기서만 헤더 덮어씀
+                Accept: "image/*"  // 여기서만 헤더 덮어씀
             },
         });
 
@@ -345,7 +345,7 @@ export const getItemsImage = async (boxLogId: number | string) => {
         const response = await axiosInstance.get(`/admin/itemsImage/${boxLogId}`, {
             responseType: 'json', // Map<String, byte[]>를 JSON으로 받음
             headers: {
-                Accept: "image/jpeg"  // 여기서만 헤더 덮어씀
+                Accept: "image/*"  // 여기서만 헤더 덮어씀
             },
         });
 
@@ -356,7 +356,7 @@ export const getItemsImage = async (boxLogId: number | string) => {
         for (const [key, byteArray] of Object.entries(response.data)) {
             if (byteArray) {
                 // byte[] 배열을 Blob으로 변환
-                const blob = new Blob([new Uint8Array(byteArray)], { type: 'image/jpeg' });
+                const blob = new Blob([new Uint8Array(byteArray)], { type: 'image/*' });
 
                 // Blob을 URL로 변환
                 imageUrls[key] = URL.createObjectURL(blob);
@@ -376,7 +376,7 @@ export const getFireImage = async (alarmId: number | string): Promise<string> =>
         const response = await axiosInstance.get(`/admin/fireImage/${alarmId}`, {
             responseType: 'blob', // 이미지 데이터를 blob으로 받기
             headers: {
-                Accept: "image/jpeg"  // 여기서만 헤더 덮어씀
+                Accept: "image/*"  // 여기서만 헤더 덮어씀
             },
         });
 

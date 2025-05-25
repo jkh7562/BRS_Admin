@@ -152,7 +152,11 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [alarmData, userData, boxData] = await Promise.all([getUserUnresolvedAlarms(), findUserAll(), findAllBox()])
+                const [alarmData, userData, boxData] = await Promise.all([
+                    getUserUnresolvedAlarms(),
+                    findUserAll(),
+                    findAllBox(),
+                ])
 
                 const userMap = {}
                 userData.forEach((u) => (userMap[u.id] = u))
@@ -200,44 +204,44 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
         }
     }, [boxes])
     const handleCopy = (e, userId, text) => {
-        e.stopPropagation();
+        e.stopPropagation()
 
         // 수거함 이름만 추출 (괄호 앞 부분만)
-        const boxNameOnly = text.split('(')[0].trim();
+        const boxNameOnly = text.split("(")[0].trim()
 
         try {
             // 임시 텍스트 영역 생성
-            const textArea = document.createElement("textarea");
-            textArea.value = boxNameOnly;
+            const textArea = document.createElement("textarea")
+            textArea.value = boxNameOnly
 
             // 화면 밖으로 위치시키기
-            textArea.style.position = "fixed";
-            textArea.style.left = "-999999px";
-            textArea.style.top = "-999999px";
-            document.body.appendChild(textArea);
+            textArea.style.position = "fixed"
+            textArea.style.left = "-999999px"
+            textArea.style.top = "-999999px"
+            document.body.appendChild(textArea)
 
             // 텍스트 선택 및 복사
-            textArea.focus();
-            textArea.select();
+            textArea.focus()
+            textArea.select()
 
-            const successful = document.execCommand("copy");
+            const successful = document.execCommand("copy")
 
             // 임시 요소 제거
-            document.body.removeChild(textArea);
+            document.body.removeChild(textArea)
 
             if (successful) {
                 // 복사 성공
-                setCopiedId(userId);
+                setCopiedId(userId)
 
                 // 1.5초 후 상태 초기화
                 setTimeout(() => {
-                    setCopiedId(null);
-                }, 1500);
+                    setCopiedId(null)
+                }, 1500)
             } else {
-                console.error("execCommand 복사 실패");
+                console.error("execCommand 복사 실패")
             }
         } catch (err) {
-            console.error("복사 실패:", err);
+            console.error("복사 실패:", err)
         }
     }
 
@@ -396,7 +400,7 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
                             const date = new Date(alarm.date).toLocaleDateString("ko-KR").replace(/\. /g, ".").replace(/\.$/, "")
 
                             // 수거함 이름과 사용자 이름을 조합하여 표시
-                            const displayName = `${box.name || "수거함 정보 없음"} (${user.name || alarm.userId || "사용자 정보 없음"})`
+                            const displayName = `${box.name || "수���함 정보 없음"} (${user.name || alarm.userId || "사용자 정보 없음"})`
 
                             return (
                                 <UserListItem
@@ -471,23 +475,24 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
                         </div>
                     </div>
                     {isCompletedOrConfirmed && (
-                        <div className="relative inline-block">
-                            <img
-                                src={Sample || "/placeholder.svg"}
-                                alt="사진"
-                                className="rounded-2xl mt-7 cursor-pointer"
-                                width="234px"
-                                height="189px"
+                        <div className="relative inline-block mt-7">
+                            <div
+                                className="w-[234px] h-[189px] rounded-2xl overflow-hidden relative cursor-pointer"
                                 onClick={openModal}
-                            />
-                            <img
-                                src={Expansion || "/placeholder.svg"}
-                                alt="확대"
-                                className="absolute bottom-4 right-4 cursor-pointer"
-                                width="20px"
-                                height="20px"
-                                onClick={openModal}
-                            />
+                            >
+                                <img src={Sample || "/placeholder.svg"} alt="사진" className="w-full h-full object-cover" />
+                                <img
+                                    src={Expansion || "/placeholder.svg"}
+                                    alt="확대"
+                                    className="absolute bottom-4 right-4 cursor-pointer"
+                                    width="20px"
+                                    height="20px"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        openModal()
+                                    }}
+                                />
+                            </div>
                         </div>
                     )}
                     {isCompleted && (
@@ -505,33 +510,39 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
                     className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
                     onClick={closeModal}
                 >
-                    <div className="relative max-w-4xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+                    <div className="relative max-w-4xl max-h-[90vh] p-4" onClick={(e) => e.stopPropagation()}>
                         <img
                             src={Sample || "/placeholder.svg"}
                             alt="사진 확대"
-                            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+                            className="max-w-full max-h-full object-contain rounded-lg"
                         />
+                        <button
+                            className="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-75 transition-all"
+                            onClick={closeModal}
+                        >
+                            ✕
+                        </button>
                     </div>
                 </div>
             )}
 
             <style jsx>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: #f1f1f1;
-                    border-radius: 10px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #c1c1c1;
-                    border-radius: 10px;
-                    height: 50px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #a1a1a1;
-                }
-            `}</style>
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #c1c1c1;
+          border-radius: 10px;
+          height: 50px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #a1a1a1;
+        }
+      `}</style>
         </div>
     )
 }

@@ -513,6 +513,11 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
     // 선택된 박스 이미지 로드
     useEffect(() => {
         const loadBoxImage = async () => {
+            // 이전 이미지 URL 정리
+            if (boxImageUrl && boxImageUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(boxImageUrl)
+            }
+
             // 이미지 URL 초기화
             setBoxImageUrl(null)
 
@@ -525,8 +530,23 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
                 try {
                     setImageLoading(true)
                     // getBoxImage API를 사용하여 이미지 URL 가져오기
-                    const imageUrl = await getBoxImage(selectedUser.boxId)
-                    setBoxImageUrl(imageUrl)
+                    const response = await getBoxImage(selectedUser.boxId)
+
+                    // 응답이 Blob인 경우 URL 생성
+                    if (response instanceof Blob) {
+                        const imageUrl = URL.createObjectURL(response)
+                        setBoxImageUrl(imageUrl)
+                    }
+                    // 응답이 이미 URL 문자열인 경우
+                    else if (typeof response === "string") {
+                        setBoxImageUrl(response)
+                    }
+                    // 응답이 객체이고 url 속성이 있는 경우
+                    else if (response && response.url) {
+                        setBoxImageUrl(response.url)
+                    } else {
+                        setBoxImageUrl(null)
+                    }
                 } catch (error) {
                     console.log(`박스 ID ${selectedUser.boxId}에 대한 이미지를 불러올 수 없습니다.`)
                     // 이미지 로드 실패 시 null로 설정하여 Sample 이미지가 표시되도록 함
@@ -541,7 +561,7 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
 
         // 컴포넌트 언마운트 시 이미지 URL 리소스 해제
         return () => {
-            if (boxImageUrl) {
+            if (boxImageUrl && boxImageUrl.startsWith("blob:")) {
                 URL.revokeObjectURL(boxImageUrl)
             }
         }
@@ -724,29 +744,34 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
 
                     {/* 사진은 REMOVE_COMPLETED 또는 REMOVE_CONFIRMED 상태일 때만 표시 */}
                     {isCompletedOrConfirmed && (
-                        <div className="relative inline-block">
+                        <div className="relative inline-block mt-7">
                             {imageLoading ? (
-                                <div className="w-[234px] h-[189px] rounded-2xl mt-7 bg-gray-200 flex items-center justify-center">
+                                <div className="w-[234px] h-[189px] rounded-2xl bg-gray-200 flex items-center justify-center">
                                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
                                 </div>
                             ) : (
-                                <img
-                                    src={boxImageUrl || selectedUser.file || Sample || "/placeholder.svg"}
-                                    alt="사진"
-                                    width="234px"
-                                    height="189px"
-                                    className="rounded-2xl mt-7 cursor-pointer object-cover"
+                                <div
+                                    className="w-[234px] h-[189px] rounded-2xl overflow-hidden relative cursor-pointer"
                                     onClick={openModal}
-                                />
+                                >
+                                    <img
+                                        src={boxImageUrl || selectedUser.file || Sample || "/placeholder.svg"}
+                                        alt="사진"
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <img
+                                        src={Expansion || "/placeholder.svg"}
+                                        alt="확대"
+                                        width="20px"
+                                        height="20px"
+                                        className="absolute bottom-4 right-4 cursor-pointer"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            openModal()
+                                        }}
+                                    />
+                                </div>
                             )}
-                            <img
-                                src={Expansion || "/placeholder.svg"}
-                                alt="확대"
-                                width="20px"
-                                height="20px"
-                                className="absolute bottom-4 right-4 cursor-pointer"
-                                onClick={openModal}
-                            />
                         </div>
                     )}
 
@@ -767,12 +792,18 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
                     className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
                     onClick={closeModal}
                 >
-                    <div className="relative max-w-4xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+                    <div className="relative max-w-4xl max-h-[90vh] p-4" onClick={(e) => e.stopPropagation()}>
                         <img
                             src={boxImageUrl || selectedUser.file || Sample || "/placeholder.svg"}
                             alt="사진 확대"
-                            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+                            className="max-w-full max-h-full object-contain rounded-lg"
                         />
+                        <button
+                            className="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-75 transition-all"
+                            onClick={closeModal}
+                        >
+                            ✕
+                        </button>
                     </div>
                 </div>
             )}

@@ -15,6 +15,7 @@ import pin from "../assets/pin.png"
 import child_safety from "../assets/child_safety.png"
 import fire_station from "../assets/fire-station.png"
 import Drop_downIcon from "../assets/Down.png"
+// import Sample from "../assets/Sample.png"
 
 // API 함수 import
 import {
@@ -22,7 +23,7 @@ import {
     requestRemoveBox,
     fetchFilteredRecommendedBoxes,
     fetchCoordinates,
-    getBoxImage,
+    getBoxImage, // 추가
 } from "../api/apiServices"
 
 // 메모이제이션된 마커 컴포넌트
@@ -299,7 +300,7 @@ const RegionFilter = memo(({ region, setRegion, regions, boxCount, showRecommend
 RegionFilter.displayName = "RegionFilter"
 
 // 우측 사이드바 컴포넌트 추가
-const RightSidebar = memo(({ selectedBox, addressMap, selectedBoxImage, imageLoading, imageError }) => {
+const RightSidebar = memo(({ selectedBox, addressMap, selectedBoxImage, imageLoading, imageError, onImageClick }) => {
     if (!selectedBox) {
         return (
             <div className="w-[300px] h-full flex flex-col border-l bg-white p-6">
@@ -346,30 +347,35 @@ const RightSidebar = memo(({ selectedBox, addressMap, selectedBoxImage, imageLoa
                 </div>
             </div>
 
+            {/* 이미지 섹션 */}
             <div className="flex-1 p-6">
                 <h3 className="text-lg font-semibold mb-4">수거함 이미지</h3>
-                <div className="w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
+                <div className="w-full h-48 bg-gray-100 rounded-lg overflow-hidden relative">
                     {imageLoading ? (
                         <div className="w-full h-full flex items-center justify-center">
                             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
                         </div>
-                    ) : imageError || !selectedBoxImage ? (
-                        <div className="w-full h-full flex items-center justify-center text-gray-500">
-                            <div className="text-center">
-                                <div className="text-2xl mb-2">📷</div>
-                                <div className="text-sm">이미지를 불러올 수 없습니다</div>
-                            </div>
-                        </div>
-                    ) : (
+                    ) : selectedBoxImage ? (
                         <img
                             src={selectedBoxImage || "/placeholder.svg"}
                             alt={`${selectedBox.name} 이미지`}
-                            className="w-full h-full object-cover"
-                            onError={() => {
-                                // 이미지 로드 실패 시 처리
-                                console.error(`수거함 ${selectedBox.id} 이미지 로드 실패`)
+                            className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => {
+                                if (onImageClick) {
+                                    onImageClick(selectedBoxImage)
+                                }
+                            }}
+                            onError={(e) => {
+                                console.error(`❌ 수거함 ${selectedBox.id} 이미지 로드 실패`)
+                                console.error(`❌ 실패한 이미지 URL:`, e.target.src)
+                            }}
+                            onLoad={(e) => {
+                                console.log("✅ 이미지 로드 성공")
+                                console.log("✅ 로드된 이미지 URL:", e.target.src)
                             }}
                         />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-500">이미지가 없습니다</div>
                     )}
                 </div>
             </div>
@@ -431,6 +437,10 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     const [selectedBoxImage, setSelectedBoxImage] = useState(null)
     const [imageLoading, setImageLoading] = useState(false)
     const [imageError, setImageError] = useState(false)
+
+    // 이미지 모달 상태 추가
+    const [showImageModal, setShowImageModal] = useState(false)
+    const [modalImageSrc, setModalImageSrc] = useState("")
 
     // 별 좌표 범위 (대략적인 값)
     const regionBounds = useMemo(
@@ -752,29 +762,64 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
         }
     }, [])
 
-    // 선택된 박스 이미지 로드 useEffect 추가
+    // 선택된 박스 이미지 로드 useEffect 수정
     useEffect(() => {
         const loadBoxImage = async () => {
-            // isAddRemovePage가 false이고 선택된 박스가 있을 때만 이미지 로드
-            if (isAddRemovePage || !selectedBoxId) {
-                setSelectedBoxImage(null)
-                setImageError(false)
-                return
+            console.log("=== 이미지 로딩 시작 ===")
+            console.log("selectedBoxId:", selectedBoxId)
+            console.log("isAddRemovePage:", isAddRemovePage)
+
+            // 이전 이미지 URL 정리
+            if (selectedBoxImage && selectedBoxImage.startsWith("blob:")) {
+                console.log("🗑️ 이전 이미지 URL 해제:", selectedBoxImage)
+                URL.revokeObjectURL(selectedBoxImage)
             }
 
-            try {
-                setImageLoading(true)
-                setImageError(false)
+            // 이미지 URL 초기화
+            setSelectedBoxImage(null)
 
-                // getBoxImage API를 사용하여 이미지 URL 가져오기
-                const imageUrl = await getBoxImage(selectedBoxId)
-                setSelectedBoxImage(imageUrl)
-            } catch (error) {
-                console.log(`박스 ID ${selectedBoxId}에 대한 이미지를 불러올 수 없습니다.`)
-                setImageError(true)
-                setSelectedBoxImage(null)
-            } finally {
-                setImageLoading(false)
+            // InstallationMonitoring과 동일한 조건 체크
+            // 선택된 박스가 있고, isAddRemovePage가 false일 때만 이미지 로드
+            if (selectedBoxId && !isAddRemovePage) {
+                try {
+                    setImageLoading(true)
+                    console.log(`📡 getBoxImage API 호출: ${selectedBoxId}`)
+
+                    // getBoxImage API 호출
+                    const response = await getBoxImage(selectedBoxId)
+                    console.log(`✅ getBoxImage API 응답:`, response)
+                    console.log(`📊 응답 타입:`, typeof response)
+                    console.log(`📊 응답이 Blob인가?:`, response instanceof Blob)
+
+                    // 응답이 Blob인 경우 URL 생성
+                    if (response instanceof Blob) {
+                        const imageUrl = URL.createObjectURL(response)
+                        console.log(`🔗 Blob URL 생성:`, imageUrl)
+                        setSelectedBoxImage(imageUrl)
+                    }
+                    // 응답이 이미 URL 문자열인 경우
+                    else if (typeof response === "string") {
+                        console.log(`🔗 문자열 URL 사용:`, response)
+                        setSelectedBoxImage(response)
+                    }
+                    // 응답이 객체이고 url 속성이 있는 경우
+                    else if (response && response.url) {
+                        console.log(`🔗 객체 URL 사용:`, response.url)
+                        setSelectedBoxImage(response.url)
+                    }
+                    // 기타 경우
+                    else {
+                        console.warn(`⚠️ 예상하지 못한 응답 형식:`, response)
+                        setSelectedBoxImage(null)
+                    }
+                } catch (error) {
+                    console.error("❌ 박스 이미지 로딩 실패:", error)
+                    setSelectedBoxImage(null)
+                } finally {
+                    setImageLoading(false)
+                }
+            } else {
+                console.log("🚫 이미지 로딩 조건 불만족")
             }
         }
 
@@ -782,7 +827,8 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
 
         // 컴포넌트 언마운트 시 이미지 URL 리소스 해제
         return () => {
-            if (selectedBoxImage) {
+            if (selectedBoxImage && selectedBoxImage.startsWith("blob:")) {
+                console.log("🗑️ useEffect cleanup - 이미지 URL 리소스 해제:", selectedBoxImage)
                 URL.revokeObjectURL(selectedBoxImage)
             }
         }
@@ -1503,7 +1549,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
             </div>
 
             {/* 지도 */}
-            <div className={`absolute top-0 left-0 h-full z-0 ${showRightSidebar ? "right-[300px]" : "right-0"} w-auto`}>
+            <div className={`flex-1 relative ${showRightSidebar ? "mr-[300px]" : ""}`}>
                 <Map
                     center={{ lat: 36.8, lng: 127.0729 }}
                     style={{ width: "100%", height: "100%" }}
@@ -1560,7 +1606,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
                                         }}
                                         radius={SAFETY_ZONE_RADIUS} // 300미터 반경
                                         strokeWeight={2} // 외곽선 두께
-                                        strokeColor={"#FFCC00"} // 외곽선 색상 (노란색)
+                                        strokeColor={"#FFCC00"} // 외곽선 색상
                                         strokeOpacity={0.5} // 외곽선 투명도
                                         strokeStyle={"solid"} // 외곽선 스타일
                                         fillColor={"#FFCC00"} // 내부 색상 (노란색)
@@ -1829,13 +1875,42 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
 
             {/* 우측 사이드바 - isAddRemovePage가 false이고 박스가 선택되었을 때만 표시 */}
             {showRightSidebar && (
-                <RightSidebar
-                    selectedBox={getSelectedBox()}
-                    addressMap={addressMap}
-                    selectedBoxImage={selectedBoxImage}
-                    imageLoading={imageLoading}
-                    imageError={imageError}
-                />
+                <div className="absolute top-0 right-0 h-full z-30">
+                    <RightSidebar
+                        selectedBox={getSelectedBox()}
+                        addressMap={addressMap}
+                        selectedBoxImage={selectedBoxImage}
+                        imageLoading={imageLoading}
+                        imageError={imageError}
+                        onImageClick={(imageSrc) => {
+                            setModalImageSrc(imageSrc)
+                            setShowImageModal(true)
+                        }}
+                    />
+                </div>
+            )}
+
+            {/* 이미지 모달 */}
+            {showImageModal && (
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+                    onClick={() => setShowImageModal(false)}
+                >
+                    <div className="relative max-w-4xl max-h-4xl p-4">
+                        <img
+                            src={modalImageSrc || "/placeholder.svg"}
+                            alt="확대된 수거함 이미지"
+                            className="max-w-full max-h-full object-contain"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                        <button
+                            className="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-75 transition-all"
+                            onClick={() => setShowImageModal(false)}
+                        >
+                            ✕
+                        </button>
+                    </div>
+                </div>
             )}
 
             {/* 스크롤바 스타일 */}
