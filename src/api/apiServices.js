@@ -306,6 +306,9 @@ export const getBoxImage = async (boxId) => {
     try {
         const response = await axiosInstance.get(`/admin/boxImage/${boxId}`, {
             responseType: 'blob', // 이미지 데이터를 blob으로 받기
+            headers: {
+                Accept: "image/jpeg"  // 여기서만 헤더 덮어씀
+            },
         });
 
         // Blob을 URL로 변환하여 이미지 소스로 사용
@@ -322,6 +325,9 @@ export const getCollectionImage = async (boxLogId: number | string): Promise<str
     try {
         const response = await axiosInstance.get(`/admin/collectionImage/${boxLogId}`, {
             responseType: 'blob', // 이미지 데이터를 blob으로 받기
+            headers: {
+                Accept: "image/jpeg"  // 여기서만 헤더 덮어씀
+            },
         });
 
         // Blob을 URL로 변환하여 이미지 소스로 사용
@@ -338,6 +344,9 @@ export const getItemsImage = async (boxLogId: number | string) => {
     try {
         const response = await axiosInstance.get(`/admin/itemsImage/${boxLogId}`, {
             responseType: 'json', // Map<String, byte[]>를 JSON으로 받음
+            headers: {
+                Accept: "image/jpeg"  // 여기서만 헤더 덮어씀
+            },
         });
 
         // 결과를 저장할 객체 생성
@@ -366,6 +375,9 @@ export const getFireImage = async (alarmId: number | string): Promise<string> =>
     try {
         const response = await axiosInstance.get(`/admin/fireImage/${alarmId}`, {
             responseType: 'blob', // 이미지 데이터를 blob으로 받기
+            headers: {
+                Accept: "image/jpeg"  // 여기서만 헤더 덮어씀
+            },
         });
 
         // Blob을 URL로 변환하여 이미지 소스로 사용
