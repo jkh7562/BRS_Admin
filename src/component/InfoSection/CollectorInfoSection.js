@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import SearchIcon from "../../assets/검색.png"
 import CopyIcon from "../../assets/copy.png"
@@ -662,19 +660,25 @@ function getCollectorAmount(collectorId, boxLogs) {
 function getLastActiveDate(collectorId, boxLogs) {
     if (!collectorId || !boxLogs || boxLogs.length === 0) return "기록 없음"
 
+    // 해당 수거자의 수거 로그만 필터링
     const collectorLogs = boxLogs.filter((entry) => {
         const { boxLog } = entry
-        return boxLog && boxLog.collectorId === collectorId
+        return boxLog && boxLog.type === "수거" && boxLog.collectorId === collectorId
     })
 
     if (collectorLogs.length === 0) return "기록 없음"
 
-    // 가장 최근 로그 찾기
+    // 가장 최근 수거 로그 찾기
     const latestLog = collectorLogs.reduce((latest, current) => {
+        if (!latest.boxLog || !latest.boxLog.date) return current
+        if (!current.boxLog || !current.boxLog.date) return latest
+
         const currentDate = new Date(current.boxLog.date)
         const latestDate = new Date(latest.boxLog.date)
         return currentDate > latestDate ? current : latest
     })
+
+    if (!latestLog.boxLog || !latestLog.boxLog.date) return "기록 없음"
 
     return formatDate(latestLog.boxLog.date)
 }
