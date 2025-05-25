@@ -339,7 +339,7 @@ export const getCollectionImage = async (boxLogId: number | string): Promise<str
     }
 };
 
-// ✅ 분리 아이템 이미지 조회 API
+// ✅ 분리 아이템 이미지 조회 API(제거 예정)
 export const getItemsImage = async (boxLogId: number | string) => {
     try {
         const response = await axiosInstance.get(`/admin/itemsImage/${boxLogId}`, {
@@ -366,6 +366,63 @@ export const getItemsImage = async (boxLogId: number | string) => {
         return imageUrls; // { battery: url1, discharged: url2, notDischarged: url3 }
     } catch (error) {
         console.error("❌ 아이템 이미지 조회 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// ✅ 배터리 이미지 조회 API
+export const getBatteryImage = async (boxLogId: number | string): Promise<string> => {
+    try {
+        const response = await axiosInstance.get(`/admin/getBatteryImage/${boxLogId}`, {
+            responseType: 'blob', // 이미지 데이터를 blob으로 받기
+            headers: {
+                Accept: "image/*"  // 여기서만 헤더 덮어씀
+            },
+        });
+
+        // Blob을 URL로 변환하여 이미지 소스로 사용
+        const imageUrl = URL.createObjectURL(response.data);
+        return imageUrl;
+    } catch (error) {
+        console.error("❌ 배터리 이미지 조회 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// ✅ 방전된 폐전지 이미지 조회 API
+export const getDischargedImage = async (boxLogId: number | string): Promise<string> => {
+    try {
+        const response = await axiosInstance.get(`/admin/getDischargedImage/${boxLogId}`, {
+            responseType: 'blob', // 이미지 데이터를 blob으로 받기
+            headers: {
+                Accept: "image/*"  // 여기서만 헤더 덮어씀
+            },
+        });
+
+        // Blob을 URL로 변환하여 이미지 소스로 사용
+        const imageUrl = URL.createObjectURL(response.data);
+        return imageUrl;
+    } catch (error) {
+        console.error("❌ 방전된 폐전지 이미지 조회 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// ✅ 방전되지 않은 폐전지 이미지 조회 API
+export const getUndischargedImage = async (boxLogId: number | string): Promise<string> => {
+    try {
+        const response = await axiosInstance.get(`/admin/getUndischargedImage/${boxLogId}`, {
+            responseType: 'blob', // 이미지 데이터를 blob으로 받기
+            headers: {
+                Accept: "image/*"  // 여기서만 헤더 덮어씀
+            },
+        });
+
+        // Blob을 URL로 변환하여 이미지 소스로 사용
+        const imageUrl = URL.createObjectURL(response.data);
+        return imageUrl;
+    } catch (error) {
+        console.error("❌ 방전되지 않은 폐전지 이미지 조회 실패:", error.response?.data || error.message);
         throw error;
     }
 };

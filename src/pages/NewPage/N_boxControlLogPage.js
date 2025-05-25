@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect, useRef } from "react"
 import { Map, MapMarker } from "react-kakao-maps-sdk"
 import Sidebar from "../../component/Sidebar"
@@ -10,7 +8,15 @@ import DownIcon from "../../assets/Down.png"
 import GreenIcon from "../../assets/아이콘 GREEN.png"
 import YellowIcon from "../../assets/아이콘 YELLOW.png"
 import RedIcon from "../../assets/아이콘 RED.png"
-import { findAllBox, getBoxLog, getBoxImage, getCollectionImage, getItemsImage } from "../../api/apiServices"
+import {
+    findAllBox,
+    getBoxLog,
+    getBoxImage,
+    getCollectionImage,
+    getBatteryImage,
+    getDischargedImage,
+    getUndischargedImage,
+} from "../../api/apiServices"
 
 // 좌표 파싱 함수
 const parseCoordinates = (location) => {
@@ -84,7 +90,7 @@ const N_boxControlLogPage = () => {
     const [modalTitle, setModalTitle] = useState("")
     const [modalLoading, setModalLoading] = useState(false)
 
-    // 로그 데이터 상태 추가
+    // 로그 데이터 상태 추가 - 원본 데이터 구조 유지
     const [logData, setLogData] = useState([])
 
     // 박스 이미지 관련 상태 추가
@@ -308,7 +314,7 @@ const N_boxControlLogPage = () => {
         fetchBoxData()
     }, [])
 
-    // 로그 데이터 가져오기
+    // 로그 데이터 가져오기 - 원본 구조 유지
     useEffect(() => {
         const fetchLogData = async () => {
             if (!selectedBox) return
@@ -316,11 +322,10 @@ const N_boxControlLogPage = () => {
             try {
                 setIsLogLoading(true)
                 const response = await getBoxLog(selectedBox.id)
-                console.log("Box logs:", response)
+                console.log("Raw box logs response:", response)
 
-                // 중첩된 구조를 평탄화
-                const flattenedLogs = response ? response.map((item) => item.boxLog) : []
-                setLogData(flattenedLogs)
+                // 원본 데이터 구조 그대로 저장
+                setLogData(response || [])
             } catch (error) {
                 console.error("Error fetching box logs:", error)
                 setLogData([])
@@ -339,22 +344,95 @@ const N_boxControlLogPage = () => {
             (box.location && box.location.toLowerCase().includes(boxSearchTerm.toLowerCase())),
     )
 
-    // 로그 상세 보기 핸들러
-    const handleViewDetails = async (log) => {
+    // 로그 상세 보기 핸들러 - 수정된 버전
+    const handleViewDetails = async (logItem) => {
         try {
             setModalLoading(true)
             setIsModalOpen(true)
-            setModalTitle(log.type === "COLLECTION" || log.type === "수거" ? "수거 이미지" : "배출 아이템 이미지")
+
+            const log = logItem.boxLog
+            const items = logItem.items || []
+
+            setModalTitle(log.type === "수거" ? "수거 이미지" : "배출 아이템 이미지")
+
+            console.log("Log object:", log)
+            console.log("Items array:", items)
+
+            const logId = log.logId
+
+            console.log("Using log ID:", logId)
+
+            if (!logId) {
+                console.error("No valid log ID found in log object")
+                setModalImages(null)
+                return
+            }
 
             // 로그 타입에 따라 다른 API 호출
-            if (log.type === "COLLECTION" || log.type === "수거") {
+            if (log.type === "수거") {
                 // 수거 이미지 가져오기
-                const imageUrl = await getCollectionImage(log.id)
+                const imageUrl = await getCollectionImage(logId)
                 setModalImages({ collection: imageUrl })
             } else {
-                // 배출 아이템 이미지 가져오기
-                const imageUrls = await getItemsImage(log.id)
-                setModalImages(imageUrls)
+                // 배출 아이템 이미지 가져오기 - 세 개의 개별 API 사용
+                console.log("Attempting to fetch battery images for log ID:", logId)
+
+                const imagePromises = [
+                    getBatteryImage(logId).catch((error) => {
+                        console.log("Battery image fetch failed:", error)
+                        return null
+                    }),
+                    getDischargedImage(logId).catch((error) => {
+                        console.log("Discharged image fetch failed:", error)
+                        return null
+                    }),
+                    getUndischargedImage(logId).catch((error) => {
+                        console.log("Undischarged image fetch failed:", error)
+                        return null
+                    }),
+                ]
+
+                const [batteryImage, dischargedImage, undischargedImage] = await Promise.all(imagePromises)
+
+                const images = {}
+
+                // 각 이미지 결과 처리
+                if (batteryImage) {
+                    console.log("Battery image loaded successfully")
+                    images.battery = batteryImage
+                }
+
+                if (dischargedImage) {
+                    console.log("Discharged image loaded successfully")
+                    images.discharged = dischargedImage
+                }
+
+                if (undischargedImage) {
+                    console.log("Undischarged image loaded successfully")
+                    images.undischarged = undischargedImage
+                }
+
+                // items 배열에서 수량 정보 추출
+                const quantities = {
+                    battery: 0,
+                    discharged: 0,
+                    undischarged: 0,
+                }
+
+                items.forEach((item) => {
+                    if (item.name === "battery") {
+                        quantities.battery = item.count
+                    } else if (item.name === "discharged") {
+                        quantities.discharged = item.count
+                    } else if (item.name === "undischarged") {
+                        quantities.undischarged = item.count
+                    }
+                })
+
+                images.quantities = quantities
+
+                console.log("Final images object:", images)
+                setModalImages(images)
             }
         } catch (error) {
             console.error("이미지 로드 실패:", error)
@@ -365,14 +443,16 @@ const N_boxControlLogPage = () => {
     }
 
     // 필터링된 로그 데이터 - 수정된 버전
-    const filteredLogData = logData.filter((log) => {
-        // 로그 타입 필터링 - 수정된 로직
+    const filteredLogData = logData.filter((logItem) => {
+        const log = logItem.boxLog
+
+        // 로그 타입 필터링
         if (logType === "discharge") {
-            // 배출 로그: DISCHARGE 또는 "분리"
-            if (log.type !== "DISCHARGE" && log.type !== "분리") return false
+            // 배출 로그: "분리"
+            if (log.type !== "분리") return false
         } else if (logType === "collection") {
-            // 수거 로그: COLLECTION 또는 "수거"
-            if (log.type !== "COLLECTION" && log.type !== "수거") return false
+            // 수거 로그: "수거"
+            if (log.type !== "수거") return false
         }
 
         // 날짜 필터링
@@ -392,7 +472,7 @@ const N_boxControlLogPage = () => {
             }
         }
 
-        // 검색어 필터링 - 수정된 필드명
+        // 검색어 필터링
         if (logSearchTerm) {
             const searchTerm = logSearchTerm.toLowerCase()
             const boxName = boxData.find((box) => box.id === log.boxId)?.name || ""
@@ -949,22 +1029,27 @@ const N_boxControlLogPage = () => {
                                             </td>
                                         </tr>
                                     ) : filteredLogData.length > 0 ? (
-                                        filteredLogData.map((log) => (
-                                            <tr key={log.log_id} className="hover:bg-blue-50">
-                                                <td className="py-4 px-6 text-sm text-gray-500">{log.userId || "-"}</td>
-                                                <td className="py-4 px-6 text-sm text-gray-500">{formatDate(log.date)}</td>
-                                                <td className="py-4 px-6 text-sm text-gray-500">{getBoxName(log.boxId)}</td>
-                                                <td className="py-4 px-6 text-sm text-gray-500 flex justify-between items-center">
-                                                    <span>{log.value ? `${log.value}개` : "-"}</span>
-                                                    <button
-                                                        onClick={() => handleViewDetails(log)}
-                                                        className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-md text-xs font-medium transition-colors"
-                                                    >
-                                                        자세히 보기
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))
+                                        filteredLogData.map((logItem) => {
+                                            const log = logItem.boxLog
+                                            const totalItems = logItem.items?.reduce((sum, item) => sum + item.count, 0) || 0
+
+                                            return (
+                                                <tr key={log.logId} className="hover:bg-blue-50">
+                                                    <td className="py-4 px-6 text-sm text-gray-500">{log.userId || "-"}</td>
+                                                    <td className="py-4 px-6 text-sm text-gray-500">{formatDate(log.date)}</td>
+                                                    <td className="py-4 px-6 text-sm text-gray-500">{getBoxName(log.boxId)}</td>
+                                                    <td className="py-4 px-6 text-sm text-gray-500 flex justify-between items-center">
+                                                        <span>{totalItems > 0 ? `${totalItems}개` : "-"}</span>
+                                                        <button
+                                                            onClick={() => handleViewDetails(logItem)}
+                                                            className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-md text-xs font-medium transition-colors"
+                                                        >
+                                                            자세히 보기
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })
                                     ) : (
                                         <tr>
                                             <td colSpan={4} className="py-8 text-center text-gray-500">
@@ -1015,22 +1100,26 @@ const N_boxControlLogPage = () => {
                                             </td>
                                         </tr>
                                     ) : filteredLogData.length > 0 ? (
-                                        filteredLogData.map((log) => (
-                                            <tr key={log.log_id} className="hover:bg-blue-50">
-                                                <td className="py-4 px-6 text-sm text-gray-500">{log.userId || "-"}</td>
-                                                <td className="py-4 px-6 text-sm text-gray-500">{formatDate(log.date)}</td>
-                                                <td className="py-4 px-6 text-sm text-gray-500">{getBoxName(log.boxId)}</td>
-                                                <td className="py-4 px-6 text-sm text-gray-500 flex justify-between items-center">
-                                                    <span>{log.value ? `${log.value}개` : "-"}</span>
-                                                    <button
-                                                        onClick={() => handleViewDetails(log)}
-                                                        className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-md text-xs font-medium transition-colors"
-                                                    >
-                                                        자세히 보기
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))
+                                        filteredLogData.map((logItem) => {
+                                            const log = logItem.boxLog
+
+                                            return (
+                                                <tr key={log.logId} className="hover:bg-blue-50">
+                                                    <td className="py-4 px-6 text-sm text-gray-500">{log.userId || "-"}</td>
+                                                    <td className="py-4 px-6 text-sm text-gray-500">{formatDate(log.date)}</td>
+                                                    <td className="py-4 px-6 text-sm text-gray-500">{getBoxName(log.boxId)}</td>
+                                                    <td className="py-4 px-6 text-sm text-gray-500 flex justify-between items-center">
+                                                        <span>{log.value ? `${log.value}개` : "-"}</span>
+                                                        <button
+                                                            onClick={() => handleViewDetails(logItem)}
+                                                            className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-md text-xs font-medium transition-colors"
+                                                        >
+                                                            자세히 보기
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })
                                     ) : (
                                         <tr>
                                             <td colSpan={4} className="py-8 text-center text-gray-500">
@@ -1070,56 +1159,171 @@ const N_boxControlLogPage = () => {
             </div>
             {/* 이미지 모달 */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-                        <div className="p-4 border-b flex justify-between items-center">
-                            <h3 className="text-lg font-bold">{modalTitle}</h3>
-                            <button
-                                onClick={() => {
-                                    setIsModalOpen(false)
-                                    setModalImages(null)
-                                }}
-                                className="text-gray-500 hover:text-gray-700"
-                            >
-                                ✕
-                            </button>
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+                        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-2xl font-bold text-gray-800">{modalTitle}</h3>
+                                    <p className="text-sm text-gray-600 mt-1">배출된 배터리 종류별 이미지와 수량을 확인하세요</p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setIsModalOpen(false)
+                                        setModalImages(null)
+                                    }}
+                                    className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-2 transition-colors"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
 
-                        <div className="p-6 overflow-auto flex-1">
+                        <div className="p-6 overflow-auto flex-1 bg-gray-50">
                             {modalLoading ? (
                                 <div className="flex justify-center items-center h-64">
-                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                                    <div className="flex flex-col items-center gap-4">
+                                        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+                                        <p className="text-gray-600 font-medium">이미지를 불러오는 중...</p>
+                                    </div>
                                 </div>
                             ) : !modalImages ? (
-                                <div className="text-center py-12 text-gray-500">이미지를 불러올 수 없습니다.</div>
+                                <div className="text-center py-16">
+                                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <p className="text-lg text-gray-700 font-medium">이미지를 불러올 수 없습니다</p>
+                                    <p className="text-sm text-gray-500 mt-1">네트워크 연결을 확인하고 다시 시도해주세요.</p>
+                                </div>
                             ) : modalTitle === "수거 이미지" ? (
-                                <div className="flex justify-center">
+                                <div className="flex justify-center bg-white rounded-xl p-6 shadow-sm">
                                     <img
                                         src={modalImages.collection || "/placeholder.svg"}
                                         alt="수거 이미지"
-                                        className="max-w-full max-h-[60vh] object-contain"
+                                        className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-lg"
                                     />
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    {Object.entries(modalImages).map(([key, url]) => (
-                                        <div key={key} className="flex flex-col items-center">
-                                            <img
-                                                src={url || "/placeholder.svg"}
-                                                alt={key}
-                                                className="max-w-full h-auto object-contain border rounded-lg"
-                                            />
-                                            <p className="mt-2 text-sm font-medium text-center">
-                                                {key === "battery"
-                                                    ? "배터리"
-                                                    : key === "discharged"
-                                                        ? "방전 배터리"
-                                                        : key === "notDischarged"
-                                                            ? "미방전 배터리"
-                                                            : key}
-                                            </p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {/* 배터리 이미지 - 이미지와 수량이 모두 존재할 때만 표시 */}
+                                    {modalImages.battery && modalImages.quantities?.battery > 0 && (
+                                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200 shadow-sm hover:shadow-md transition-shadow">
+                                            <div className="relative">
+                                                <img
+                                                    src={modalImages.battery || "/placeholder.svg"}
+                                                    alt="배터리"
+                                                    className="w-full h-48 object-cover rounded-lg border-2 border-white shadow-sm"
+                                                />
+                                                <div className="absolute -top-2 -right-2 bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                                                    {modalImages.quantities.battery}
+                                                </div>
+                                            </div>
+                                            <div className="mt-4 text-center">
+                                                <div className="flex items-center justify-center gap-2 mb-2">
+                                                    <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                                                    <p className="text-lg font-semibold text-blue-800">배터리</p>
+                                                </div>
+                                                <div className="bg-white rounded-lg px-3 py-2 inline-block shadow-sm">
+                                                    <p className="text-sm text-gray-600">
+                                                        수량: <span className="font-bold text-blue-600">{modalImages.quantities.battery}개</span>
+                                                    </p>
+                                                </div>
+                                            </div>
                                         </div>
-                                    ))}
+                                    )}
+
+                                    {/* 방전 배터리 이미지 - 이미지와 수량이 모두 존재할 때만 표시 */}
+                                    {modalImages.discharged && modalImages.quantities?.discharged > 0 && (
+                                        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-4 border border-red-200 shadow-sm hover:shadow-md transition-shadow">
+                                            <div className="relative">
+                                                <img
+                                                    src={modalImages.discharged || "/placeholder.svg"}
+                                                    alt="방전 배터리"
+                                                    className="w-full h-48 object-cover rounded-lg border-2 border-white shadow-sm"
+                                                />
+                                                <div className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                                                    {modalImages.quantities.discharged}
+                                                </div>
+                                            </div>
+                                            <div className="mt-4 text-center">
+                                                <div className="flex items-center justify-center gap-2 mb-2">
+                                                    <div className="w-3 h-3 bg-red-600 rounded-full"></div>
+                                                    <p className="text-lg font-semibold text-red-800">방전 배터리</p>
+                                                </div>
+                                                <div className="bg-white rounded-lg px-3 py-2 inline-block shadow-sm">
+                                                    <p className="text-sm text-gray-600">
+                                                        수량: <span className="font-bold text-red-600">{modalImages.quantities.discharged}개</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* 미방전 배터리 이미지 - 이미지와 수량이 모두 존재할 때만 표시 */}
+                                    {modalImages.undischarged && modalImages.quantities?.undischarged > 0 && (
+                                        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200 shadow-sm hover:shadow-md transition-shadow">
+                                            <div className="relative">
+                                                <img
+                                                    src={modalImages.undischarged || "/placeholder.svg"}
+                                                    alt="미방전 배터리"
+                                                    className="w-full h-48 object-cover rounded-lg border-2 border-white shadow-sm"
+                                                />
+                                                <div className="absolute -top-2 -right-2 bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                                                    {modalImages.quantities.undischarged}
+                                                </div>
+                                            </div>
+                                            <div className="mt-4 text-center">
+                                                <div className="flex items-center justify-center gap-2 mb-2">
+                                                    <div className="w-3 h-3 bg-green-600 rounded-full"></div>
+                                                    <p className="text-lg font-semibold text-green-800">미방전 배터리</p>
+                                                </div>
+                                                <div className="bg-white rounded-lg px-3 py-2 inline-block shadow-sm">
+                                                    <p className="text-sm text-gray-600">
+                                                        수량:{" "}
+                                                        <span className="font-bold text-green-600">{modalImages.quantities.undischarged}개</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* 표시할 배터리 타입이 없는 경우 */}
+                                    {(!modalImages.battery || modalImages.quantities?.battery <= 0) &&
+                                        (!modalImages.discharged || modalImages.quantities?.discharged <= 0) &&
+                                        (!modalImages.undischarged || modalImages.quantities?.undischarged <= 0) && (
+                                            <div className="col-span-full">
+                                                <div className="text-center py-16 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                                                    <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                        <svg
+                                                            className="w-8 h-8 text-gray-400"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                            />
+                                                        </svg>
+                                                    </div>
+                                                    <p className="text-lg text-gray-500 font-medium">배출된 배터리가 없습니다</p>
+                                                    <p className="text-sm text-gray-400 mt-1">
+                                                        이 로그에는 배출된 배터리가 포함되어 있지 않습니다.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
                                 </div>
                             )}
                         </div>
