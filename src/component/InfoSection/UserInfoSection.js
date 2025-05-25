@@ -5,9 +5,9 @@ import SearchIcon from "../../assets/검색.png"
 import CopyIcon from "../../assets/copy.png"
 import InfoIcon from "../../assets/추가정보2.png"
 import LineIcon from "../../assets/구분선.png"
-import VectorIcon from "../../assets/Vector.png"
 import UserIcon from "../../assets/user.png"
 import { findUserAll, getBoxLog, fetchOrdersByUserId } from "../../api/apiServices" // API 임포트
+import UserDischargeChart from "../chart/UserDischargeChart" // 새로운 차트 컴포넌트 임포트
 
 export default function UserInfoSection() {
     const [selectedPeriod, setSelectedPeriod] = useState("일")
@@ -21,6 +21,9 @@ export default function UserInfoSection() {
     })
     const [boxLogs, setBoxLogs] = useState(null)
     const [copiedId, setCopiedId] = useState(null)
+
+    // 상태 추가 (기존 상태들 아래에)
+    const [selectedBatteryType, setSelectedBatteryType] = useState("전체")
 
     const handleCopy = (e, userId, text) => {
         e.stopPropagation() // 이벤트 버블링 방지
@@ -183,13 +186,36 @@ export default function UserInfoSection() {
     // 검색어로 사용자 필터링
     const filteredUsers = users.filter((user) => user.name.toLowerCase().includes(searchTerm.toLowerCase()))
 
-    // 사용자의 총 배출량 계산 (예시 - 실제 데이터에 맞게 수정 필요)
-    const getUserTotalDisposal = (userId) => {
+    // getUserTotalDisposal 함수 수정
+    const getUserTotalDisposal = (userId, batteryType = "전체") => {
         if (!boxLogs) return 0
 
-        // 해당 사용자의 배출량 합산 로직 (예시)
-        const userLogs = boxLogs.filter((log) => log.userId === userId)
-        return userLogs.reduce((total, log) => total + (log.amount || 0), 0)
+        const userLogs = boxLogs.filter((entry) => {
+            const { boxLog } = entry
+            return boxLog && boxLog.type === "분리" && boxLog.userId === userId
+        })
+
+        let totalDisposal = 0
+        userLogs.forEach(({ items }) => {
+            if (items && Array.isArray(items)) {
+                if (batteryType === "전체") {
+                    const totalCount = items.reduce((sum, item) => sum + (item.count || 0), 0)
+                    totalDisposal += totalCount
+                } else {
+                    const batteryTypeMap = {
+                        건전지: "battery",
+                        "방전 배터리": "discharged",
+                        "잔여 용량 배터리": "undischarged",
+                    }
+
+                    const targetType = batteryTypeMap[batteryType]
+                    const targetItem = items.find((item) => item.name === targetType)
+                    totalDisposal += targetItem ? targetItem.count || 0 : 0
+                }
+            }
+        })
+
+        return totalDisposal
     }
 
     // 툴팁 컴포넌트
@@ -246,7 +272,7 @@ export default function UserInfoSection() {
                                 key={user.id}
                                 userId={user.id} // userId prop 추가
                                 name={user.name}
-                                points={user.point || 0}
+                                points={getUserTotalDisposal(user.id)} // 실제 배출량 계산
                                 date={new Date(user.date)
                                     .toLocaleDateString("ko-KR", {
                                         year: "numeric",
@@ -320,15 +346,18 @@ export default function UserInfoSection() {
                             {/* Stats Cards - 수정된 부분: 마일리지 관련 카드를 하나로 통합 */}
                             <div className="flex items-center mt-6 mb-6">
                                 <StatCard
-                                    title="총 배출량"
-                                    value={`${getUserTotalDisposal(selectedUser.id) || 0}g`}
+                                    title={`총 배출량 (${selectedBatteryType})`}
+                                    value={`${getUserTotalDisposal(selectedUser.id, selectedBatteryType) || 0}개`}
                                     number="1"
                                     tooltipVisible={tooltips.totalDisposal}
                                     onTooltipToggle={(e) => toggleTooltip("totalDisposal", e)}
                                     tooltipContent={
                                         <>
                                             <h3 className="font-bold text-sm mb-2">총 배출량</h3>
-                                            <p className="text-xs">사용자가 지금까지 배출한 배터리의 총량입니다.</p>
+                                            <p className="text-xs">
+                                                사용자가 지금까지 배출한 {selectedBatteryType === "전체" ? "모든 " : `${selectedBatteryType} `}
+                                                배터리의 총 개수입니다.
+                                            </p>
                                         </>
                                     }
                                     tooltipPosition="left"
@@ -354,79 +383,63 @@ export default function UserInfoSection() {
                             {/* Chart Section */}
                             <div className="mb-3">
                                 <div className="tabs">
-                                    <div className="flex justify-between items-center mb-3">
-                                        <div className="flex border rounded-md overflow-hidden">
-                                            <button
-                                                className={`px-4 py-1.5 text-sm ${selectedPeriod === "연" ? "bg-gray-900 text-white font-medium" : ""}`}
-                                                onClick={() => setSelectedPeriod("연")}
-                                            >
-                                                연
-                                            </button>
-                                            <button
-                                                className={`px-4 py-1.5 text-sm ${selectedPeriod === "월" ? "bg-gray-900 text-white font-medium" : ""}`}
-                                                onClick={() => setSelectedPeriod("월")}
-                                            >
-                                                월
-                                            </button>
-                                            <button
-                                                className={`px-4 py-1.5 text-sm ${selectedPeriod === "일" ? "bg-gray-900 text-white font-medium" : ""}`}
-                                                onClick={() => setSelectedPeriod("일")}
-                                            >
-                                                일
-                                            </button>
-                                        </div>
-                                        <button className="text-sm font-medium text-[#60697E]">
-                                            배출 로그 자세히보기{" "}
-                                            <img
-                                                src={VectorIcon || "/placeholder.svg"}
-                                                alt="Vector Icon"
-                                                className="ml-1 inline-block w-2 h-3 mb-1"
-                                            />
-                                        </button>
-                                    </div>
-
-                                    <div className="tab-content">
-                                        {/* Chart with horizontal lines */}
-                                        <div className="h-[200px] relative py-2 mt-2">
-                                            {/* Horizontal grid lines */}
-                                            <div className="absolute left-0 right-0 top-0 bottom-0 flex flex-col justify-between">
-                                                <div className="border-b border-gray-100 w-full h-0"></div>
-                                                <div className="border-b border-gray-100 w-full h-0"></div>
-                                                <div className="border-b border-gray-100 w-full h-0"></div>
-                                                <div className="border-b border-gray-100 w-full h-0"></div>
-                                                <div className="border-b border-gray-100 w-full h-0"></div>
-                                                <div className="border-b border-gray-100 w-full h-0"></div>
-                                                <div className="border-b border-gray-100 w-full h-0"></div>
-                                                <div className="border-b border-gray-100 w-full h-0"></div>
-                                            </div>
-
-                                            {/* Y-axis labels */}
-                                            <div className="absolute top-0 left-0 bottom-0 flex flex-col justify-between text-xs text-gray-500 pr-2">
-                                                <div>2000</div>
-                                                <div>1500</div>
-                                                <div>1250</div>
-                                                <div>1000</div>
-                                                <div>750</div>
-                                                <div>500</div>
-                                                <div>250</div>
-                                                <div>0</div>
-                                            </div>
-
-                                            {/* Chart bars - 실제 데이터로 대체 필요 */}
-                                            <div className="absolute bottom-0 left-10 right-0 flex justify-between h-full items-end">
-                                                {generateChartData(boxLogs, selectedUser.id, selectedPeriod).map((item, index) => (
-                                                    <ChartBar key={index} height={item.height} date={item.date} />
+                                    {/* 배터리 타입 선택 탭 - 밑줄 스타일로 개선 */}
+                                    <div className="mb-4">
+                                        <div className="relative">
+                                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200" />
+                                            <div className="flex gap-6">
+                                                {["전체", "건전지", "방전 배터리", "잔여 용량 배터리"].map((type) => (
+                                                    <button
+                                                        key={type}
+                                                        onClick={() => setSelectedBatteryType(type)}
+                                                        className={`pb-2 text-sm font-medium transition-colors ${
+                                                            selectedBatteryType === type
+                                                                ? "border-b-2 border-black text-[#21262B]"
+                                                                : "text-[#60697E] hover:text-[#21262B]"
+                                                        }`}
+                                                    >
+                                                        {type}
+                                                    </button>
                                                 ))}
                                             </div>
                                         </div>
+                                    </div>
+
+                                    {/* 시간 단위 선택 - 크기 축소 및 스타일 개선 */}
+                                    <div className="flex justify-between items-center mb-4">
+                                        <div className="flex border border-gray-300 rounded-md overflow-hidden">
+                                            {["연", "월", "일"].map((period) => (
+                                                <button
+                                                    key={period}
+                                                    onClick={() => setSelectedPeriod(period)}
+                                                    className={`px-3 py-1 text-sm font-medium transition-colors ${
+                                                        selectedPeriod === period
+                                                            ? "bg-[#21262B] text-white"
+                                                            : "bg-white text-[#60697E] hover:bg-gray-50"
+                                                    }`}
+                                                >
+                                                    {period}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="tab-content">
+                                        {/* 실제 차트 컴포넌트로 교체 */}
+                                        <UserDischargeChart
+                                            boxLogs={boxLogs}
+                                            userId={selectedUser.id}
+                                            selectedPeriod={selectedPeriod}
+                                            selectedBatteryType={selectedBatteryType}
+                                        />
 
                                         {/* Slider pagination */}
                                         <div className="flex items-center justify-center mt-4">
-                                            <button className="px-2 text-sm">&lt;</button>
+                                            <button className="px-2 text-sm text-gray-400 hover:text-gray-600">&lt;</button>
                                             <div className="w-64 h-2 bg-gray-200 rounded-full relative mx-2">
                                                 <div className="absolute left-0 w-1/3 h-full bg-gray-700 rounded-full"></div>
                                             </div>
-                                            <button className="px-2 text-sm">&gt;</button>
+                                            <button className="px-2 text-sm text-gray-400 hover:text-gray-600">&gt;</button>
                                         </div>
                                     </div>
                                 </div>
@@ -511,7 +524,7 @@ function UserListItem({ userId, name, points, date, isActive, onClick, handleCop
         >
             <div>
                 <h3 className="text-base text-[#21262B] font-bold">{name}</h3>
-                <p className="text-sm text-[#60697E] font-normal text-gray-500 mt-1">총 배출량 {points}</p>
+                <p className="text-sm text-[#60697E] font-normal text-gray-500 mt-1">총 배출량 {points}개</p>
                 <p className="text-sm text-[#60697E] font-normal text-gray-500">{date}</p>
             </div>
             <div className="pb-10 text-gray-400 relative">
@@ -524,20 +537,6 @@ function UserListItem({ userId, name, points, date, isActive, onClick, handleCop
                     </div>
                 )}
             </div>
-        </div>
-    )
-}
-
-// 차트 바 컴포넌트
-function ChartBar({ height, date }) {
-    const barHeight = `${height}%`
-
-    return (
-        <div className="flex flex-col items-center w-8">
-            <div className="w-full flex justify-center h-[80%]">
-                <div className="w-5 bg-rose-500 rounded-sm" style={{ height: barHeight }}></div>
-            </div>
-            <div className="text-xs text-gray-500 mt-1">{date}</div>
         </div>
     )
 }
@@ -605,72 +604,4 @@ function StatCard({
             <div className="text-[22px] text-[#21262B] font-bold">{value}</div>
         </div>
     )
-}
-
-// 차트 데이터 생성 함수
-function generateChartData(logs, userId, period) {
-    if (!logs) {
-        // 더미 데이터 반환
-        return [
-            {height: 10, date: "02.03"},
-            {height: 8, date: "02.04"},
-            {height: 8, date: "02.05"},
-            {height: 0, date: "02.06"},
-            {height: 0, date: "02.07"},
-            {height: 20, date: "02.08"},
-            {height: 25, date: "02.09"},
-            {height: 0, date: "02.10"},
-            {height: 0, date: "02.11"},
-            {height: 30, date: "02.12"},
-            {height: 0, date: "02.13"},
-        ]
-    }
-
-    // 실제 로그 데이터를 기반으로 차트 데이터 생성 로직
-    // 여기서는 예시로 더미 데이터를 반환합니다.
-    // 실제 구현 시에는 logs 데이터를 분석하여 적절한 차트 데이터를 생성해야 합니다.
-    const userLogs = logs.filter((log) => log.userId === userId)
-
-    // 기간별 데이터 처리 로직 (예시)
-    if (period === "일") {
-        // 일별 데이터
-        return [
-            {height: 10, date: "02.03"},
-            {height: 8, date: "02.04"},
-            {height: 8, date: "02.05"},
-            {height: 0, date: "02.06"},
-            {height: 0, date: "02.07"},
-            {height: 20, date: "02.08"},
-            {height: 25, date: "02.09"},
-            {height: 0, date: "02.10"},
-            {height: 0, date: "02.11"},
-            {height: 30, date: "02.12"},
-            {height: 0, date: "02.13"},
-        ]
-    } else if (period === "월") {
-        // 월별 데이터
-        return [
-            {height: 15, date: "01"},
-            {height: 25, date: "02"},
-            {height: 30, date: "03"},
-            {height: 20, date: "04"},
-            {height: 35, date: "05"},
-            {height: 40, date: "06"},
-            {height: 30, date: "07"},
-            {height: 25, date: "08"},
-            {height: 20, date: "09"},
-            {height: 15, date: "10"},
-            {height: 10, date: "11"},
-        ]
-    } else {
-        // 연별 데이터
-        return [
-            {height: 20, date: "2020"},
-            {height: 30, date: "2021"},
-            {height: 40, date: "2022"},
-            {height: 50, date: "2023"},
-            {height: 60, date: "2024"},
-            {height: 45, date: "2025"},
-        ]
-    }
 }

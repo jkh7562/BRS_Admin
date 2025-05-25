@@ -463,14 +463,6 @@ export default function CollectorInfoSection() {
                                                 일
                                             </button>
                                         </div>
-                                        <button className="text-sm font-medium text-[#60697E]">
-                                            수거 로그 자세히보기{" "}
-                                            <img
-                                                src={VectorIcon || "/placeholder.svg"}
-                                                alt="Vector Icon"
-                                                className="ml-1 inline-block w-2 h-3 mb-1"
-                                            />
-                                        </button>
                                     </div>
 
                                     <div className="tab-content">
