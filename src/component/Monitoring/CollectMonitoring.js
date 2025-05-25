@@ -496,12 +496,9 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
                         </div>
                     )}
                     {isCompleted && (
-                        <span className="mt-2 flex gap-2">
-              <button className="bg-[#21262B] text-white rounded-2xl py-2 px-14" onClick={handleAccept}>
-                수락
-              </button>
-              <button className="bg-[#FF7571] text-white rounded-2xl py-2 px-6">거절</button>
-            </span>
+                        <button className="bg-[#21262B] text-white rounded-2xl py-2 w-full mt-2" onClick={handleAccept}>
+                            확인
+                        </button>
                     )}
                 </div>
             )}
