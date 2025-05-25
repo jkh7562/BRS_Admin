@@ -361,7 +361,37 @@ const Topbar = () => {
         }
     }
 
-    // 알람 클릭 핸들러 - 직접 URL 이동 방식으로 변경
+    // 알람 타입을 모니터링 페이지 탭으로 매핑하는 함수
+    const getMonitoringTabFromAlarmType = (alarmType) => {
+        switch (alarmType) {
+            case "fire":
+            case "FIRE":
+            case "FIRE_IN_PROGRESS":
+            case "FIRE_COMPLETED":
+            case "FIRE_CONFIRMED":
+                return "화재 처리"
+            case "COLLECTION_NEEDED":
+            case "COLLECTION_RECOMMENDED":
+            case "COLLECTION_IN_PROGRESS":
+            case "COLLECTION_COMPLETED":
+            case "COLLECTION_CONFIRMED":
+                return "수거 현황"
+            case "INSTALL_REQUEST":
+            case "INSTALL_IN_PROGRESS":
+            case "INSTALL_COMPLETED":
+            case "INSTALL_CONFIRMED":
+                return "설치 현황"
+            case "REMOVE_REQUEST":
+            case "REMOVE_IN_PROGRESS":
+            case "REMOVE_COMPLETED":
+            case "REMOVE_CONFIRMED":
+                return "제거 현황"
+            default:
+                return "설치 현황" // 기본값
+        }
+    }
+
+    // 알람 클릭 핸들러 - 알람 타입에 따라 적절한 모니터링 탭으로 이동
     const handleAlarmClick = (e, alarm) => {
         console.log("알람 클릭됨:", alarm.type)
 
@@ -374,7 +404,13 @@ const Topbar = () => {
         // 알림 사이드바 닫기
         setIsNotificationSidebarOpen(false)
 
-        // 사이드바와 동일한 단순한 navigate 방식 사용
+        // 알람 타입에 따른 모니터링 탭 결정
+        const targetTab = getMonitoringTabFromAlarmType(alarm.type)
+
+        // localStorage에 활성 탭 정보 저장
+        localStorage.setItem("activeMonitoringTab", targetTab)
+
+        // 모니터링 페이지로 이동
         navigate("/n_MonitoringPage")
     }
 
@@ -393,15 +429,15 @@ const Topbar = () => {
                 return {
                     title: "화재처리 진행",
                     icon: FireInfoIcon,
-                    bgColor: "bg-red-500",
-                    textColor: "text-white",
+                    bgColor: "bg-white",
+                    textColor: "text-[#21262B]",
                 }
             case "FIRE_COMPLETED":
                 return {
                     title: "화재처리 완료",
                     icon: FireInfoIcon,
-                    bgColor: "bg-red-400",
-                    textColor: "text-white",
+                    bgColor: "bg-white",
+                    textColor: "text-[#21262B]",
                 }
             case "FIRE_CONFIRMED":
                 return {
@@ -617,13 +653,86 @@ const Topbar = () => {
     // 테스트용 더미 알람 데이터 (실제 구현 시 제거) - 주석을 해제하여 테스트용 알람 활성화
     // const dummyAlarms = [
     //   { id: 1, type: "fire", location: "서울특별시 송파구 가락로 111", timestamp: new Date().toISOString(), priority: 1 },
-    //   { id: 2, type: "INSTALL_COMPLETED", location: "선문대 동문 앞", timestamp: new Date().toISOString(), priority: 3 },
-    //   { id: 3, type: "REMOVE_COMPLETED", location: "선문대 서문 앞", timestamp: new Date().toISOString(), priority: 3 },
-    //   { id: 4, type: "COLLECTION_NEEDED", location: "선문대 정문 앞", timestamp: new Date().toISOString(), priority: 3 },
+    //   {
+    //     id: 2,
+    //     type: "FIRE_IN_PROGRESS",
+    //     location: "부산광역시 해운대구",
+    //     timestamp: new Date(Date.now() - 300000).toISOString(),
+    //     priority: 1,
+    //   },
+    //   {
+    //     id: 3,
+    //     type: "INSTALL_COMPLETED",
+    //     location: "선문대 동문 앞",
+    //     timestamp: new Date(Date.now() - 600000).toISOString(),
+    //     priority: 3,
+    //   },
+    //   {
+    //     id: 4,
+    //     type: "INSTALL_REQUEST",
+    //     location: "인천광역시 중구",
+    //     timestamp: new Date(Date.now() - 900000).toISOString(),
+    //     priority: 3,
+    //   },
+    //   {
+    //     id: 5,
+    //     type: "REMOVE_COMPLETED",
+    //     location: "선문대 서문 앞",
+    //     timestamp: new Date(Date.now() - 1200000).toISOString(),
+    //     priority: 3,
+    //   },
+    //   {
+    //     id: 6,
+    //     type: "REMOVE_REQUEST",
+    //     location: "대구광역시 중구",
+    //     timestamp: new Date(Date.now() - 1500000).toISOString(),
+    //     priority: 3,
+    //   },
+    //   {
+    //     id: 7,
+    //     type: "COLLECTION_NEEDED",
+    //     location: "선문대 정문 앞",
+    //     timestamp: new Date(Date.now() - 1800000).toISOString(),
+    //     priority: 3,
+    //   },
+    //   {
+    //     id: 8,
+    //     type: "COLLECTION_RECOMMENDED",
+    //     location: "광주광역시 동구",
+    //     timestamp: new Date(Date.now() - 2100000).toISOString(),
+    //     priority: 3,
+    //   },
+    //   {
+    //     id: 9,
+    //     type: "COLLECTION_IN_PROGRESS",
+    //     location: "대전광역시 유성구",
+    //     timestamp: new Date(Date.now() - 2400000).toISOString(),
+    //     priority: 3,
+    //   },
+    //   {
+    //     id: 10,
+    //     type: "FIRE_COMPLETED",
+    //     location: "울산광역시 남구",
+    //     timestamp: new Date(Date.now() - 2700000).toISOString(),
+    //     priority: 1,
+    //   },
+    //   {
+    //     id: 11,
+    //     type: "INSTALL_IN_PROGRESS",
+    //     location: "경기도 수원시",
+    //     timestamp: new Date(Date.now() - 3000000).toISOString(),
+    //     priority: 3,
+    //   },
+    //   {
+    //     id: 12,
+    //     type: "REMOVE_IN_PROGRESS",
+    //     location: "강원도 춘천시",
+    //     timestamp: new Date(Date.now() - 3300000).toISOString(),
+    //     priority: 3,
+    //   },
     // ]
 
-    // 실제 알람과 더미 알람 합치기 (테스트용, 실제 구현 시 alarms만 사용)
-    // const allAlarms = [...alarms, ...dummyAlarms]
+    // 실제 알람만 사용 (더미 알람 제거)
     const allAlarms = [...alarms]
 
     // 우선순위에 따라 알람 정렬 (1: 화재, 2: 신규가입, 3: 기타)
@@ -819,11 +928,15 @@ const Topbar = () => {
                                                         <span className="bg-red-700 text-white text-xs px-2 py-0.5 rounded-full ml-auto">긴급</span>
                                                     )}
                                                 </div>
-                                                <p className={`text-sm mt-1 ${alarm.type === "fire" ? "text-white" : "text-[#60697E]"}`}>
+                                                <p
+                                                    className={`text-sm mt-1 ${alarm.type === "fire" || alarm.type === "FIRE" ? "text-white" : "text-[#60697E]"}`}
+                                                >
                                                     {message}
                                                 </p>
                                                 {alarm.timestamp && (
-                                                    <p className={`text-xs mt-2 ${alarm.type === "fire" ? "text-gray-300" : "text-gray-500"}`}>
+                                                    <p
+                                                        className={`text-xs mt-2 ${alarm.type === "fire" || alarm.type === "FIRE" ? "text-gray-300" : "text-gray-500"}`}
+                                                    >
                                                         {new Date(alarm.timestamp).toLocaleString()}
                                                     </p>
                                                 )}
