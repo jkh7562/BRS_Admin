@@ -216,46 +216,82 @@ const N_boxControlLogPage = () => {
         }
     }, [selectedBox])
 
-    // 선택된 박스 이미지 로드 useEffect 추가
+    // 선택된 박스 이미지 로드 useEffect - 제공해주신 코드 방식으로 수정
     useEffect(() => {
         const loadBoxImage = async () => {
-            if (!selectedBox) {
-                setSelectedBoxImage(null)
-                return
+            console.log("=== 이미지 로딩 시작 ===")
+            console.log("selectedBox:", selectedBox)
+
+            // 이전 이미지 URL 정리
+            if (selectedBoxImage && selectedBoxImage.startsWith("blob:")) {
+                console.log("🗑️ 이전 이미지 URL 해제:", selectedBoxImage)
+                URL.revokeObjectURL(selectedBoxImage)
             }
 
-            try {
-                setImageLoading(true)
-                setImageError(false)
+            // 이미지 URL 초기화
+            setSelectedBoxImage(null)
 
-                const imageBlob = await getBoxImage(selectedBox.id)
+            // 선택된 박스가 있을 때만 이미지 로드
+            if (selectedBox && selectedBox.id) {
+                try {
+                    setImageLoading(true)
+                    setImageError(false)
+                    console.log(`📡 getBoxImage API 호출: ${selectedBox.id}`)
 
-                if (imageBlob) {
-                    // Blob을 URL로 변환
-                    const imageUrl = URL.createObjectURL(imageBlob)
-                    setSelectedBoxImage(imageUrl)
-                } else {
-                    setImageError(true)
+                    // getBoxImage API 호출
+                    const response = await getBoxImage(selectedBox.id)
+                    console.log(`✅ getBoxImage API 응답:`, response)
+                    console.log(`📊 응답 타입:`, typeof response)
+                    console.log(`📊 응답이 Blob인가?:`, response instanceof Blob)
+
+                    // 응답이 Blob인 경우 URL 생성
+                    if (response instanceof Blob) {
+                        const imageUrl = URL.createObjectURL(response)
+                        console.log(`🔗 Blob URL 생성:`, imageUrl)
+                        setSelectedBoxImage(imageUrl)
+                        setImageError(false)
+                    }
+                    // 응답이 이미 URL 문자열인 경우
+                    else if (typeof response === "string") {
+                        console.log(`🔗 문자열 URL 사용:`, response)
+                        setSelectedBoxImage(response)
+                        setImageError(false)
+                    }
+                    // 응답이 객체이고 url 속성이 있는 경우
+                    else if (response && response.url) {
+                        console.log(`🔗 객체 URL 사용:`, response.url)
+                        setSelectedBoxImage(response.url)
+                        setImageError(false)
+                    }
+                    // 기타 경우
+                    else {
+                        console.warn(`⚠️ 예상하지 못한 응답 형식:`, response)
+                        setSelectedBoxImage(null)
+                        setImageError(true)
+                    }
+                } catch (error) {
+                    console.error("❌ 박스 이미지 로딩 실패:", error)
                     setSelectedBoxImage(null)
+                    setImageError(true)
+                } finally {
+                    setImageLoading(false)
                 }
-            } catch (error) {
-                console.error("박스 이미지 로드 실패:", error)
-                setImageError(true)
-                setSelectedBoxImage(null)
-            } finally {
+            } else {
+                console.log("🚫 이미지 로딩 조건 불만족")
                 setImageLoading(false)
             }
         }
 
         loadBoxImage()
 
-        // 컴포넌트 언마운트 시 URL 정리
+        // 컴포넌트 언마운트 시 이미지 URL 리소스 해제
         return () => {
-            if (selectedBoxImage) {
+            if (selectedBoxImage && selectedBoxImage.startsWith("blob:")) {
+                console.log("🗑️ useEffect cleanup - 이미지 URL 리소스 해제:", selectedBoxImage)
                 URL.revokeObjectURL(selectedBoxImage)
             }
         }
-    }, [selectedBox])
+    }, [selectedBox?.id, selectedBox])
 
     // 좌표를 주소로 변환하는 함수
     const convertCoordsToAddress = async (boxId, location) => {
@@ -686,6 +722,36 @@ const N_boxControlLogPage = () => {
                                                 <p className="text-sm text-center">
                                                     {selectedBox ? "이미지를 불러올 수 없습니다" : "수거함을 선택해주세요"}
                                                 </p>
+                                                {imageError && selectedBox && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setImageError(false)
+                                                            setImageLoading(true)
+                                                            // 이미지 재로드 시도
+                                                            getBoxImage(selectedBox.id)
+                                                                .then((response) => {
+                                                                    if (response instanceof Blob) {
+                                                                        const imageUrl = URL.createObjectURL(response)
+                                                                        setSelectedBoxImage(imageUrl)
+                                                                        setImageError(false)
+                                                                    } else if (typeof response === "string") {
+                                                                        setSelectedBoxImage(response)
+                                                                        setImageError(false)
+                                                                    } else if (response && response.url) {
+                                                                        setSelectedBoxImage(response.url)
+                                                                        setImageError(false)
+                                                                    } else {
+                                                                        setImageError(true)
+                                                                    }
+                                                                })
+                                                                .catch(() => setImageError(true))
+                                                                .finally(() => setImageLoading(false))
+                                                        }}
+                                                        className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                                    >
+                                                        다시 시도
+                                                    </button>
+                                                )}
                                             </div>
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center">
@@ -693,8 +759,14 @@ const N_boxControlLogPage = () => {
                                                     src={selectedBoxImage || "/placeholder.svg"}
                                                     alt={`${selectedBox?.name} 이미지`}
                                                     className="max-w-full max-h-full object-contain rounded-lg shadow-sm"
-                                                    onError={() => {
+                                                    onLoad={() => console.log("✅ 이미지 로드 성공:", selectedBoxImage)} // 디버깅용
+                                                    onError={(e) => {
+                                                        console.error("❌ 이미지 로드 에러:", e) // 디버깅용
+                                                        console.error("❌ 실패한 이미지 URL:", e.target.src)
                                                         setImageError(true)
+                                                        if (selectedBoxImage && selectedBoxImage.startsWith("blob:")) {
+                                                            URL.revokeObjectURL(selectedBoxImage)
+                                                        }
                                                         setSelectedBoxImage(null)
                                                     }}
                                                 />
