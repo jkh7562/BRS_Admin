@@ -1,6 +1,3 @@
-// components/chart/ChartTabControl.jsx
-import React from "react";
-
 const ChartTabControl = ({ tabs, selectedTab, onSelectTab }) => {
     return (
         <div className="relative mb-6">
@@ -13,9 +10,7 @@ const ChartTabControl = ({ tabs, selectedTab, onSelectTab }) => {
                         key={tab}
                         onClick={() => onSelectTab(tab)}
                         className={`pb-1 ${
-                            selectedTab === tab
-                                ? "border-b-[3px] border-black text-[#21262B] font-semibold"
-                                : "text-[#60697E]"
+                            selectedTab === tab ? "border-b-[3px] border-black text-[#21262B] font-semibold" : "text-[#60697E]"
                         }`}
                     >
                         {tab}
@@ -23,7 +18,7 @@ const ChartTabControl = ({ tabs, selectedTab, onSelectTab }) => {
                 ))}
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default ChartTabControl;
+export default ChartTabControl
