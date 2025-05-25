@@ -1,26 +1,28 @@
+"use client"
+
 import { useEffect, useState } from "react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
-const UserDischargeChart = ({ boxLogs, userId, selectedPeriod, selectedBatteryType = "전체" }) => {
+const CollectorCollectionChart = ({ boxLogs, collectorId, selectedPeriod, selectedBatteryType = "전체" }) => {
     const [chartData, setChartData] = useState([])
 
     useEffect(() => {
         const processData = () => {
-            if (!boxLogs || !userId) {
+            if (!boxLogs || !collectorId) {
                 setChartData([])
                 return
             }
 
-            // 해당 사용자의 배출 로그만 필터링
-            const userLogs = boxLogs.filter((entry) => {
+            // 해당 수거자의 수거 로그만 필터링
+            const collectorLogs = boxLogs.filter((entry) => {
                 const { boxLog } = entry
-                return boxLog && boxLog.type === "분리" && boxLog.userId === userId
+                return boxLog && boxLog.type === "수거" && boxLog.collectorId === collectorId
             })
 
             // 시간대별 데이터 집계
             const grouped = {}
 
-            userLogs.forEach(({ boxLog, items }) => {
+            collectorLogs.forEach(({ boxLog, items }) => {
                 const date = new Date(boxLog.date)
                 let key = ""
 
@@ -66,7 +68,7 @@ const UserDischargeChart = ({ boxLogs, userId, selectedPeriod, selectedBatteryTy
         }
 
         processData()
-    }, [boxLogs, userId, selectedPeriod, selectedBatteryType])
+    }, [boxLogs, collectorId, selectedPeriod, selectedBatteryType])
 
     return (
         <div className="h-[200px] w-full">
@@ -75,12 +77,15 @@ const UserDischargeChart = ({ boxLogs, userId, selectedPeriod, selectedBatteryTy
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="label" />
                     <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" name="배출량" fill="#FB7185" barSize={20} />
+                    <Tooltip
+                        formatter={(value) => [`${value.toLocaleString()}개`, "수거량"]}
+                        labelFormatter={(label) => `기간: ${label}`}
+                    />
+                    <Bar dataKey="value" name="수거량" fill="#FB7185" barSize={20} />
                 </BarChart>
             </ResponsiveContainer>
         </div>
     )
 }
 
-export default UserDischargeChart
+export default CollectorCollectionChart

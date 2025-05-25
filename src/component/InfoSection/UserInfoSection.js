@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import SearchIcon from "../../assets/검색.png"
 import CopyIcon from "../../assets/copy.png"
@@ -218,6 +216,27 @@ export default function UserInfoSection() {
         return totalDisposal
     }
 
+    // getUserTotalDisposal 함수 아래에 추가
+    const getUserLastUsageDate = (userId) => {
+        if (!boxLogs) return null
+
+        const userLogs = boxLogs.filter((entry) => {
+            const { boxLog } = entry
+            return boxLog && boxLog.userId === userId
+        })
+
+        if (userLogs.length === 0) return null
+
+        // 가장 최근 날짜 찾기
+        const latestLog = userLogs.reduce((latest, current) => {
+            const currentDate = new Date(current.boxLog.date)
+            const latestDate = new Date(latest.boxLog.date)
+            return currentDate > latestDate ? current : latest
+        })
+
+        return latestLog.boxLog.date
+    }
+
     // 툴팁 컴포넌트
     const Tooltip = ({ isVisible, content, position = "right" }) => {
         if (!isVisible) return null
@@ -328,9 +347,10 @@ export default function UserInfoSection() {
                                 </div>
                                 <div className="ml-auto pt-7 pr-2">
                                     <p className="text-sm font-medium text-gray-500">
-                                        마지막 이용일{" "}
-                                        {userOrders.length > 0
-                                            ? new Date(userOrders[0].date)
+                                        마지막 이용일 {(() => {
+                                        const lastUsageDate = getUserLastUsageDate(selectedUser.id)
+                                        return lastUsageDate
+                                            ? new Date(lastUsageDate)
                                                 .toLocaleDateString("ko-KR", {
                                                     year: "numeric",
                                                     month: "2-digit",
@@ -338,7 +358,8 @@ export default function UserInfoSection() {
                                                 })
                                                 .replace(/\. /g, ".")
                                                 .replace(/\.$/, "")
-                                            : "이용 기록 없음"}
+                                            : "이용 기록 없음"
+                                    })()}
                                     </p>
                                 </div>
                             </div>

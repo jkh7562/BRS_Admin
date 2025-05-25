@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import SearchIcon from "../../assets/검색.png"
 import CopyIcon from "../../assets/copy.png"
@@ -6,6 +8,7 @@ import LineIcon from "../../assets/구분선.png"
 import VectorIcon from "../../assets/Vector.png"
 import UserIcon from "../../assets/user.png"
 import { findUserAll, getBoxLog, findAllBox } from "../../api/apiServices" // API 임포트
+import CollectorCollectionChart from "../chart/CollectorCollectionChart" // 차트 컴포넌트 임포트
 
 export default function CollectorInfoSection() {
     const [selectedPeriod, setSelectedPeriod] = useState("일")
@@ -20,6 +23,9 @@ export default function CollectorInfoSection() {
         boxData: true,
     })
     const [copiedId, setCopiedId] = useState(null)
+
+    // 배터리 타입 선택 상태 추가
+    const [selectedBatteryType, setSelectedBatteryType] = useState("전체")
 
     const handleCopy = (e, userId, text) => {
         e.stopPropagation() // 이벤트 버블링 방지
@@ -161,18 +167,40 @@ export default function CollectorInfoSection() {
         (collector) => collector.name && collector.name.toLowerCase().includes(searchTerm.toLowerCase()),
     )
 
-    // 선택된 수거자의 총 수거량 계산
-    const getCollectorTotalAmount = () => {
-        if (!selectedCollector || !boxLogs) return "0g"
+    // 선택된 수거자의 총 수거량 계산 (배터리 타입별)
+    const getCollectorTotalAmount = (batteryType = "전체") => {
+        if (!selectedCollector || !boxLogs) return "0개"
 
-        // 선택된 수거자의 ID로 박스 로그 필터링
-        const collectorLogs = boxLogs.filter((log) => log.collectorId === selectedCollector.id)
-        const totalAmount = collectorLogs.reduce((total, log) => total + (log.amount || 0), 0)
+        // 선택된 수거자의 수거 로그만 필터링
+        const collectorLogs = boxLogs.filter((entry) => {
+            const { boxLog } = entry
+            return boxLog && boxLog.type === "수거" && boxLog.collectorId === selectedCollector.id
+        })
 
-        return `${totalAmount.toLocaleString()}g`
+        let totalAmount = 0
+        collectorLogs.forEach(({ items }) => {
+            if (items && Array.isArray(items)) {
+                if (batteryType === "전체") {
+                    const totalCount = items.reduce((sum, item) => sum + (item.count || 0), 0)
+                    totalAmount += totalCount
+                } else {
+                    const batteryTypeMap = {
+                        건전지: "battery",
+                        "방전 배터리": "discharged",
+                        "잔여 용량 배터리": "undischarged",
+                    }
+
+                    const targetType = batteryTypeMap[batteryType]
+                    const targetItem = items.find((item) => item.name === targetType)
+                    totalAmount += targetItem ? targetItem.count || 0 : 0
+                }
+            }
+        })
+
+        return `${totalAmount.toLocaleString()}개`
     }
 
-    // 선택된 수거자의 담당 지역 정보 가져오기 - 수정된 부분
+    // 선택된 수거자의 담당 지역 정보 가져오기
     const getCollectorRegion = () => {
         if (!selectedCollector) return { province: "정보 없음", city: "정보 없음" }
 
@@ -183,56 +211,7 @@ export default function CollectorInfoSection() {
         return { province, city }
     }
 
-    // 차트 데이터 생성
-    const generateChartData = () => {
-        if (!selectedCollector || !boxLogs) {
-            return Array(11)
-                .fill(0)
-                .map((_, i) => {
-                    const date = new Date()
-                    date.setDate(date.getDate() - (10 - i))
-                    return {
-                        height: 0,
-                        date: `${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`,
-                    }
-                })
-        }
-
-        // 최근 11일 데이터 생성
-        const chartData = []
-        const today = new Date()
-
-        for (let i = 10; i >= 0; i--) {
-            const date = new Date(today)
-            date.setDate(date.getDate() - i)
-            const dateStr = `${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`
-
-            // 해당 날짜의 수거자 로그 찾기
-            const dayLogs = boxLogs.filter((log) => {
-                if (!log.date || !log.collectorId) return false
-
-                const logDate = new Date(log.date)
-                return (
-                    logDate.getDate() === date.getDate() &&
-                    logDate.getMonth() === date.getMonth() &&
-                    logDate.getFullYear() === date.getFullYear() &&
-                    log.collectorId === selectedCollector.id
-                )
-            })
-
-            // 해당 날짜의 총 수거량 계산
-            const dayAmount = dayLogs.reduce((total, log) => total + (log.amount || 0), 0)
-
-            // 높이는 최대값(2000g) 기준으로 퍼센트 계산
-            const height = Math.min(100, (dayAmount / 2000) * 100)
-
-            chartData.push({ date: dateStr, height })
-        }
-
-        return chartData
-    }
-
-    // 알림 내역 생성 (박스 데이터 기반) - 수정된 부분
+    // 알림 내역 생성 (박스 데이터 기반)
     const generateNotifications = () => {
         if (!boxData || !selectedCollector) return []
 
@@ -287,28 +266,7 @@ export default function CollectorInfoSection() {
             .slice(0, 10) // 최근 10개만
     }
 
-    // 툴팁 컴포넌트
-    const Tooltip = ({ isVisible, content, position = "right" }) => {
-        if (!isVisible) return null
-
-        const positionClass = position === "right" ? "right-0 mt-2" : position === "left" ? "left-0 mt-2" : "right-0 mt-2"
-
-        // 화살표 위치 클래스 추가
-        const arrowPositionClass = position === "left" ? "left-1" : "right-1"
-
-        return (
-            <div
-                className={`absolute ${positionClass} w-64 bg-white text-gray-800 rounded-md shadow-lg p-4`}
-                style={{ zIndex: 99999 }}
-            >
-                <div className={`absolute -top-2 ${arrowPositionClass} w-4 h-4 bg-white transform rotate-45`}></div>
-                {content}
-            </div>
-        )
-    }
-
     const region = getCollectorRegion()
-    const chartData = generateChartData()
     const notifications = generateNotifications()
 
     return (
@@ -393,14 +351,17 @@ export default function CollectorInfoSection() {
                             {/* Stats Cards */}
                             <div className="flex items-center mt-6 mb-6">
                                 <StatCard
-                                    title="총 수거량"
-                                    value={getCollectorTotalAmount()}
+                                    title={`총 수거량 (${selectedBatteryType})`}
+                                    value={getCollectorTotalAmount(selectedBatteryType)}
                                     tooltipVisible={tooltips.totalCollection}
                                     onTooltipToggle={(e) => toggleTooltip("totalCollection", e)}
                                     tooltipContent={
                                         <>
                                             <h3 className="font-bold text-sm mb-2">총 수거량</h3>
-                                            <p className="text-xs">수거자가 지금까지 수거한 배터리의 총량입니다.</p>
+                                            <p className="text-xs">
+                                                수거자가 지금까지 수거한 {selectedBatteryType === "전체" ? "모든 " : `${selectedBatteryType} `}
+                                                배터리의 총 개수입니다.
+                                            </p>
                                         </>
                                     }
                                     tooltipPosition="left"
@@ -442,71 +403,63 @@ export default function CollectorInfoSection() {
                             {/* Chart Section */}
                             <div className="mb-3">
                                 <div className="tabs">
-                                    <div className="flex justify-between items-center mb-3">
-                                        <div className="flex border rounded-md overflow-hidden">
-                                            <button
-                                                className={`px-4 py-1.5 text-sm ${selectedPeriod === "연" ? "bg-gray-900 text-white font-medium" : ""}`}
-                                                onClick={() => setSelectedPeriod("연")}
-                                            >
-                                                연
-                                            </button>
-                                            <button
-                                                className={`px-4 py-1.5 text-sm ${selectedPeriod === "월" ? "bg-gray-900 text-white font-medium" : ""}`}
-                                                onClick={() => setSelectedPeriod("월")}
-                                            >
-                                                월
-                                            </button>
-                                            <button
-                                                className={`px-4 py-1.5 text-sm ${selectedPeriod === "일" ? "bg-gray-900 text-white font-medium" : ""}`}
-                                                onClick={() => setSelectedPeriod("일")}
-                                            >
-                                                일
-                                            </button>
+                                    {/* 배터리 타입 선택 탭 - UserInfoSection과 동일한 스타일 */}
+                                    <div className="mb-4">
+                                        <div className="relative">
+                                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200" />
+                                            <div className="flex gap-6">
+                                                {["전체", "건전지", "방전 배터리", "잔여 용량 배터리"].map((type) => (
+                                                    <button
+                                                        key={type}
+                                                        onClick={() => setSelectedBatteryType(type)}
+                                                        className={`pb-2 text-sm font-medium transition-colors ${
+                                                            selectedBatteryType === type
+                                                                ? "border-b-2 border-black text-[#21262B]"
+                                                                : "text-[#60697E] hover:text-[#21262B]"
+                                                        }`}
+                                                    >
+                                                        {type}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* 시간 단위 선택 */}
+                                    <div className="flex justify-between items-center mb-4">
+                                        <div className="flex border border-gray-300 rounded-md overflow-hidden">
+                                            {["연", "월", "일"].map((period) => (
+                                                <button
+                                                    key={period}
+                                                    onClick={() => setSelectedPeriod(period)}
+                                                    className={`px-3 py-1 text-sm font-medium transition-colors ${
+                                                        selectedPeriod === period
+                                                            ? "bg-[#21262B] text-white"
+                                                            : "bg-white text-[#60697E] hover:bg-gray-50"
+                                                    }`}
+                                                >
+                                                    {period}
+                                                </button>
+                                            ))}
                                         </div>
                                     </div>
 
                                     <div className="tab-content">
-                                        {/* Chart with horizontal lines */}
-                                        <div className="h-[200px] relative py-2 mt-2">
-                                            {/* Horizontal grid lines */}
-                                            <div className="absolute left-0 right-0 top-0 bottom-0 flex flex-col justify-between">
-                                                <div className="border-b border-gray-100 w-full h-0"></div>
-                                                <div className="border-b border-gray-100 w-full h-0"></div>
-                                                <div className="border-b border-gray-100 w-full h-0"></div>
-                                                <div className="border-b border-gray-100 w-full h-0"></div>
-                                                <div className="border-b border-gray-100 w-full h-0"></div>
-                                                <div className="border-b border-gray-100 w-full h-0"></div>
-                                                <div className="border-b border-gray-100 w-full h-0"></div>
-                                                <div className="border-b border-gray-100 w-full h-0"></div>
-                                            </div>
-
-                                            {/* Y-axis labels */}
-                                            <div className="absolute top-0 left-0 bottom-0 flex flex-col justify-between text-xs text-gray-500 pr-2">
-                                                <div>2000</div>
-                                                <div>1500</div>
-                                                <div>1250</div>
-                                                <div>1000</div>
-                                                <div>750</div>
-                                                <div>500</div>
-                                                <div>250</div>
-                                                <div>0</div>
-                                            </div>
-
-                                            {/* Chart bars */}
-                                            <div className="absolute bottom-0 left-10 right-0 flex justify-between h-full items-end">
-                                                {chartData.map((item, index) => (
-                                                    <ChartBar key={index} height={item.height} date={item.date} />
-                                                ))}
-                                            </div>
-                                        </div>
+                                        {/* Recharts 기반 차트 컴포넌트 사용 */}
+                                        <CollectorCollectionChart
+                                            boxLogs={boxLogs}
+                                            collectorId={selectedCollector.id}
+                                            selectedPeriod={selectedPeriod}
+                                            selectedBatteryType={selectedBatteryType}
+                                        />
 
                                         {/* Slider pagination */}
                                         <div className="flex items-center justify-center mt-4">
-                                            <button className="px-2 text-sm">&lt;</button>
+                                            <button className="px-2 text-sm text-gray-400 hover:text-gray-600">&lt;</button>
                                             <div className="w-64 h-2 bg-gray-200 rounded-full relative mx-2">
                                                 <div className="absolute left-0 w-1/3 h-full bg-gray-700 rounded-full"></div>
                                             </div>
-                                            <button className="px-2 text-sm">&gt;</button>
+                                            <button className="px-2 text-sm text-gray-400 hover:text-gray-600">&gt;</button>
                                         </div>
                                     </div>
                                 </div>
@@ -606,20 +559,6 @@ function UserListItem({ collectorId, name, points, date, isActive, onClick, hand
     )
 }
 
-// 차트 바 컴포넌트
-function ChartBar({ height, date }) {
-    const barHeight = `${height}%`
-
-    return (
-        <div className="flex flex-col items-center w-8">
-            <div className="w-full flex justify-center h-[80%]">
-                <div className="w-5 bg-rose-500 rounded-sm" style={{ height: barHeight }}></div>
-            </div>
-            <div className="text-xs text-gray-500 mt-1">{date}</div>
-        </div>
-    )
-}
-
 // 통계 카드 컴포넌트 - 툴팁 기능 추가
 function StatCard({ title, value, tooltipVisible, onTooltipToggle, tooltipContent, tooltipPosition = "right" }) {
     return (
@@ -657,7 +596,7 @@ function CollectionItem({ status, date, time, location, amount }) {
         <div>
             <div>
         <span
-            className={`inline-block px-2 py-0.5 text-white text-sm rounded-md font-nomal ${
+            className={`inline-block px-2 py-0.5 text-white text-sm rounded-md font-normal ${
                 status === "수거함 설치 진행 중" || status === "수거함 제거 진행 중" ? "bg-[#00A060]" : "bg-[#21262B]"
             }`}
         >
@@ -704,8 +643,18 @@ function formatDate(dateString) {
 function getCollectorAmount(collectorId, boxLogs) {
     if (!collectorId || !boxLogs || boxLogs.length === 0) return 0
 
-    const collectorLogs = boxLogs.filter((log) => log.collectorId === collectorId)
-    const totalAmount = collectorLogs.reduce((total, log) => total + (log.amount || 0), 0)
+    const collectorLogs = boxLogs.filter((entry) => {
+        const { boxLog } = entry
+        return boxLog && boxLog.type === "수거" && boxLog.collectorId === collectorId
+    })
+
+    let totalAmount = 0
+    collectorLogs.forEach(({ items }) => {
+        if (items && Array.isArray(items)) {
+            const totalCount = items.reduce((sum, item) => sum + (item.count || 0), 0)
+            totalAmount += totalCount
+        }
+    })
 
     return totalAmount.toLocaleString()
 }
@@ -713,19 +662,19 @@ function getCollectorAmount(collectorId, boxLogs) {
 function getLastActiveDate(collectorId, boxLogs) {
     if (!collectorId || !boxLogs || boxLogs.length === 0) return "기록 없음"
 
-    const collectorLogs = boxLogs.filter((log) => log.collectorId === collectorId)
+    const collectorLogs = boxLogs.filter((entry) => {
+        const { boxLog } = entry
+        return boxLog && boxLog.collectorId === collectorId
+    })
 
     if (collectorLogs.length === 0) return "기록 없음"
 
     // 가장 최근 로그 찾기
-    const latestLog = collectorLogs.reduce((latest, log) => {
-        if (!latest.date) return log
-        if (!log.date) return latest
+    const latestLog = collectorLogs.reduce((latest, current) => {
+        const currentDate = new Date(current.boxLog.date)
+        const latestDate = new Date(latest.boxLog.date)
+        return currentDate > latestDate ? current : latest
+    })
 
-        return new Date(log.date) > new Date(latest.date) ? log : latest
-    }, {})
-
-    if (!latestLog.date) return "기록 없음"
-
-    return formatDate(latestLog.date)
+    return formatDate(latestLog.boxLog.date)
 }
