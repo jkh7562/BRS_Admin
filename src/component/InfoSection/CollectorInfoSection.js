@@ -3,9 +3,8 @@ import SearchIcon from "../../assets/검색.png"
 import CopyIcon from "../../assets/copy.png"
 import InfoIcon from "../../assets/추가정보2.png"
 import LineIcon from "../../assets/구분선.png"
-import VectorIcon from "../../assets/Vector.png"
 import UserIcon from "../../assets/user.png"
-import { findUserAll, getBoxLog, findAllBox } from "../../api/apiServices" // API 임포트
+import { findUserAll, getBoxLog } from "../../api/apiServices" // API 임포트
 import CollectorCollectionChart from "../chart/CollectorCollectionChart" // 차트 컴포넌트 임포트
 
 export default function CollectorInfoSection() {
@@ -13,12 +12,10 @@ export default function CollectorInfoSection() {
     const [collectors, setCollectors] = useState([])
     const [selectedCollector, setSelectedCollector] = useState(null)
     const [boxLogs, setBoxLogs] = useState([])
-    const [boxData, setBoxData] = useState([])
     const [searchTerm, setSearchTerm] = useState("")
     const [loading, setLoading] = useState({
         collectors: true,
         boxLogs: true,
-        boxData: true,
     })
     const [copiedId, setCopiedId] = useState(null)
 
@@ -137,24 +134,6 @@ export default function CollectorInfoSection() {
         loadBoxLogs()
     }, [])
 
-    // 박스 정보 불러오기
-    useEffect(() => {
-        const loadBoxData = async () => {
-            try {
-                setLoading((prev) => ({ ...prev, boxData: true }))
-                const boxes = await findAllBox()
-                setBoxData(boxes || [])
-            } catch (error) {
-                console.error("박스 데이터 로딩 실패:", error)
-                setBoxData([])
-            } finally {
-                setLoading((prev) => ({ ...prev, boxData: false }))
-            }
-        }
-
-        loadBoxData()
-    }, [])
-
     // 수거자 선택 핸들러
     const handleCollectorSelect = (collector) => {
         setSelectedCollector(collector)
@@ -209,63 +188,7 @@ export default function CollectorInfoSection() {
         return { province, city }
     }
 
-    // 알림 내역 생성 (박스 데이터 기반)
-    const generateNotifications = () => {
-        if (!boxData || !selectedCollector) return []
-
-        // 선택된 수거자의 담당 지역 박스만 필터링 (location1, location2 기준)
-        const collectorBoxes = boxData.filter((box) => {
-            if (!box.location || !selectedCollector.location1 || !selectedCollector.location2) return false
-
-            // 박스 위치가 수거자의 담당 지역(location1, location2)과 일치하는지 확인
-            const boxLocation = box.location.toLowerCase()
-            const collectorProvince = selectedCollector.location1.toLowerCase()
-            const collectorCity = selectedCollector.location2.toLowerCase()
-
-            return boxLocation.includes(collectorProvince) && boxLocation.includes(collectorCity)
-        })
-
-        // 알림 내역 생성 (최신순 정렬)
-        return collectorBoxes
-            .map((box) => {
-                // 박스 상태에 따라 알림 상태 결정
-                let status = "수거함 설치 완료"
-                if (box.status === "INSTALLING") status = "수거함 설치 진행 중"
-                else if (box.status === "REMOVING") status = "수거함 제거 진행 중"
-                else if (box.status === "REMOVED") status = "수거함 제거 완료"
-                else if (box.status === "MAINTENANCE") status = "화재 후 재가동 완료"
-
-                // 날짜 포맷팅
-                const date = box.installDate || box.lastUpdated || new Date()
-                const formattedDate = new Date(date)
-                    .toLocaleDateString("ko-KR", {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit",
-                    })
-                    .replace(/\. /g, ".")
-                    .replace(/\.$/, "")
-
-                const formattedTime = new Date(date).toLocaleTimeString("ko-KR", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                })
-
-                return {
-                    status,
-                    date: formattedDate,
-                    time: formattedTime,
-                    location: box.location || "위치 정보 없음",
-                    coordinates: box.coordinates || "36.123123 / 127.34567", // 좌표 정보가 없는 경우 기본값
-                }
-            })
-            .sort((a, b) => new Date(b.date) - new Date(a.date))
-            .slice(0, 10) // 최근 10개만
-    }
-
     const region = getCollectorRegion()
-    const notifications = generateNotifications()
 
     return (
         <div className="flex flex-col md:flex-row bg-white h-[525px] rounded-2xl shadow-md overflow-hidden">
@@ -313,190 +236,152 @@ export default function CollectorInfoSection() {
                 </div>
             </div>
 
-            {/* Main Content */}
+            {/* Main Content - 전체 너비로 확장 */}
             {selectedCollector ? (
-                <div className="flex-1 flex flex-col md:flex-row h-full">
-                    {/* Center Section - Collector Stats */}
-                    <div className="flex-1 h-full flex flex-col overflow-hidden p-4">
-                        <div className="p-4">
-                            {/* Collector profile section */}
-                            <div className="flex">
-                                <div className="mr-4">
-                                    <div className="w-14 h-14 rounded-full bg-gray-200 overflow-hidden">
-                                        <img
-                                            src={UserIcon || "/placeholder.svg"}
-                                            alt="프로필 이미지"
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </div>
+                <div className="flex-1 h-full flex flex-col overflow-hidden p-4">
+                    <div className="p-4">
+                        {/* Collector profile section */}
+                        <div className="flex">
+                            <div className="mr-4">
+                                <div className="w-14 h-14 rounded-full bg-gray-200 overflow-hidden">
+                                    <img
+                                        src={UserIcon || "/placeholder.svg"}
+                                        alt="프로필 이미지"
+                                        className="w-full h-full object-cover"
+                                    />
                                 </div>
-                                <div>
-                                    <h2 className="font-bold text-[#21262B] text-lg">{selectedCollector.name}</h2>
-                                    <div className="flex">
-                                        <p className="text-sm text-[#60697E]">
-                                            <span className="font-bold">가입일자</span>{" "}
-                                            <span className="font-normal">{formatDate(selectedCollector.date)}</span>
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="ml-auto pt-7 pr-2">
-                                    <p className="text-sm font-medium text-gray-500">
-                                        마지막 이용일 {getLastActiveDate(selectedCollector.id, boxLogs)}
+                            </div>
+                            <div>
+                                <h2 className="font-bold text-[#21262B] text-lg">{selectedCollector.name}</h2>
+                                <div className="flex">
+                                    <p className="text-sm text-[#60697E]">
+                                        <span className="font-bold">가입일자</span>{" "}
+                                        <span className="font-normal">{formatDate(selectedCollector.date)}</span>
                                     </p>
                                 </div>
                             </div>
-
-                            {/* Stats Cards */}
-                            <div className="flex items-center mt-6 mb-6">
-                                <StatCard
-                                    title={`총 수거량 (${selectedBatteryType})`}
-                                    value={getCollectorTotalAmount(selectedBatteryType)}
-                                    tooltipVisible={tooltips.totalCollection}
-                                    onTooltipToggle={(e) => toggleTooltip("totalCollection", e)}
-                                    tooltipContent={
-                                        <>
-                                            <h3 className="font-bold text-sm mb-2">총 수거량</h3>
-                                            <p className="text-xs">
-                                                수거자가 지금까지 수거한 {selectedBatteryType === "전체" ? "모든 " : `${selectedBatteryType} `}
-                                                배터리의 총 개수입니다.
-                                            </p>
-                                        </>
-                                    }
-                                    tooltipPosition="left"
-                                />
-                                <div className="h-12 flex items-center">
-                                    <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
-                                </div>
-                                <StatCard
-                                    title="광역시/도"
-                                    value={region.province}
-                                    tooltipVisible={tooltips.province}
-                                    onTooltipToggle={(e) => toggleTooltip("province", e)}
-                                    tooltipContent={
-                                        <>
-                                            <h3 className="font-bold text-sm mb-2">광역시/도</h3>
-                                            <p className="text-xs">수거자가 담당하는 광역시/도 정보입니다.</p>
-                                            <p className="text-xs mt-2">담당 지역은 관리자가 수정할 수 있습니다.</p>
-                                        </>
-                                    }
-                                />
-                                <div className="h-12 flex items-center">
-                                    <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
-                                </div>
-                                <StatCard
-                                    title="시/군/구"
-                                    value={region.city}
-                                    tooltipVisible={tooltips.city}
-                                    onTooltipToggle={(e) => toggleTooltip("city", e)}
-                                    tooltipContent={
-                                        <>
-                                            <h3 className="font-bold text-sm mb-2">시/군/구</h3>
-                                            <p className="text-xs">수거자가 담당하는 시/군/구 정보입니다.</p>
-                                            <p className="text-xs mt-2">담당 지역은 관리자가 수정할 수 있습니다.</p>
-                                        </>
-                                    }
-                                />
+                            <div className="ml-auto pt-7 pr-2">
+                                <p className="text-sm font-medium text-gray-500">
+                                    마지막 이용일 {getLastActiveDate(selectedCollector.id, boxLogs)}
+                                </p>
                             </div>
+                        </div>
 
-                            {/* Chart Section */}
-                            <div className="mb-3">
-                                <div className="tabs">
-                                    {/* 배터리 타입 선택 탭 - UserInfoSection과 동일한 스타일 */}
-                                    <div className="mb-4">
-                                        <div className="relative">
-                                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200" />
-                                            <div className="flex gap-6">
-                                                {["전체", "건전지", "방전 배터리", "잔여 용량 배터리"].map((type) => (
-                                                    <button
-                                                        key={type}
-                                                        onClick={() => setSelectedBatteryType(type)}
-                                                        className={`pb-2 text-sm font-medium transition-colors ${
-                                                            selectedBatteryType === type
-                                                                ? "border-b-2 border-black text-[#21262B]"
-                                                                : "text-[#60697E] hover:text-[#21262B]"
-                                                        }`}
-                                                    >
-                                                        {type}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
+                        {/* Stats Cards */}
+                        <div className="flex items-center mt-6 mb-6">
+                            <StatCard
+                                title={`총 수거량 (${selectedBatteryType})`}
+                                value={getCollectorTotalAmount(selectedBatteryType)}
+                                tooltipVisible={tooltips.totalCollection}
+                                onTooltipToggle={(e) => toggleTooltip("totalCollection", e)}
+                                tooltipContent={
+                                    <>
+                                        <h3 className="font-bold text-sm mb-2">총 수거량</h3>
+                                        <p className="text-xs">
+                                            수거자가 지금까지 수거한 {selectedBatteryType === "전체" ? "모든 " : `${selectedBatteryType} `}
+                                            배터리의 총 개수입니다.
+                                        </p>
+                                    </>
+                                }
+                                tooltipPosition="left"
+                            />
+                            <div className="h-12 flex items-center">
+                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
+                            </div>
+                            <StatCard
+                                title="광역시/도"
+                                value={region.province}
+                                tooltipVisible={tooltips.province}
+                                onTooltipToggle={(e) => toggleTooltip("province", e)}
+                                tooltipContent={
+                                    <>
+                                        <h3 className="font-bold text-sm mb-2">광역시/도</h3>
+                                        <p className="text-xs">수거자가 담당하는 광역시/도 정보입니다.</p>
+                                        <p className="text-xs mt-2">담당 지역은 관리자가 수정할 수 있습니다.</p>
+                                    </>
+                                }
+                            />
+                            <div className="h-12 flex items-center">
+                                <img src={LineIcon || "/placeholder.svg"} alt="구분선" className="h-full mx-11" />
+                            </div>
+                            <StatCard
+                                title="시/군/구"
+                                value={region.city}
+                                tooltipVisible={tooltips.city}
+                                onTooltipToggle={(e) => toggleTooltip("city", e)}
+                                tooltipContent={
+                                    <>
+                                        <h3 className="font-bold text-sm mb-2">시/군/구</h3>
+                                        <p className="text-xs">수거자가 담당하는 시/군/구 정보입니다.</p>
+                                        <p className="text-xs mt-2">담당 지역은 관리자가 수정할 수 있습니다.</p>
+                                    </>
+                                }
+                            />
+                        </div>
 
-                                    {/* 시간 단위 선택 */}
-                                    <div className="flex justify-between items-center mb-4">
-                                        <div className="flex border border-gray-300 rounded-md overflow-hidden">
-                                            {["연", "월", "일"].map((period) => (
+                        {/* Chart Section */}
+                        <div className="mb-3">
+                            <div className="tabs">
+                                {/* 배터리 타입 선택 탭 - UserInfoSection과 동일한 스타일 */}
+                                <div className="mb-4">
+                                    <div className="relative">
+                                        <div className="absolute bottom-0 left-0 w-full border-b border-gray-200" />
+                                        <div className="flex gap-6">
+                                            {["전체", "건전지", "방전 배터리", "잔여 용량 배터리"].map((type) => (
                                                 <button
-                                                    key={period}
-                                                    onClick={() => setSelectedPeriod(period)}
-                                                    className={`px-3 py-1 text-sm font-medium transition-colors ${
-                                                        selectedPeriod === period
-                                                            ? "bg-[#21262B] text-white"
-                                                            : "bg-white text-[#60697E] hover:bg-gray-50"
+                                                    key={type}
+                                                    onClick={() => setSelectedBatteryType(type)}
+                                                    className={`pb-2 text-sm font-medium transition-colors ${
+                                                        selectedBatteryType === type
+                                                            ? "border-b-2 border-black text-[#21262B]"
+                                                            : "text-[#60697E] hover:text-[#21262B]"
                                                     }`}
                                                 >
-                                                    {period}
+                                                    {type}
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
+                                </div>
 
-                                    <div className="tab-content">
-                                        {/* Recharts 기반 차트 컴포넌트 사용 */}
-                                        <CollectorCollectionChart
-                                            boxLogs={boxLogs}
-                                            collectorId={selectedCollector.id}
-                                            selectedPeriod={selectedPeriod}
-                                            selectedBatteryType={selectedBatteryType}
-                                        />
+                                {/* 시간 단위 선택 */}
+                                <div className="flex justify-between items-center mb-4">
+                                    <div className="flex border border-gray-300 rounded-md overflow-hidden">
+                                        {["연", "월", "일"].map((period) => (
+                                            <button
+                                                key={period}
+                                                onClick={() => setSelectedPeriod(period)}
+                                                className={`px-3 py-1 text-sm font-medium transition-colors ${
+                                                    selectedPeriod === period
+                                                        ? "bg-[#21262B] text-white"
+                                                        : "bg-white text-[#60697E] hover:bg-gray-50"
+                                                }`}
+                                            >
+                                                {period}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
 
-                                        {/* Slider pagination */}
-                                        <div className="flex items-center justify-center mt-4">
-                                            <button className="px-2 text-sm text-gray-400 hover:text-gray-600">&lt;</button>
-                                            <div className="w-64 h-2 bg-gray-200 rounded-full relative mx-2">
-                                                <div className="absolute left-0 w-1/3 h-full bg-gray-700 rounded-full"></div>
-                                            </div>
-                                            <button className="px-2 text-sm text-gray-400 hover:text-gray-600">&gt;</button>
+                                <div className="tab-content">
+                                    {/* Recharts 기반 차트 컴포넌트 사용 */}
+                                    <CollectorCollectionChart
+                                        boxLogs={boxLogs}
+                                        collectorId={selectedCollector.id}
+                                        selectedPeriod={selectedPeriod}
+                                        selectedBatteryType={selectedBatteryType}
+                                    />
+
+                                    {/* Slider pagination */}
+                                    <div className="flex items-center justify-center mt-4">
+                                        <button className="px-2 text-sm text-gray-400 hover:text-gray-600">&lt;</button>
+                                        <div className="w-64 h-2 bg-gray-200 rounded-full relative mx-2">
+                                            <div className="absolute left-0 w-1/3 h-full bg-gray-700 rounded-full"></div>
                                         </div>
+                                        <button className="px-2 text-sm text-gray-400 hover:text-gray-600">&gt;</button>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Right Sidebar - Collection Log */}
-                    <div className="w-full md:w-[300px] h-full flex flex-col shadow-lg pl-7 pt-9">
-                        <div className="flex justify-between items-center mr-6 pb-7">
-                            <h2 className="font-bold text-xl text-[#21262B]">알림 내역</h2>
-                            <h2 className="font-medium text-gray-500 text-sm">
-                                자세히보기
-                                <img
-                                    src={VectorIcon || "/placeholder.svg"}
-                                    alt="Vector Icon"
-                                    className="ml-1 inline-block w-2 h-3 mb-1"
-                                />
-                            </h2>
-                        </div>
-
-                        {/* 수거 내역 영역에만 스크롤바 적용 */}
-                        <div className="overflow-auto flex-1 custom-scrollbar">
-                            {loading.boxData ? (
-                                <div className="text-center p-4">알림 내역을 불러오는 중...</div>
-                            ) : notifications.length === 0 ? (
-                                <div className="text-center p-4">알림 내역이 없습니다.</div>
-                            ) : (
-                                notifications.map((notification, index) => (
-                                    <CollectionItem
-                                        key={index}
-                                        status={notification.status}
-                                        date={notification.date}
-                                        time={notification.time}
-                                        location={notification.location}
-                                        amount={notification.coordinates}
-                                    />
-                                ))
-                            )}
                         </div>
                     </div>
                 </div>
@@ -584,41 +469,6 @@ function StatCard({ title, value, tooltipVisible, onTooltipToggle, tooltipConten
                 </div>
             </div>
             <div className="text-[22px] text-[#21262B] font-bold">{value}</div>
-        </div>
-    )
-}
-
-// 알림 내역 아이템 컴포넌트
-function CollectionItem({ status, date, time, location, amount }) {
-    return (
-        <div>
-            <div>
-        <span
-            className={`inline-block px-2 py-0.5 text-white text-sm rounded-md font-normal ${
-                status === "수거함 설치 진행 중" || status === "수거함 제거 진행 중" ? "bg-[#00A060]" : "bg-[#21262B]"
-            }`}
-        >
-          {status}
-        </span>
-            </div>
-            <table className="w-full text-sm border-collapse mt-4 mb-8">
-                <tbody>
-                <tr>
-                    <td className="w-16 text-[#60697E]">알림일자</td>
-                    <td className="text-[#21262B]">
-                        {date} {time}
-                    </td>
-                </tr>
-                <tr>
-                    <td className="w-16 text-[#60697E]">알림지역</td>
-                    <td className="text-[#21262B]">{location}</td>
-                </tr>
-                <tr>
-                    <td className="w-16 text-[#60697E]">알림 좌표</td>
-                    <td className="text-[#21262B]">{amount}</td>
-                </tr>
-                </tbody>
-            </table>
         </div>
     )
 }
