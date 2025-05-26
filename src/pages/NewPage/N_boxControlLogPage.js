@@ -16,6 +16,9 @@ import {
     getBatteryImage,
     getDischargedImage,
     getUndischargedImage,
+    controlBoxCompartment,
+    blockBox,
+    superBlockBox,
 } from "../../api/apiServices"
 
 // 좌표 파싱 함수
@@ -97,6 +100,14 @@ const N_boxControlLogPage = () => {
     const [selectedBoxImage, setSelectedBoxImage] = useState(null)
     const [imageLoading, setImageLoading] = useState(false)
     const [imageError, setImageError] = useState(false)
+
+    // 박스 제어 관련 상태 추가
+    const [isControlLoading, setIsControlLoading] = useState(false)
+    const [controlError, setControlError] = useState(null)
+
+    // 박스 차단 관련 상태 추가
+    const [isBlockLoading, setIsBlockLoading] = useState(false)
+    const [blockError, setBlockError] = useState(null)
 
     // Generate years (current year and 2 previous years)
     const currentYear = new Date().getFullYear()
@@ -526,22 +537,33 @@ const N_boxControlLogPage = () => {
         activeBatteries: selectedBox?.volume3 || 0,
     }
 
-    const [controlStates, setControlStates] = useState({
-        battery: {
-            isOpen: false,
-        },
-        dischargedBattery: {
-            isOpen: false,
-        },
-        remainingCapacityBattery: {
-            isOpen: false,
-        },
-        collectorEntrance: {
-            isOpen: false,
-        },
-    })
+    // 박스 제어 상태를 실제 데이터베이스 값으로 계산하는 함수들
+    const getControlStates = () => {
+        if (!selectedBox) {
+            return {
+                battery: { isOpen: false },
+                dischargedBattery: { isOpen: false },
+                remainingCapacityBattery: { isOpen: false },
+                collectorEntrance: { isOpen: false },
+            }
+        }
 
-    const [isBoxBlocked, setIsBoxBlocked] = useState(false)
+        return {
+            battery: { isOpen: selectedBox.store1 === 1 },
+            dischargedBattery: { isOpen: selectedBox.store2 === 1 },
+            remainingCapacityBattery: { isOpen: selectedBox.store3 === 1 },
+            collectorEntrance: { isOpen: false }, // 수거자 입구는 나중에 구현
+        }
+    }
+
+    // 박스 차단 상태를 실제 데이터베이스 값으로 계산
+    const getBoxBlockedState = () => {
+        if (!selectedBox) return false
+        return selectedBox.usageStatus === "BLOCKED"
+    }
+
+    const controlStates = getControlStates()
+    const isBoxBlocked = getBoxBlockedState()
 
     // Handle dropdown changes with reset capability
     const handleYearChange = (e) => {
@@ -582,6 +604,137 @@ const N_boxControlLogPage = () => {
     const getBoxName = (boxId) => {
         const box = boxData.find((box) => box.id === boxId)
         return box ? box.name : "알 수 없는 수거함"
+    }
+
+    // 제어 상태 변경 핸들러 - 실제 API 호출 적용 (임시 처리 추가)
+    const handleControlStateChange = async (controlType, newState) => {
+        if (!selectedBox || isBoxBlocked) return
+
+        try {
+            setIsControlLoading(true)
+            setControlError(null)
+
+            console.log(`🔍 제어 요청 정보:`, {
+                boxId: selectedBox.id,
+                controlType,
+                newState,
+            })
+
+            // 실제 API 호출
+            const result = await controlBoxCompartment(selectedBox.id, controlType, newState)
+
+            console.log(`📡 API 응답:`, result)
+
+            // 응답 상태 확인 - Fail이어도 일단 진행 (하드웨어 연동 전이므로)
+            if (result && (result.status === "Success" || result.status === "Fail")) {
+                console.log(`✅ 제어 명령 전송 완료: ${controlType} -> ${newState ? "개방" : "폐쇄"}`)
+
+                // 하드웨어 연동이 안 되어 있어도 UI 상태는 업데이트
+                // 실제로는 데이터베이스의 store1, store2, store3 값이 업데이트되어야 함
+
+                // 박스 데이터 새로고침
+                const response = await findAllBox()
+                const filteredBoxes = response.filter((box) =>
+                    ["INSTALL_CONFIRMED", "REMOVE_REQUEST", "REMOVE_IN_PROGRESS"].includes(box.installStatus),
+                )
+                setBoxData(filteredBoxes)
+
+                // 현재 선택된 박스 정보 업데이트
+                const updatedSelectedBox = filteredBoxes.find((box) => box.id === selectedBox.id)
+                if (updatedSelectedBox) {
+                    setSelectedBox(updatedSelectedBox)
+                }
+
+                // 성공 메시지 (하드웨어 연동 상태 표시)
+                if (result.status === "Fail") {
+                    setControlError("제어 명령이 전송되었지만 하드웨어 연동이 완료되지 않았습니다.")
+                    setTimeout(() => setControlError(null), 3000)
+                }
+            } else {
+                throw new Error("예상하지 못한 응답 형식")
+            }
+        } catch (error) {
+            console.error("❌ 제어 상태 변경 실패:", error)
+
+            // DNS 오류나 연결 오류인 경우 특별 처리
+            if (error.message.includes("Failed to resolve") || error.message.includes("NXDOMAIN")) {
+                setControlError("하드웨어 연동이 아직 완료되지 않았습니다. 연동 후 다시 시도해주세요.")
+            } else {
+                setControlError(`제어 실패: ${error.message || "알 수 없는 오류"}`)
+            }
+
+            // 3초 후 에러 메시지 자동 제거
+            setTimeout(() => {
+                setControlError(null)
+            }, 3000)
+        } finally {
+            setIsControlLoading(false)
+        }
+    }
+
+    // 박스 차단 상태 변경 핸들러 - 입구 상태에 따른 차단 방식 결정
+    const handleBoxBlockToggle = async () => {
+        if (!selectedBox) return
+
+        try {
+            setIsBlockLoading(true)
+            setBlockError(null)
+
+            // 현재 차단 상태 확인
+            const currentlyBlocked = isBoxBlocked
+
+            // 4개 입구 중 하나라도 열려있는지 확인
+            const controlStates = getControlStates()
+            const hasOpenCompartment =
+                controlStates.battery.isOpen ||
+                controlStates.dischargedBattery.isOpen ||
+                controlStates.remainingCapacityBattery.isOpen ||
+                controlStates.collectorEntrance.isOpen
+
+            console.log(`🔍 차단 상태 토글 요청:`, {
+                boxId: selectedBox.id,
+                currentlyBlocked,
+                hasOpenCompartment,
+                controlStates,
+            })
+
+            let result
+            let actionText = ""
+
+            // 입구가 열려있으면 강제 차단/해제, 아니면 일반 차단/해제
+            if (hasOpenCompartment) {
+                result = await superBlockBox(selectedBox.id)
+                actionText = currentlyBlocked ? "강제 해제" : "강제 차단"
+            } else {
+                result = await blockBox(selectedBox.id)
+                actionText = currentlyBlocked ? "해제" : "차단"
+            }
+
+            console.log(`✅ 수거함 ${actionText} 성공:`, result)
+
+            // 박스 데이터 새로고침
+            const response = await findAllBox()
+            const filteredBoxes = response.filter((box) =>
+                ["INSTALL_CONFIRMED", "REMOVE_REQUEST", "REMOVE_IN_PROGRESS"].includes(box.installStatus),
+            )
+            setBoxData(filteredBoxes)
+
+            // 현재 선택된 박스 정보 업데이트
+            const updatedSelectedBox = filteredBoxes.find((box) => box.id === selectedBox.id)
+            if (updatedSelectedBox) {
+                setSelectedBox(updatedSelectedBox)
+            }
+        } catch (error) {
+            console.error("❌ 박스 차단 상태 변경 실패:", error)
+            setBlockError(`차단 상태 변경 실패: ${error.message || "알 수 없는 오류"}`)
+
+            // 3초 후 에러 메시지 자동 제거
+            setTimeout(() => {
+                setBlockError(null)
+            }, 3000)
+        } finally {
+            setIsBlockLoading(false)
+        }
     }
 
     return (
@@ -715,7 +868,7 @@ const N_boxControlLogPage = () => {
                                                             strokeLinecap="round"
                                                             strokeLinejoin="round"
                                                             strokeWidth={2}
-                                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2z"
                                                         />
                                                     </svg>
                                                 </div>
@@ -784,6 +937,35 @@ const N_boxControlLogPage = () => {
 
                         {/* Right Sidebar - Box Info - Now as a separate element */}
                         <div className="w-[320px] space-y-4 pl-6">
+                            {/* 제어 상태 표시 */}
+                            {isControlLoading && (
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                    <div className="flex items-center gap-2">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+                                        <p className="text-blue-700 text-sm">제어 명령을 전송 중...</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {controlError && (
+                                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                                    <p className="text-orange-700 text-sm">{controlError}</p>
+                                </div>
+                            )}
+                            {blockError && (
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                                    <p className="text-red-700 text-sm">{blockError}</p>
+                                </div>
+                            )}
+
+                            {isBlockLoading && (
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                    <div className="flex items-center gap-2">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+                                        <p className="text-blue-700 text-sm">차단 상태를 변경 중...</p>
+                                    </div>
+                                </div>
+                            )}
                             {/* 건전지 (Battery Boxes) */}
                             <div className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
@@ -797,13 +979,8 @@ const N_boxControlLogPage = () => {
                                             <RadioButton
                                                 selected={controlStates.battery.isOpen}
                                                 color="green"
-                                                onClick={() =>
-                                                    setControlStates({
-                                                        ...controlStates,
-                                                        battery: { isOpen: true },
-                                                    })
-                                                }
-                                                disabled={isBoxBlocked}
+                                                onClick={() => handleControlStateChange("battery", true)}
+                                                disabled={isBoxBlocked || isControlLoading}
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -811,13 +988,8 @@ const N_boxControlLogPage = () => {
                                             <RadioButton
                                                 selected={!controlStates.battery.isOpen}
                                                 color="red"
-                                                onClick={() =>
-                                                    setControlStates({
-                                                        ...controlStates,
-                                                        battery: { isOpen: false },
-                                                    })
-                                                }
-                                                disabled={isBoxBlocked}
+                                                onClick={() => handleControlStateChange("battery", false)}
+                                                disabled={isBoxBlocked || isControlLoading}
                                             />
                                         </div>
                                     </div>
@@ -837,13 +1009,8 @@ const N_boxControlLogPage = () => {
                                             <RadioButton
                                                 selected={controlStates.dischargedBattery.isOpen}
                                                 color="green"
-                                                onClick={() =>
-                                                    setControlStates({
-                                                        ...controlStates,
-                                                        dischargedBattery: { isOpen: true },
-                                                    })
-                                                }
-                                                disabled={isBoxBlocked}
+                                                onClick={() => handleControlStateChange("dischargedBattery", true)}
+                                                disabled={isBoxBlocked || isControlLoading}
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -851,13 +1018,8 @@ const N_boxControlLogPage = () => {
                                             <RadioButton
                                                 selected={!controlStates.dischargedBattery.isOpen}
                                                 color="red"
-                                                onClick={() =>
-                                                    setControlStates({
-                                                        ...controlStates,
-                                                        dischargedBattery: { isOpen: false },
-                                                    })
-                                                }
-                                                disabled={isBoxBlocked}
+                                                onClick={() => handleControlStateChange("dischargedBattery", false)}
+                                                disabled={isBoxBlocked || isControlLoading}
                                             />
                                         </div>
                                     </div>
@@ -877,13 +1039,8 @@ const N_boxControlLogPage = () => {
                                             <RadioButton
                                                 selected={controlStates.remainingCapacityBattery.isOpen}
                                                 color="green"
-                                                onClick={() =>
-                                                    setControlStates({
-                                                        ...controlStates,
-                                                        remainingCapacityBattery: { isOpen: true },
-                                                    })
-                                                }
-                                                disabled={isBoxBlocked}
+                                                onClick={() => handleControlStateChange("remainingCapacityBattery", true)}
+                                                disabled={isBoxBlocked || isControlLoading}
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -891,13 +1048,8 @@ const N_boxControlLogPage = () => {
                                             <RadioButton
                                                 selected={!controlStates.remainingCapacityBattery.isOpen}
                                                 color="red"
-                                                onClick={() =>
-                                                    setControlStates({
-                                                        ...controlStates,
-                                                        remainingCapacityBattery: { isOpen: false },
-                                                    })
-                                                }
-                                                disabled={isBoxBlocked}
+                                                onClick={() => handleControlStateChange("remainingCapacityBattery", false)}
+                                                disabled={isBoxBlocked || isControlLoading}
                                             />
                                         </div>
                                     </div>
@@ -917,13 +1069,8 @@ const N_boxControlLogPage = () => {
                                             <RadioButton
                                                 selected={controlStates.collectorEntrance.isOpen}
                                                 color="green"
-                                                onClick={() =>
-                                                    setControlStates({
-                                                        ...controlStates,
-                                                        collectorEntrance: { isOpen: true },
-                                                    })
-                                                }
-                                                disabled={isBoxBlocked}
+                                                onClick={() => handleControlStateChange("collectorEntrance", true)}
+                                                disabled={isBoxBlocked || isControlLoading}
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -931,13 +1078,8 @@ const N_boxControlLogPage = () => {
                                             <RadioButton
                                                 selected={!controlStates.collectorEntrance.isOpen}
                                                 color="red"
-                                                onClick={() =>
-                                                    setControlStates({
-                                                        ...controlStates,
-                                                        collectorEntrance: { isOpen: false },
-                                                    })
-                                                }
-                                                disabled={isBoxBlocked}
+                                                onClick={() => handleControlStateChange("collectorEntrance", false)}
+                                                disabled={isBoxBlocked || isControlLoading}
                                             />
                                         </div>
                                     </div>
@@ -946,11 +1088,12 @@ const N_boxControlLogPage = () => {
 
                             {/* 수거함 차단 Button (Collection Box Block) */}
                             <button
-                                onClick={() => setIsBoxBlocked(!isBoxBlocked)}
-                                className={`w-full py-6 ${isBoxBlocked ? "bg-red-600" : "bg-[#21262B]"} text-white rounded-2xl font-medium flex items-center justify-start pl-6 hover:${isBoxBlocked ? "bg-red-700" : "bg-[#1a1f23]"} transition-colors`}
+                                onClick={handleBoxBlockToggle}
+                                disabled={isBlockLoading || isControlLoading}
+                                className={`w-full py-6 ${isBoxBlocked ? "bg-red-600" : "bg-[#21262B]"} text-white rounded-2xl font-medium flex items-center justify-start pl-6 hover:${isBoxBlocked ? "bg-red-700" : "bg-[#1a1f23]"} transition-colors ${isBlockLoading || isControlLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                             >
-                                수거함 차단
-                                <div className="pl-[60px]">{isBoxBlocked ? "차단됨" : "차단"}</div>
+                                {isBlockLoading ? "처리 중..." : "수거함 차단"}
+                                <div className="pl-[60px]">{isBoxBlocked ? "차단됨" : "미차단"}</div>
                                 <div
                                     className={`w-4 h-4 rounded-full ml-2 ${isBoxBlocked ? "bg-white" : "border-2 border-white"}`}
                                 ></div>
@@ -1385,7 +1528,7 @@ const N_boxControlLogPage = () => {
                                                                 strokeLinecap="round"
                                                                 strokeLinejoin="round"
                                                                 strokeWidth={2}
-                                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2v12a2 2 0 002 2z"
                                                             />
                                                         </svg>
                                                     </div>

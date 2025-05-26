@@ -339,37 +339,6 @@ export const getCollectionImage = async (boxLogId: number | string): Promise<str
     }
 };
 
-// ✅ 분리 아이템 이미지 조회 API(제거 예정)
-export const getItemsImage = async (boxLogId: number | string) => {
-    try {
-        const response = await axiosInstance.get(`/admin/itemsImage/${boxLogId}`, {
-            responseType: 'json', // Map<String, byte[]>를 JSON으로 받음
-            headers: {
-                Accept: "image/*"  // 여기서만 헤더 덮어씀
-            },
-        });
-
-        // 결과를 저장할 객체 생성
-        const imageUrls = {};
-
-        // 각 이미지 키에 대해 Blob 생성 및 URL 변환
-        for (const [key, byteArray] of Object.entries(response.data)) {
-            if (byteArray) {
-                // byte[] 배열을 Blob으로 변환
-                const blob = new Blob([new Uint8Array(byteArray)], { type: 'image/*' });
-
-                // Blob을 URL로 변환
-                imageUrls[key] = URL.createObjectURL(blob);
-            }
-        }
-
-        return imageUrls; // { battery: url1, discharged: url2, notDischarged: url3 }
-    } catch (error) {
-        console.error("❌ 아이템 이미지 조회 실패:", error.response?.data || error.message);
-        throw error;
-    }
-};
-
 // ✅ 배터리 이미지 조회 API
 export const getBatteryImage = async (boxLogId: number | string): Promise<string> => {
     try {
@@ -542,6 +511,117 @@ export const getUserUnresolvedAlarms = async () => {
     }
 };
 
+// ✅ 박스 구획 열기 API
+export const openBoxCompartment = async (boxId, number) => {
+    try {
+        const response = await axiosInstance.get(`/admin/boxOpen/${boxId}/${number}`);
+        console.log("✅ 박스 구획 열기 성공:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ 박스 구획 열기 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// ✅ 박스 구획 닫기 API
+export const closeBoxCompartment = async (boxId, number) => {
+    try {
+        const response = await axiosInstance.get(`/admin/boxClose/${boxId}/${number}`);
+        console.log("✅ 박스 구획 닫기 성공:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ 박스 구획 닫기 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// ✅ 박스 구획 제어 통합 함수
+export const controlBoxCompartment = async (boxId, compartmentType, isOpen) => {
+    // 구획 타입을 숫자로 매핑
+    const compartmentNumberMap = {
+        collectorEntrance: 0,        // 수거자 입구
+        battery: 1,                  // 배터리 (store1)
+        dischargedBattery: 2,        // 방전 배터리 (store2)
+        remainingCapacityBattery: 3, // 잔여 용량 배터리 (store3)
+    };
+
+    const number = compartmentNumberMap[compartmentType];
+
+    if (number === undefined) {
+        throw new Error(`Invalid compartment type: ${compartmentType}`);
+    }
+
+    try {
+        if (isOpen) {
+            return await openBoxCompartment(boxId, number);
+        } else {
+            return await closeBoxCompartment(boxId, number);
+        }
+    } catch (error) {
+        console.error(`❌ 박스 구획 제어 실패 (${compartmentType}):`, error);
+        throw error;
+    }
+};
+
+// ✅ 배터리 구획 제어 API
+export const openBatteryCompartment = (boxId) => {
+    return openBoxCompartment(boxId, 1);
+};
+
+export const closeBatteryCompartment = (boxId) => {
+    return closeBoxCompartment(boxId, 1);
+};
+
+// ✅ 방전 배터리 구획 제어 API
+export const openDischargedBatteryCompartment = (boxId) => {
+    return openBoxCompartment(boxId, 2);
+};
+
+export const closeDischargedBatteryCompartment = (boxId) => {
+    return closeBoxCompartment(boxId, 2);
+};
+
+// ✅ 잔여 용량 배터리 구획 제어 API
+export const openRemainingCapacityBatteryCompartment = (boxId) => {
+    return openBoxCompartment(boxId, 3);
+};
+
+export const closeRemainingCapacityBatteryCompartment = (boxId) => {
+    return closeBoxCompartment(boxId, 3);
+};
+
+// ✅ 수거자 입구 제어 API
+export const openCollectorEntrance = (boxId) => {
+    return openBoxCompartment(boxId, 0);
+};
+
+export const closeCollectorEntrance = (boxId) => {
+    return closeBoxCompartment(boxId, 0);
+};
+
+// ✅ 수거함 차단 API (토글 방식)
+export const blockBox = async (boxId) => {
+    try {
+        const response = await axiosInstance.patch(`/admin/blockBox/${boxId}`);
+        console.log("✅ 수거함 차단/해제 성공:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ 수거함 차단/해제 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// ✅ 수거함 강제 차단 API (토글 방식)
+export const superBlockBox = async (boxId) => {
+    try {
+        const response = await axiosInstance.patch(`/admin/superBlockBox/${boxId}`);
+        console.log("✅ 수거함 강제 차단/해제 성공:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ 수거함 강제 차단/해제 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
 // ✅ 소방서 및 어린이보호구역 좌표 데이터 가져오기
 export const fetchCoordinates = async () => {
     try {
