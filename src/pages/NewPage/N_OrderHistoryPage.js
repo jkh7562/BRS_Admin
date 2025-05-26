@@ -3,7 +3,37 @@ import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import SearchIcon from "../../assets/검색.png"
 import CopyIcon from "../../assets/copy.png"
+import incineration from "../../assets/소각용.png"
+import Reuse from "../../assets/재사용.png"
+import foodwaste from "../../assets/음식물.png"
 import { fetchOrderList, fetchOrdersByUserId } from "../../api/apiServices" // API 함수 import
+
+// 상품 ID와 이름 매핑 (item 테이블 기반)
+const ITEM_MAPPING = {
+    1: "incineration",
+    2: "Reuse",
+    3: "foodwaste",
+}
+
+// 상품 이름을 한글로 변환하는 함수
+const getKoreanItemName = (itemName) => {
+    const nameMapping = {
+        incineration: "소각용 쓰레기봉투",
+        Reuse: "재사용 쓰레기봉투",
+        foodwaste: "음식물 쓰레기봉투",
+    }
+    return nameMapping[itemName] || itemName
+}
+
+// 상품 이미지 매핑
+const getItemImage = (itemName) => {
+    const imageMapping = {
+        incineration: incineration,
+        Reuse: Reuse,
+        foodwaste: foodwaste,
+    }
+    return imageMapping[itemName]
+}
 
 const N_OrderHistoryPage = () => {
     // 상태 관리
@@ -65,12 +95,17 @@ const N_OrderHistoryPage = () => {
             const formattedTime = `${ampm} ${hour12}:${String(dateObj.getMinutes()).padStart(2, "0")}:${String(dateObj.getSeconds()).padStart(2, "0")}`
 
             // 상품 정보 포맷팅
-            const formattedItems = items.map((item) => ({
-                name: `상품 ID: ${item.itemId || "정보 없음"}`,
-                price: item.price,
-                quantity: item.count,
-                totalPrice: item.price * item.count,
-            }))
+            const formattedItems = items.map((item) => {
+                const itemName = ITEM_MAPPING[item.itemId] || "알 수 없는 상품"
+                const koreanName = getKoreanItemName(itemName)
+
+                return {
+                    name: koreanName,
+                    price: item.price,
+                    quantity: item.count,
+                    totalPrice: item.price * item.count,
+                }
+            })
 
             return {
                 id: order.id,
@@ -294,7 +329,9 @@ const N_OrderHistoryPage = () => {
                 <Topbar />
                 <main className="pt-24 px-24 pb-6">
                     <p className="font-bold text-[#272F42] text-xl">주문내역</p>
-                    <span className="text-sm text-gray-500">사용자들이 폐전지 분리수거로 얻은 포인트로 구매한 주문내역을 확인할 수 있습니다.</span>
+                    <span className="text-sm text-gray-500">
+            사용자들이 폐전지 분리수거로 얻은 포인트로 구매한 주문내역을 확인할 수 있습니다.
+          </span>
 
                     {error && (
                         <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-4">
@@ -313,8 +350,7 @@ const N_OrderHistoryPage = () => {
 
                     {isLoading && users.length === 0 ? (
                         <div className="flex justify-center items-center h-64">
-                            <div
-                                className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#21262B]"></div>
+                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#21262B]"></div>
                         </div>
                     ) : (
                         <div className="flex h-[calc(100vh-200px)] pt-4">
@@ -359,11 +395,9 @@ const N_OrderHistoryPage = () => {
                                                     </div>
                                                     <div className="text-gray-400 relative">
                                                         <button onClick={(e) => handleCopyUserId(e, user.userId)}>
-                                                            <img src={CopyIcon || "/placeholder.svg"} alt="Copy"
-                                                                 className="w-4 h-5"/>
+                                                            <img src={CopyIcon || "/placeholder.svg"} alt="Copy" className="w-4 h-5" />
                                                             {copiedUserId === user.userId && (
-                                                                <div
-                                                                    className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full w-3 h-3 flex items-center justify-center text-[8px]">
+                                                                <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full w-3 h-3 flex items-center justify-center text-[8px]">
                                                                     ✓
                                                                 </div>
                                                             )}
@@ -395,20 +429,17 @@ const N_OrderHistoryPage = () => {
                                     <div className="flex-grow overflow-y-auto custom-scrollbar">
                                         {isLoading ? (
                                             <div className="flex justify-center items-center h-64">
-                                                <div
-                                                    className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#21262B]"></div>
+                                                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#21262B]"></div>
                                             </div>
                                         ) : (
                                             <div className="space-y-4">
                                                 {userOrders.length > 0 ? (
                                                     userOrders.map((order) => (
-                                                        <div key={order.id}
-                                                             className="border rounded-lg overflow-hidden">
+                                                        <div key={order.id} className="border rounded-lg overflow-hidden">
                                                             <div className="p-4 bg-white">
                                                                 <div className="flex justify-between items-center mb-2">
                                                                     <div>
-                                                                        <h3 className="font-medium">주문번호
-                                                                            - {order.id}</h3>
+                                                                        <h3 className="font-medium">주문번호 - {order.id}</h3>
                                                                         <p className="text-sm text-[#7A7F8A]">
                                                                             주문일자 - {order.date} {order.time}
                                                                         </p>
@@ -419,8 +450,7 @@ const N_OrderHistoryPage = () => {
                                                                             onClick={() => toggleOrderDetails(order.id)}
                                                                             className="text-[#60697E] flex items-center"
                                                                         >
-                                                                            <span
-                                                                                className="mr-1">{order.expanded ? "접기" : "펼치기"}</span>
+                                                                            <span className="mr-1">{order.expanded ? "접기" : "펼치기"}</span>
                                                                             <svg
                                                                                 xmlns="http://www.w3.org/2000/svg"
                                                                                 width="12"
@@ -433,8 +463,7 @@ const N_OrderHistoryPage = () => {
                                                                                 strokeLinejoin="round"
                                                                                 className={`transition-transform ${order.expanded ? "rotate-180" : ""}`}
                                                                             >
-                                                                                <polyline
-                                                                                    points="6 9 12 15 18 9"></polyline>
+                                                                                <polyline points="6 9 12 15 18 9"></polyline>
                                                                             </svg>
                                                                         </button>
                                                                     </div>
@@ -445,40 +474,47 @@ const N_OrderHistoryPage = () => {
                                                                         {order.items.length > 0 ? (
                                                                             <div className="space-y-4">
                                                                                 {order.items.map((item, index) => (
-                                                                                    <div key={index}
-                                                                                         className="flex justify-between items-center">
-                                                                                        <div
-                                                                                            className="flex items-center">
-                                                                                            <div
-                                                                                                className="w-12 h-12 bg-[#E8F1F7] rounded flex items-center justify-center mr-4">
-                                                                                                <span
-                                                                                                    className="text-xs">이미지</span>
+                                                                                    <div key={index} className="flex justify-between items-center">
+                                                                                        <div className="flex items-center">
+                                                                                            <div className="w-12 h-12 bg-[#E8F1F7] rounded flex items-center justify-center mr-4">
+                                                                                                {(() => {
+                                                                                                    const originalName = Object.keys(ITEM_MAPPING).find(
+                                                                                                        (key) => getKoreanItemName(ITEM_MAPPING[key]) === item.name,
+                                                                                                    )
+                                                                                                    const itemImage = originalName
+                                                                                                        ? getItemImage(ITEM_MAPPING[originalName])
+                                                                                                        : null
+
+                                                                                                    return itemImage ? (
+                                                                                                        <img
+                                                                                                            src={itemImage || "/placeholder.svg"}
+                                                                                                            alt={item.name}
+                                                                                                            className="w-8 h-8 object-contain"
+                                                                                                        />
+                                                                                                    ) : (
+                                                                                                        <span className="text-xs">이미지</span>
+                                                                                                    )
+                                                                                                })()}
                                                                                             </div>
                                                                                             <div>
                                                                                                 <p className="font-medium">{item.name}</p>
                                                                                                 <p className="text-sm text-[#7A7F8A]">
-                                                                                                    가격: {item.price} P
-                                                                                                    수량: {item.quantity}
+                                                                                                    가격: {item.price} P 수량: {item.quantity}
                                                                                                 </p>
                                                                                             </div>
                                                                                         </div>
-                                                                                        <div
-                                                                                            className="font-bold">소계: {item.totalPrice} P
-                                                                                        </div>
+                                                                                        <div className="font-bold">소계: {item.totalPrice} P</div>
                                                                                     </div>
                                                                                 ))}
                                                                             </div>
                                                                         ) : (
-                                                                            <p className="text-center text-[#7A7F8A] py-4">상품
-                                                                                정보가 없습니다.</p>
+                                                                            <p className="text-center text-[#7A7F8A] py-4">상품 정보가 없습니다.</p>
                                                                         )}
                                                                     </div>
                                                                 )}
 
                                                                 <div className="flex justify-start mt-4">
-                                                                    <div
-                                                                        className="font-bold text-lg">총액: {order.totalAmount} P
-                                                                    </div>
+                                                                    <div className="font-bold text-lg">총액: {order.totalAmount} P</div>
                                                                 </div>
                                                             </div>
                                                         </div>
