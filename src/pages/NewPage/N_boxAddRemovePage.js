@@ -1319,7 +1319,7 @@ https://www.data.go.kr/data/15012891/standard.do
                 }
 
                 .dropdown-container div::-webkit-scrollbar-track {
-                    background: transparent;ent;
+                    background: transparent;
                     margin-left: 4px; /* 스크롤바 왼쪽 간격 */
                 }
 
