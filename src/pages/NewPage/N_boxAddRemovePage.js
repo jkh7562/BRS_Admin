@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import Sidebar from "../../component/Sidebar"
 import Topbar from "../../component/Topbar"
 import MapWithSidebar from "../../component/MapWithSidebar"
+import { findAllBox, fetchUnresolvedAlarms, findUserAll, uploadFile } from "../../api/apiServices"
 import DownIcon from "../../assets/Down.png"
 import InstallationStatus from "../../component/Status/InstallationStatus"
 import RemoveStatus from "../../component/Status/RemoveStatus"
@@ -15,7 +16,6 @@ import Download1 from "../../assets/다운로드1.png"
 import Download2 from "../../assets/다운로드2.png"
 import firestation from "../../assets/소방서안내.png"
 import safetyzone from "../../assets/어린이보호구역안내.png"
-import { findAllBox, fetchUnresolvedAlarms, findUserAll, uploadFile } from "../../api/apiServices"
 
 const N_boxAddRemovePage = () => {
     const [activeTab, setActiveTab] = useState("전체")
@@ -638,25 +638,31 @@ const N_boxAddRemovePage = () => {
     const getRegionFilteredBoxes = () => {
         console.log("필터링 실행:", filters.type, filters.region, filters.city)
         console.log("현재 주소 데이터:", addressData)
+        console.log("현재 알람 데이터:", alarmData)
         console.log("전체 박스 데이터:", boxes)
 
         // 먼저 타입에 따라 필터링
         let filtered = []
 
         if (filters.type === "설치") {
-            filtered = boxes.filter((box) => installStatuses.includes(box?.installStatus))
+            // 설치 관련 알람이 있는 박스들만 필터링
+            filtered = boxes.filter((box) => {
+                const hasInstallAlarm = box.installInfo?.alarmType && box.installInfo.alarmType.startsWith("INSTALL")
+                const hasInstallStatus = installStatuses.includes(box?.installStatus)
+                return hasInstallAlarm && hasInstallStatus
+            })
+            console.log("설치 상태 + 알람 필터링 결과:", filtered.length, filtered)
         } else {
-            // 제거 상태 필터링 로직 수정
-            filtered = boxes.filter(
-                (box) =>
-                    // removeStatus가 있거나
+            // 제거 관련 알람이 있는 박스들만 필터링
+            filtered = boxes.filter((box) => {
+                const hasRemoveAlarm = box.removeInfo?.alarmType && box.removeInfo.alarmType.startsWith("REMOVE")
+                const hasRemoveStatus =
                     removeStatuses.includes(box?.removeStatus) ||
-                    // removeInfo.alarmType이 REMOVE로 시작하거나
-                    (box?.removeInfo?.alarmType && box.removeInfo.alarmType.startsWith("REMOVE")) ||
-                    // installStatus가 REMOVE로 시작하는 경우도 포함
-                    (box?.installStatus && box.installStatus.startsWith("REMOVE")),
-            )
-            console.log("제거 상태 필터링 결과:", filtered.length, filtered)
+                    removeStatuses.includes(box?.installStatus) ||
+                    (box?.installStatus && box.installStatus.startsWith("REMOVE"))
+                return hasRemoveAlarm && hasRemoveStatus
+            })
+            console.log("제거 상태 + 알람 필터링 결과:", filtered.length, filtered)
         }
 
         // 지역 필터링
@@ -711,7 +717,11 @@ const N_boxAddRemovePage = () => {
 
     // 설치 상태 컴포넌트에 전달할 데이터
     const installationBoxes = processedBoxes
-        .filter((box) => installStatuses.includes(box?.installStatus))
+        .filter((box) => {
+            const hasInstallAlarm = box.installInfo?.alarmType && box.installInfo.alarmType.startsWith("INSTALL")
+            const hasInstallStatus = installStatuses.includes(box?.installStatus)
+            return hasInstallAlarm && hasInstallStatus
+        })
         .map((box) => ({
             ...box,
             user: box.installInfo.user,
@@ -722,7 +732,14 @@ const N_boxAddRemovePage = () => {
 
     // 제거 상태 컴포넌트에 전달할 데이터 생성 부분
     const removalBoxes = processedBoxes
-        .filter((box) => removeStatuses.includes(box?.installStatus))
+        .filter((box) => {
+            const hasRemoveAlarm = box.removeInfo?.alarmType && box.removeInfo.alarmType.startsWith("REMOVE")
+            const hasRemoveStatus =
+                removeStatuses.includes(box?.removeStatus) ||
+                removeStatuses.includes(box?.installStatus) ||
+                (box?.installStatus && box.installStatus.startsWith("REMOVE"))
+            return hasRemoveAlarm && hasRemoveStatus
+        })
         .map((box) => ({
             ...box,
             user: box.removeInfo?.user || { name: box.name || "미지정", createdAt: "정보 없음" },
@@ -756,7 +773,9 @@ const N_boxAddRemovePage = () => {
                 <Topbar />
                 <main className="pt-24 px-24 pb-6 space-y-4">
                     <p className="font-bold text-[#272F42] text-xl">수거함 설치 / 제거 요청</p>
-                    <span className="text-sm text-gray-500">지도의 빈공간을 클릭하면 설치요청, 설치된 상태(설치 확정)의 핀을 클릭하면 제거요청을 할 수 있습니다.</span>
+                    <span className="text-sm text-gray-500">
+            지도의 빈공간을 클릭하면 설치요청, 설치된 상태(설치 확정)의 핀을 클릭하면 제거요청을 할 수 있습니다.
+          </span>
                     <div>
                         <div className="relative mb-6">
                             <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
@@ -1212,7 +1231,8 @@ const N_boxAddRemovePage = () => {
                                             <p className="text-gray-700 mb-2">소방서 및 안전센터 위치 정보입니다.</p>
                                             <ul className="list-disc pl-5 text-gray-600">
                                                 <li>파일 형식: CSV</li>
-                                                <li>데이터 출처:
+                                                <li>
+                                                    데이터 출처:
                                                     국가공공데이터포털(https://www.data.go.kr/data/15065056/fileData.do#tab-layer-file)
                                                 </li>
                                             </ul>
@@ -1221,7 +1241,7 @@ const N_boxAddRemovePage = () => {
                                                 {`아래 링크에서 제공되는 데이터 파일을 다운로드하실 수 있습니다.
 https://www.data.go.kr/data/15065056/fileData.do#tab-layer-file`}
                                             </p>
-                                            <img src={firestation}/>
+                                            <img src={firestation || "/placeholder.svg"} />
                                         </>
                                     )}
                                 </div>
@@ -1240,9 +1260,7 @@ https://www.data.go.kr/data/15065056/fileData.do#tab-layer-file`}
                                             <p className="text-gray-700 mb-2">어린이보호구역 위치 및 범위 정보입니다.</p>
                                             <ul className="list-disc pl-5 text-gray-600">
                                                 <li>파일 형식: CSV</li>
-                                                <li>데이터 출처:
-                                                    국가공공데이터포털(https://www.data.go.kr/data/15012891/standard.do)
-                                                </li>
+                                                <li>데이터 출처: 국가공공데이터포털(https://www.data.go.kr/data/15012891/standard.do)</li>
                                             </ul>
                                             <p className="text-black font-bold text-lg mt-4 mb-2">다운로드 방법</p>
                                             <p className="text-gray-700 mb-2 whitespace-pre-wrap">
@@ -1250,7 +1268,7 @@ https://www.data.go.kr/data/15065056/fileData.do#tab-layer-file`}
 https://www.data.go.kr/data/15012891/standard.do
 *반드시 CSV형식으로 다운로드 받아야합니다.*`}
                                             </p>
-                                            <img src={safetyzone}/>
+                                            <img src={safetyzone || "/placeholder.svg"} />
                                         </>
                                     )}
                                 </div>
