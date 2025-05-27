@@ -552,7 +552,7 @@ const N_boxControlLogPage = () => {
             battery: { isOpen: selectedBox.store1 === 1 },
             dischargedBattery: { isOpen: selectedBox.store2 === 1 },
             remainingCapacityBattery: { isOpen: selectedBox.store3 === 1 },
-            collectorEntrance: { isOpen: false }, // 수거자 입구는 나중에 구현
+            collectorEntrance: { isOpen: selectedBox.store4 === 1 }, // 수거자 입구 상태를 store4 값으로 설정
         }
     }
 
