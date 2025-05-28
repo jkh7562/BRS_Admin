@@ -1875,7 +1875,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
 
             {/* 우측 사이드바 - isAddRemovePage가 false이고 박스가 선택되었을 때만 표시 */}
             {showRightSidebar && (
-                <div className="absolute top-0 right-0 h-full z-30">
+                <div className="absolute top-0 right-0 h-full z-10">
                     <RightSidebar
                         selectedBox={getSelectedBox()}
                         addressMap={addressMap}
