@@ -753,7 +753,7 @@ const N_boxControlLogPage = () => {
                                     <div className="relative mx-2 my-4 p-3">
                                         <input
                                             type="text"
-                                            placeholder="장소, 주소, 수거함 코드 검색"
+                                            placeholder="수거함 이름 및 주소 검색"
                                             className="w-full py-2 pl-4 rounded-2xl border border-black/20 text-sm focus:outline-none"
                                             value={boxSearchTerm}
                                             onChange={handleBoxSearch}

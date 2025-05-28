@@ -10,7 +10,6 @@ import CollectionChart from "../../component/chart/CollectionChart"
 import joinIcon from "../../assets/가입관리2.png"
 import dayIcon from "../../assets/일간.png"
 import infoIcon from "../../assets/추가정보2.png"
-import customerIcon from "../../assets/고객관리.png"
 import lineIcon from "../../assets/구분선.png"
 import FireInfoIcon from "../../assets/FireInfo.png"
 import { fetchEmployeeRequests, getBoxLog, findAllBox } from "../../api/apiServices"
@@ -81,38 +80,79 @@ const N_mainPage = () => {
         const loadBoxLog = async () => {
             try {
                 const boxLogData = await getBoxLog()
-                console.log("📦 수거 및 분리량 조회 결과:", boxLogData)
+                console.log("📦 박스 로그 데이터:", boxLogData)
 
                 if (Array.isArray(boxLogData)) {
+                    // 오늘 날짜를 로컬 시간 기준으로 구하기
                     const today = new Date()
-                    const todayDateStr = today.toISOString().split("T")[0]
+                    const todayDateStr = today
+                        .toLocaleDateString("ko-KR", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                        })
+                        .replace(/\./g, "/")
+                        .replace(",", "")
+
+                    console.log("오늘 날짜 (로컬):", todayDateStr)
 
                     let dischargeSum = 0
                     let collectionSum = 0
-                    const userSet = new Set()
+                    let usageCount = 0  // 사용자 수 대신 사용횟수 카운트
 
-                    boxLogData.forEach((entry) => {
-                        const { boxLog } = entry
-                        if (!boxLog) return
+                    boxLogData.forEach((entry, index) => {
+                        const logData = entry.boxLog
+                        const items = entry.items || []
 
-                        const logDate = new Date(boxLog.date)
-                        const logDateStr = logDate.toISOString().split("T")[0]
+                        if (!logData || !logData.date) return
+
+                        // 날짜 포맷
+                        const logDate = new Date(logData.date)
+                        const logDateStr = logDate
+                            .toLocaleDateString("ko-KR", {
+                                year: "numeric",
+                                month: "2-digit",
+                                day: "2-digit",
+                            })
+                            .replace(/\./g, "/")
+                            .replace(",", "")
+
+                        console.log(`로그 ${index}: 날짜=${logData.date} -> ${logDateStr}, 타입=${logData.type}`)
 
                         if (logDateStr === todayDateStr) {
-                            if (boxLog.type === "분리") {
-                                dischargeSum += boxLog.value || 0
-                            } else if (boxLog.type === "수거") {
-                                collectionSum += boxLog.value || 0
-                            }
-                            if (boxLog.userId) {
-                                userSet.add(boxLog.userId)
+                            console.log(`✅ 오늘 데이터 매칭! 로그ID: ${logData.logId}`)
+
+                            // 수거함 사용횟수 증가 (각 로그 엔트리가 하나의 사용)
+                            usageCount++
+                            console.log(`📊 수거함 사용횟수 증가: ${usageCount}회`)
+
+                            // items 배열에서 전지 개수 합산
+                            let itemTotal = 0
+                            items.forEach(item => {
+                                const count = Number(item.count) || 0
+                                itemTotal += count
+                                console.log(`  - ${item.name}: ${count}개`)
+                            })
+
+                            // 타입에 따라 분리량 또는 수거량에 합산
+                            if (logData.type === "분리") {
+                                dischargeSum += itemTotal
+                                console.log(`📊 분리량 추가: +${itemTotal}, 총합=${dischargeSum}`)
+                            } else if (logData.type === "수거") {
+                                collectionSum += itemTotal
+                                console.log(`📊 수거량 추가: +${itemTotal}, 총합=${collectionSum}`)
                             }
                         }
                     })
 
+                    console.log("📊 최종 집계 결과:")
+                    console.log(`- 배출량 총합: ${dischargeSum}`)
+                    console.log(`- 수거량 총합: ${collectionSum}`)
+                    console.log(`- 수거함 사용횟수: ${usageCount}회`)
+
                     setTodayDischargeTotal(dischargeSum)
                     setTodayCollectionTotal(collectionSum)
-                    setTodayUserCount(userSet.size)
+                    setTodayUserCount(usageCount)  // 기존 변수명 재사용
                 }
             } catch (error) {
                 console.error("❌ 수거 및 분리량 조회 실패:", error)
@@ -296,10 +336,10 @@ const N_mainPage = () => {
                                     <img src={lineIcon || "/placeholder.svg"} alt="line" className="h-8" />
                                 </div>
 
-                                {/* 일간 이용자수 */}
+                                {/* 일간 수거함 사용횟수 */}
                                 <div className="flex-1 flex flex-col items-center md:items-start px-2">
                                     <div className="flex items-center gap-3">
-                                        <p className="text-gray-500">일간 이용자</p>
+                                        <p className="text-gray-500">일간 수거함 사용횟수</p>
                                         <div className="tooltip-container relative">
                                             <img
                                                 src={infoIcon || "/placeholder.svg"}
@@ -311,14 +351,14 @@ const N_mainPage = () => {
                                                 isVisible={tooltips.users}
                                                 content={
                                                     <>
-                                                        <h3 className="font-bold text-sm mb-2">일간 이용자</h3>
-                                                        <p className="text-xs">오늘 하루 동안 수거함을 이용한 고유 사용자 수입니다.</p>
+                                                        <h3 className="font-bold text-sm mb-2">일간 수거함 사용횟수</h3>
+                                                        <p className="text-xs">오늘 하루 동안 수거함을 이용한 횟수입니다.</p>
                                                     </>
                                                 }
                                             />
                                         </div>
                                     </div>
-                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayUserCount}명</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayUserCount}회</p>
                                 </div>
                             </div>
                         </div>
@@ -329,7 +369,7 @@ const N_mainPage = () => {
                         <h3 className="text-xl font-bold text-[#272F42]">수거함 현황</h3>
                         <span className="text-sm text-gray-500">각 수거함의 위치와 수거량 현황을 확인할 수 있습니다.</span>
                         <div className="relative mt-4 mb-9">
-                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200"/>
+                            <div className="absolute bottom-0 left-0 w-full border-b border-gray-200" />
                             <div className="flex items-center gap-6">
                                 {["전체 수거함", "수거 필요", "화재감지"].map((tab) => (
                                     <button
@@ -360,8 +400,7 @@ const N_mainPage = () => {
                                                     isVisible={tooltips.fire}
                                                     content={
                                                         <>
-                                                            <h3 className="font-bold text-sm mb-2 text-[#940000]">화재 감지
-                                                                정보</h3>
+                                                            <h3 className="font-bold text-sm mb-2 text-[#940000]">화재 감지 정보</h3>
                                                             <p className="text-xs">수거함 내부에 화재가 감지된 수거함 목록입니다.</p>
                                                             <p className="text-xs mt-2">화재 감지 시 즉시 알림이 발송됩니다.</p>
                                                             <p className="text-xs mt-2 font-semibold text-[#940000]">
@@ -379,7 +418,7 @@ const N_mainPage = () => {
                         </div>
                     </div>
 
-                    <MapWithSidebar filteredBoxes={filteredBoxes}/>
+                    <MapWithSidebar filteredBoxes={filteredBoxes} />
                     <div className="pb-8"></div>
 
                     {/* 배출량, 수거량 탭 */}

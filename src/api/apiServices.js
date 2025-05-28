@@ -468,7 +468,7 @@ export const requestRemoveConfirmed = async (boxId) => {
 // 수거 확정 요청 API
 export const requestCollectionConfirmed = async (alarmId) => {
     try {
-        const response = await axiosInstance.patch(`/admin/collectionConfirmed/${alarmId}`)
+        const response = await axiosInstance.patch(`/admin/collectionConFirmed/${alarmId}`)
         return response.data
     } catch (error) {
         console.error("수거 확정 요청 실패:", error)
@@ -479,7 +479,7 @@ export const requestCollectionConfirmed = async (alarmId) => {
 // 화재 확정 요청 API
 export const requestFireConfirmed = async (alarmId) => {
     try {
-        const response = await axiosInstance.patch(`/admin/fireConfirmed/${alarmId}`)
+        const response = await axiosInstance.patch(`/admin/fireConFirmed/${alarmId}`)
         return response.data
     } catch (error) {
         console.error("화재처리 확정 요청 실패:", error)
