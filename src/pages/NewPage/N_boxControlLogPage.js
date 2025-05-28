@@ -656,12 +656,12 @@ const N_boxControlLogPage = () => {
         } catch (error) {
             console.error("❌ 제어 상태 변경 실패:", error)
 
-            // DNS 오류나 연결 오류인 경우 특별 처리
+            /*// DNS 오류나 연결 오류인 경우 특별 처리
             if (error.message.includes("Failed to resolve") || error.message.includes("NXDOMAIN")) {
                 setControlError("하드웨어 연동이 아직 완료되지 않았습니다. 연동 후 다시 시도해주세요.")
             } else {
                 setControlError(`제어 실패: ${error.message || "알 수 없는 오류"}`)
-            }
+            }*/
 
             // 3초 후 에러 메시지 자동 제거
             setTimeout(() => {

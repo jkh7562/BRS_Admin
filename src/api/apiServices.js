@@ -539,10 +539,10 @@ export const closeBoxCompartment = async (boxId, number) => {
 export const controlBoxCompartment = async (boxId, compartmentType, isOpen) => {
     // 구획 타입을 숫자로 매핑
     const compartmentNumberMap = {
-        collectorEntrance: 0,        // 수거자 입구
-        battery: 1,                  // 배터리 (store1)
-        dischargedBattery: 2,        // 방전 배터리 (store2)
-        remainingCapacityBattery: 3, // 잔여 용량 배터리 (store3)
+        collectorEntrance: 3,        // 수거자 입구
+        battery: 0,                  // 배터리 (store1)
+        dischargedBattery: 1,        // 방전 배터리 (store2)
+        remainingCapacityBattery: 2, // 잔여 용량 배터리 (store3)
     };
 
     const number = compartmentNumberMap[compartmentType];
