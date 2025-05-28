@@ -298,7 +298,7 @@ const N_mainPage = () => {
                                             />
                                         </div>
                                     </div>
-                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayDischargeTotal}</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayDischargeTotal}개</p>
                                 </div>
 
                                 {/* 구분선 */}
@@ -328,7 +328,7 @@ const N_mainPage = () => {
                                             />
                                         </div>
                                     </div>
-                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayCollectionTotal}</p>
+                                    <p className="font-bold text-[22px] text-[#21262B] mt-2">{todayCollectionTotal}개</p>
                                 </div>
 
                                 {/* 구분선 */}
