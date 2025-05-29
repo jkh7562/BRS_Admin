@@ -6,9 +6,12 @@ import FireInfoIcon from "../assets/FireInfo.png"
 import BoxIcon from "../assets/수거함Black.png"
 import UserIcon from "../assets/user.png"
 import { getMyInfo, logout, fetchEmployeeRequests, findAllBox, checkPassword, updatePassword } from "../api/apiServices"
+import { useAlarms } from "../hooks/useAlarms"
 
 const Topbar = () => {
     const navigate = useNavigate()
+    const { unreadAlarms, unreadFireAlarms, boxesMap, addFireAlarm, markAlarmAsRead, markAllAlarmsAsRead } = useAlarms() // 읽지 않은 알람만 사용
+
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
     const [isNotificationSidebarOpen, setIsNotificationSidebarOpen] = useState(false)
     const [showPasswordForm, setShowPasswordForm] = useState(false)
@@ -17,22 +20,16 @@ const Topbar = () => {
         newPassword: "",
         confirmPassword: "",
     })
-    // 비밀번호 변경 관련 오류 메시지 상태 추가
     const [passwordErrors, setPasswordErrors] = useState({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
         general: "",
     })
-    // 비밀번호 변경 성공 메시지 상태 추가
     const [passwordSuccess, setPasswordSuccess] = useState("")
-
     const [userInfo, setUserInfo] = useState({ name: "", id: "" })
-    const [alarms, setAlarms] = useState([])
     const [employeeRequests, setEmployeeRequests] = useState([])
     const [hasNewRequests, setHasNewRequests] = useState(false)
-    const [fireAlarms, setFireAlarms] = useState([])
-    const [boxesMap, setBoxesMap] = useState({}) // 박스 ID와 이름을 매핑하는 객체
 
     // 사용자 정보 가져오기
     useEffect(() => {
@@ -43,8 +40,9 @@ const Topbar = () => {
                     name: data.name || "",
                     id: data.id || "",
                 })
+                console.log("👤 사용자 정보 로드:", data.name)
             } catch (error) {
-                console.error("내 정보 불러오기 실패:", error)
+                console.error("❌ 내 정보 불러오기 실패:", error)
             }
         }
 
@@ -61,10 +59,8 @@ const Topbar = () => {
                 )
 
                 if (fireBoxes.length > 0) {
-                    // 기존 화재 알람 ID 목록
-                    const existingFireAlarmIds = fireAlarms.map((alarm) => alarm.boxId)
+                    const existingFireAlarmIds = unreadFireAlarms.map((alarm) => alarm.boxId)
 
-                    // 새로운 화재 알람 생성
                     const newFireAlarms = fireBoxes
                         .filter((box) => !existingFireAlarmIds.includes(box.id))
                         .map((box) => ({
@@ -73,27 +69,23 @@ const Topbar = () => {
                             boxId: box.id,
                             location: box.name,
                             timestamp: new Date().toISOString(),
-                            priority: 1, // 최우선 순위
+                            priority: 1,
                         }))
 
+                    // 새로운 화재 알람이 있으면 추가
+                    newFireAlarms.forEach((alarm) => addFireAlarm(alarm))
+
                     if (newFireAlarms.length > 0) {
-                        setFireAlarms((prev) => [...prev, ...newFireAlarms])
-                        // 화재 알람을 일반 알람에도 추가
-                        setAlarms((prev) => [...prev, ...newFireAlarms])
+                        console.log("🚨 새로운 화재 알람 생성:", newFireAlarms.length, "건")
                     }
                 }
             } catch (error) {
-                console.error("화재 상태 확인 실패:", error)
+                console.error("❌ 화재 상태 확인 실패:", error)
             }
         }
 
-        // 초기 로드 시 화재 상태 확인
         checkFireStatus()
-
-        // 1분마다 화재 상태 확인 코드 제거
-
-        return () => {}
-    }, [fireAlarms])
+    }, [unreadFireAlarms, addFireAlarm])
 
     // 신규 가입자 요청 가져오기
     useEffect(() => {
@@ -103,16 +95,14 @@ const Topbar = () => {
                 if (requests && requests.length > 0) {
                     setEmployeeRequests(requests)
                     setHasNewRequests(true)
-                    // 신규 가입자 알람 추가 코드 제거됨
+                    console.log("📝 신규 가입 요청:", requests.length, "건")
                 }
             } catch (error) {
-                console.error("가입 요청 불러오기 실패:", error)
+                console.error("❌ 가입 요청 불러오기 실패:", error)
             }
         }
 
         getEmployeeRequests()
-
-        return () => {}
     }, [])
 
     // 클릭 이벤트 처리
@@ -141,64 +131,6 @@ const Topbar = () => {
         }
     }, [isProfileDropdownOpen, isNotificationSidebarOpen])
 
-    // SSE 연결
-    useEffect(() => {
-        const eventSource = new EventSource(`${process.env.REACT_APP_API_BASE_URL}/SSEsubscribe`, {
-            withCredentials: true,
-        })
-        console.log("구독 후", eventSource)
-
-        eventSource.onopen = () => {
-            console.log("SSE 연결 성공")
-        }
-
-        eventSource.addEventListener("alarm", (event) => {
-            try {
-                console.log("SSE 메시지 수신:", event.event)
-                const alarmData = JSON.parse(event.data)
-
-                // boxId가 있으면 boxesMap에서 해당 박스 이름 찾기
-                if (alarmData.boxId && boxesMap[alarmData.boxId]) {
-                    alarmData.location = boxesMap[alarmData.boxId]
-                }
-
-                // 알람 타입에 따른 처리
-                if (alarmData.type === "NEW_USER_REQUEST") {
-                    // 신규 가입자 요청 알람은 처리하지 않음
-                    return
-                } else if (alarmData.type === "fire") {
-                    // 화재 알람은 최우선 순위로 설정
-                    alarmData.priority = 1
-                    setFireAlarms((prev) => [...prev, alarmData])
-                    setAlarms((prev) => [...prev, alarmData])
-
-                    // 화재 발생 시 즉시 화재 상태 확인
-                    findAllBox().then((boxes) => {
-                        const fireBoxes = boxes.filter(
-                            (box) => box.fire_status1 === "FIRE" || box.fire_status2 === "FIRE" || box.fire_status3 === "FIRE",
-                        )
-                        console.log("화재 발생 수거함:", fireBoxes)
-                    })
-                } else {
-                    // 기타 알람은 낮은 우선순위로 설정
-                    alarmData.priority = 3
-                    setAlarms((prev) => [...prev, alarmData])
-                }
-            } catch (error) {
-                console.error("SSE 데이터 파싱 에러:", error)
-            }
-        })
-
-        eventSource.onerror = (error) => {
-            console.error("SSE Error:", error)
-            eventSource.close()
-        }
-
-        return () => {
-            eventSource.close()
-        }
-    }, [boxesMap]) // boxesMap이 변경될 때마다 이벤트 리스너 재설정
-
     const toggleProfileDropdown = () => {
         if (!isProfileDropdownOpen) {
             setShowPasswordForm(false)
@@ -211,7 +143,6 @@ const Topbar = () => {
     }
 
     const openPasswordForm = () => {
-        // 폼 열 때 오류 메시지와 성공 메시지 초기화
         setPasswordErrors({
             currentPassword: "",
             newPassword: "",
@@ -229,7 +160,6 @@ const Topbar = () => {
             newPassword: "",
             confirmPassword: "",
         })
-        // 폼 닫을 때 오류 메시지와 성공 메시지 초기화
         setPasswordErrors({
             currentPassword: "",
             newPassword: "",
@@ -246,18 +176,15 @@ const Topbar = () => {
             [name]: value,
         }))
 
-        // 입력 시 해당 필드의 오류 메시지 초기화
         setPasswordErrors((prev) => ({
             ...prev,
             [name]: "",
         }))
     }
 
-    // 비밀번호 변경 로직 구현 - 오류 메시지를 alert 대신 상태로 관리
     const handlePasswordSubmit = async (e) => {
         e.preventDefault()
 
-        // 오류 메시지 초기화
         setPasswordErrors({
             currentPassword: "",
             newPassword: "",
@@ -266,7 +193,6 @@ const Topbar = () => {
         })
         setPasswordSuccess("")
 
-        // 1. 입력값 검증
         let hasError = false
         const newErrors = {
             currentPassword: "",
@@ -290,7 +216,6 @@ const Topbar = () => {
             hasError = true
         }
 
-        // 2. 새 비밀번호와 확인 비밀번호 일치 여부 확인
         if (
             passwordForm.newPassword &&
             passwordForm.confirmPassword &&
@@ -306,7 +231,6 @@ const Topbar = () => {
         }
 
         try {
-            // 3. 현재 비밀번호 확인
             const checkResult = await checkPassword(passwordForm.currentPassword)
 
             if (checkResult !== "Success") {
@@ -317,16 +241,12 @@ const Topbar = () => {
                 return
             }
 
-            // 4. 새 비밀번호로 변경
             const updateResult = await updatePassword(passwordForm.newPassword)
 
             if (updateResult === "Success") {
-                // 성공 메시지 설정
                 setPasswordSuccess("비밀번호가 성공적으로 변경되었습니다.")
 
-                // 3초 후 폼 닫기
                 setTimeout(() => {
-                    // 폼 초기화 및 드롭다운 닫기
                     setIsProfileDropdownOpen(false)
                     setShowPasswordForm(false)
                     setPasswordForm({
@@ -343,7 +263,7 @@ const Topbar = () => {
                 })
             }
         } catch (error) {
-            console.error("비밀번호 변경 중 오류 발생:", error)
+            console.error("❌ 비밀번호 변경 중 오류 발생:", error)
             setPasswordErrors({
                 ...newErrors,
                 general: "서버 오류로 비밀번호 변경에 실패했습니다. 다시 시도해주세요.",
@@ -355,13 +275,13 @@ const Topbar = () => {
         try {
             await logout()
             navigate("/")
+            console.log("👋 로그아웃 완료")
         } catch (error) {
             console.error("❌ 로그아웃 실패:", error)
             alert("로그아웃에 실패했습니다. 다시 시도해주세요.")
         }
     }
 
-    // 알람 타입을 모니터링 페이지 탭으로 매핑하는 함수
     const getMonitoringTabFromAlarmType = (alarmType) => {
         switch (alarmType) {
             case "fire":
@@ -387,34 +307,28 @@ const Topbar = () => {
             case "REMOVE_CONFIRMED":
                 return "제거 현황"
             default:
-                return "설치 현황" // 기본값
+                return "설치 현황"
         }
     }
 
-    // 알람 클릭 핸들러 - 알람 타입에 따라 적절한 모니터링 탭으로 이동
     const handleAlarmClick = (e, alarm) => {
-        console.log("알람 클릭됨:", alarm.type)
+        console.log("🔔 알람 클릭됨:", alarm.type, "ID:", alarm.id)
 
-        // 이벤트 기본 동작 방지
         if (e) {
             e.preventDefault()
             e.stopPropagation()
         }
 
-        // 알림 사이드바 닫기
+        // 해당 알람을 읽음 처리
+        markAlarmAsRead(alarm.id)
+
         setIsNotificationSidebarOpen(false)
 
-        // 알람 타입에 따른 모니터링 탭 결정
         const targetTab = getMonitoringTabFromAlarmType(alarm.type)
-
-        // localStorage에 활성 탭 정보 저장
         localStorage.setItem("activeMonitoringTab", targetTab)
-
-        // 모니터링 페이지로 이동
         navigate("/n_MonitoringPage")
     }
 
-    // 알람 타입에 따른 제목과 아이콘 가져오기
     const getAlarmInfo = (alarmType) => {
         switch (alarmType) {
             case "fire":
@@ -547,9 +461,7 @@ const Topbar = () => {
         }
     }
 
-    // 알람 메시지 포맷팅
     const formatAlarmMessage = (alarm) => {
-        // If this is a grouped alarm with count, return the count message
         if (alarm.count) {
             switch (alarm.type) {
                 case "COLLECTION_NEEDED":
@@ -591,7 +503,6 @@ const Topbar = () => {
             }
         }
 
-        // For backward compatibility, handle individual alarms
         switch (alarm.type) {
             case "fire":
                 return "화재 발생 알림이 있습니다."
@@ -616,12 +527,9 @@ const Topbar = () => {
         }
     }
 
-    // Add a function to group alarms by type and count them
     const groupAlarmsByType = (alarms) => {
-        // Create a map to count alarms by type
         const alarmCounts = {}
 
-        // Count alarms by type
         alarms.forEach((alarm) => {
             const type = alarm.type
             if (!alarmCounts[type]) {
@@ -630,19 +538,19 @@ const Topbar = () => {
                     priority: alarm.priority || 3,
                     timestamp: alarm.timestamp || new Date().toISOString(),
                     type: type,
+                    // 그룹의 첫 번째 알람 ID를 저장 (클릭 시 사용)
+                    firstAlarmId: alarm.id,
                 }
             }
             alarmCounts[type].count++
 
-            // Use the most recent timestamp
             if (alarm.timestamp && new Date(alarm.timestamp) > new Date(alarmCounts[type].timestamp)) {
                 alarmCounts[type].timestamp = alarm.timestamp
             }
         })
 
-        // Convert the map to an array
         return Object.values(alarmCounts).map((alarm) => ({
-            id: `${alarm.type}-group-${Date.now()}`,
+            id: alarm.firstAlarmId, // 그룹의 첫 번째 알람 ID 사용
             type: alarm.type,
             count: alarm.count,
             timestamp: alarm.timestamp,
@@ -650,108 +558,16 @@ const Topbar = () => {
         }))
     }
 
-    // 테스트용 더미 알람 데이터 (실제 구현 시 제거) - 주석을 해제하여 테스트용 알람 활성화
-    // const dummyAlarms = [
-    //   { id: 1, type: "fire", location: "서울특별시 송파구 가락로 111", timestamp: new Date().toISOString(), priority: 1 },
-    //   {
-    //     id: 2,
-    //     type: "FIRE_IN_PROGRESS",
-    //     location: "부산광역시 해운대구",
-    //     timestamp: new Date(Date.now() - 300000).toISOString(),
-    //     priority: 1,
-    //   },
-    //   {
-    //     id: 3,
-    //     type: "INSTALL_COMPLETED",
-    //     location: "선문대 동문 앞",
-    //     timestamp: new Date(Date.now() - 600000).toISOString(),
-    //     priority: 3,
-    //   },
-    //   {
-    //     id: 4,
-    //     type: "INSTALL_REQUEST",
-    //     location: "인천광역시 중구",
-    //     timestamp: new Date(Date.now() - 900000).toISOString(),
-    //     priority: 3,
-    //   },
-    //   {
-    //     id: 5,
-    //     type: "REMOVE_COMPLETED",
-    //     location: "선문대 서문 앞",
-    //     timestamp: new Date(Date.now() - 1200000).toISOString(),
-    //     priority: 3,
-    //   },
-    //   {
-    //     id: 6,
-    //     type: "REMOVE_REQUEST",
-    //     location: "대구광역시 중구",
-    //     timestamp: new Date(Date.now() - 1500000).toISOString(),
-    //     priority: 3,
-    //   },
-    //   {
-    //     id: 7,
-    //     type: "COLLECTION_NEEDED",
-    //     location: "선문대 정문 앞",
-    //     timestamp: new Date(Date.now() - 1800000).toISOString(),
-    //     priority: 3,
-    //   },
-    //   {
-    //     id: 8,
-    //     type: "COLLECTION_RECOMMENDED",
-    //     location: "광주광역시 동구",
-    //     timestamp: new Date(Date.now() - 2100000).toISOString(),
-    //     priority: 3,
-    //   },
-    //   {
-    //     id: 9,
-    //     type: "COLLECTION_IN_PROGRESS",
-    //     location: "대전광역시 유성구",
-    //     timestamp: new Date(Date.now() - 2400000).toISOString(),
-    //     priority: 3,
-    //   },
-    //   {
-    //     id: 10,
-    //     type: "FIRE_COMPLETED",
-    //     location: "울산광역시 남구",
-    //     timestamp: new Date(Date.now() - 2700000).toISOString(),
-    //     priority: 1,
-    //   },
-    //   {
-    //     id: 11,
-    //     type: "INSTALL_IN_PROGRESS",
-    //     location: "경기도 수원시",
-    //     timestamp: new Date(Date.now() - 3000000).toISOString(),
-    //     priority: 3,
-    //   },
-    //   {
-    //     id: 12,
-    //     type: "REMOVE_IN_PROGRESS",
-    //     location: "강원도 춘천시",
-    //     timestamp: new Date(Date.now() - 3300000).toISOString(),
-    //     priority: 3,
-    //   },
-    // ]
-
-    // 실제 알람만 사용 (더미 알람 제거)
-    const allAlarms = [...alarms]
-
-    // 우선순위에 따라 알람 정렬 (1: 화재, 2: 신규가입, 3: 기타)
-    // NEW_USER_REQUEST 타입 알람 제외
-    const filteredAlarms = [...allAlarms].filter((alarm) => alarm.type !== "NEW_USER_REQUEST")
+    const filteredAlarms = unreadAlarms.filter((alarm) => alarm.type !== "NEW_USER_REQUEST")
     const groupedAlarms = groupAlarmsByType(filteredAlarms)
     const sortedAlarms = groupedAlarms.sort((a, b) => {
-        // 우선순위로 먼저 정렬
         if (a.priority !== b.priority) {
             return a.priority - b.priority
         }
-        // 같은 우선순위면 최신순으로 정렬
-        return new Date(b.timestamp) - new Date(a.timestamp)
+        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     })
 
-    // 알림 개수
     const totalNotifications = sortedAlarms.length
-
-    // 화재 알람 개수
     const fireAlarmsCount = sortedAlarms.filter((alarm) => alarm.type === "fire").length
 
     return (
@@ -875,7 +691,6 @@ const Topbar = () => {
                             {totalNotifications > 0 && (
                                 <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
                             )}
-                            {/* 화재 알람이 있을 경우 특별한 표시 추가 */}
                             {fireAlarmsCount > 0 && (
                                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 text-white rounded-full flex items-center justify-center text-[8px] animate-pulse">
                   {fireAlarmsCount}
@@ -898,6 +713,11 @@ const Topbar = () => {
                             <span className="ml-2 text-sm font-bold text-red-600 animate-pulse">(화재 {fireAlarmsCount}건)</span>
                         )}
                     </h2>
+                    {totalNotifications > 0 && (
+                        <button onClick={markAllAlarmsAsRead} className="text-sm text-gray-500 hover:text-gray-700 underline">
+                            모두 읽음
+                        </button>
+                    )}
                 </div>
 
                 <div className="p-5 overflow-y-auto h-[calc(100%-60px)]">
@@ -952,7 +772,6 @@ const Topbar = () => {
                 </div>
             </div>
 
-            {/* 화재 알람을 위한 CSS 애니메이션 */}
             <style jsx>{`
                 @keyframes pulse-slow {
                     0%, 100% {
