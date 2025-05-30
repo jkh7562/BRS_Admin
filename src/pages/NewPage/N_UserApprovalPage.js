@@ -37,15 +37,18 @@ const N_UserApprovalPage = () => {
                 const time = `${ampm} ${hour12}:${String(dateObj.getMinutes()).padStart(2, "0")}`
 
                 return {
-                    id: item.id, // MySQL의 id 필드
+                    id: item.id,
                     name: item.name,
-                    phone: item.phone_number || item.phoneNumber || item.phone, // 필드명 다양성 고려
+                    phone: item.phone_number || item.phoneNumber || item.phone,
                     date,
                     time,
-                    userId: item.id, // MySQL의 id 필드를 userId로 매핑
-                    password: item.pw, // MySQL의 pw 필드
-                    address: item.location || item.address || "주소 정보 없음", // 주소 필드가 location일 수 있음
-                    createdAt: item.date || item.createdAt, // 정렬을 위해 원본 날짜 보존
+                    userId: item.id,
+                    password: item.pw,
+                    // 수정된 주소 매핑 로직
+                    address: item.location1 && item.location2
+                        ? `${item.location1} ${item.location2}`
+                        : item.location1 || item.location2 || "주소 정보 없음",
+                    createdAt: item.date || item.createdAt,
                 }
             })
 
