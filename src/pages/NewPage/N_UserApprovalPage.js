@@ -249,11 +249,6 @@ const N_UserApprovalPage = () => {
                                                             <span
                                                                 className="text-[#21262B] font-bold">{reg.userId || "정보 없음"}</span>
                                                         </div>
-                                                        <div className="flex gap-1">
-                                                            <span className="text-[#7A7F8A] w-16">비밀번호</span>
-                                                            <span
-                                                                className="text-[#21262B] font-bold">{reg.password || "정보 없음"}</span>
-                                                        </div>
                                                     </div>
                                                 </div>
 
