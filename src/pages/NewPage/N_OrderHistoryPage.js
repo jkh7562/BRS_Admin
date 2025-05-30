@@ -6,7 +6,7 @@ import CopyIcon from "../../assets/copy.png"
 import incineration from "../../assets/소각용.png"
 import Reuse from "../../assets/재사용.png"
 import foodwaste from "../../assets/음식물.png"
-import { fetchOrderList, fetchOrdersByUserId } from "../../api/apiServices" // API 함수 import
+import { fetchOrderList, fetchOrdersByUserId, findUserAll } from "../../api/apiServices" // API 함수 import
 
 // 상품 ID와 이름 매핑 (item 테이블 기반)
 const ITEM_MAPPING = {
@@ -52,15 +52,15 @@ const N_OrderHistoryPage = () => {
                 setIsLoading(true)
                 setError(null)
 
-                // 모든 주문 내역 가져오기
-                const orderListData = await fetchOrderList()
+                // 모든 사용자 정보와 주문 내역을 병렬로 가져오기
+                const [allUsersData, orderListData] = await Promise.all([findUserAll(), fetchOrderList()])
 
                 // 주문 데이터 포맷팅
                 const formattedOrders = formatOrderData(orderListData)
                 setAllOrders(formattedOrders)
 
-                // 사용자 목록 추출 및 포맷팅
-                const uniqueUsers = extractUniqueUsers(orderListData)
+                // 사용자 목록 추출 및 포맷팅 (실제 사용자 정보와 매칭)
+                const uniqueUsers = extractUniqueUsers(orderListData, allUsersData)
                 setUsers(uniqueUsers)
 
                 // 첫 번째 사용자의 주문 내역 로드
@@ -79,7 +79,7 @@ const N_OrderHistoryPage = () => {
         loadInitialData()
     }, [])
 
-    // 주문 데이터 포맷팅 함수
+    // 주문 데이터 포맷팅 함수 - 수정된 부분
     const formatOrderData = (orders) => {
         return orders.map((orderData) => {
             // 새 API 구조에서 order와 items 분리
@@ -94,16 +94,20 @@ const N_OrderHistoryPage = () => {
             const hour12 = hours % 12 || 12
             const formattedTime = `${ampm} ${hour12}:${String(dateObj.getMinutes()).padStart(2, "0")}:${String(dateObj.getSeconds()).padStart(2, "0")}`
 
-            // 상품 정보 포맷팅
+            // 상품 정보 포맷팅 - 수정된 부분
             const formattedItems = items.map((item) => {
                 const itemName = ITEM_MAPPING[item.itemId] || "알 수 없는 상품"
                 const koreanName = getKoreanItemName(itemName)
 
+                // item.price는 이미 (개별가격 × 수량)의 총 가격이므로
+                // 개별 가격을 계산하려면 총 가격을 수량으로 나누어야 함
+                const unitPrice = Math.round(item.price / item.count)
+
                 return {
                     name: koreanName,
-                    price: item.price,
+                    unitPrice: unitPrice, // 개별 가격
                     quantity: item.count,
-                    totalPrice: item.price * item.count,
+                    totalPrice: item.price, // 이미 총 가격
                 }
             })
 
@@ -120,8 +124,8 @@ const N_OrderHistoryPage = () => {
         })
     }
 
-    // 고유 사용자 추출 함수
-    const extractUniqueUsers = (orders) => {
+    // 고유 사용자 추출 함수 - 실제 사용자 정보와 매칭
+    const extractUniqueUsers = (orders, allUsersData) => {
         const userMap = new Map()
 
         orders.forEach((orderData) => {
@@ -130,10 +134,12 @@ const N_OrderHistoryPage = () => {
             const userId = order.userId
 
             if (!userMap.has(userId)) {
-                // userId 필드를 사용하여 사용자 정보 추출
+                // allUsersData에서 해당 userId의 사용자 정보 찾기
+                const userInfo = allUsersData.find((user) => user.id === userId)
+
                 userMap.set(userId, {
-                    userId: userId, // userId 필드 사용
-                    name: `${userId}`, // ID: 접두사 없이 userId만 표시
+                    userId: userId,
+                    name: userInfo ? userInfo.name : userId, // 사용자 정보가 있으면 실제 이름, 없으면 userId
                     date: "",
                     time: "",
                     selected: false,
@@ -362,7 +368,7 @@ const N_OrderHistoryPage = () => {
                                             type="text"
                                             value={searchTerm}
                                             onChange={handleSearch}
-                                            placeholder="사용자 ID 검색"
+                                            placeholder="사용자 이름 검색"
                                             className="w-full h-[40px] px-4 py-2 pr-10 border rounded-lg font-normal text-sm focus:outline-none text-gray-900 placeholder:text-[#D5D8DE]"
                                         />
                                         <img
@@ -499,7 +505,7 @@ const N_OrderHistoryPage = () => {
                                                                                             <div>
                                                                                                 <p className="font-medium">{item.name}</p>
                                                                                                 <p className="text-sm text-[#7A7F8A]">
-                                                                                                    가격: {item.price} P 수량: {item.quantity}
+                                                                                                    가격: {item.unitPrice} P 수량: {item.quantity}
                                                                                                 </p>
                                                                                             </div>
                                                                                         </div>
