@@ -359,9 +359,9 @@ const N_OrderHistoryPage = () => {
                             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#21262B]"></div>
                         </div>
                     ) : (
-                        <div className="flex h-[calc(100vh-200px)] pt-4">
+                        <div className="flex pt-4">
                             {/* 좌측 사용자 목록 */}
-                            <div className="w-[390px] bg-white shadow overflow-hidden rounded-l-2xl h-full">
+                            <div className="w-[390px] bg-white shadow overflow-hidden rounded-l-2xl flex flex-col">
                                 <div className="p-4 h-full flex flex-col">
                                     <div className="relative mb-4">
                                         <input
@@ -421,7 +421,7 @@ const N_OrderHistoryPage = () => {
                             </div>
 
                             {/* 우측 주문 상세 */}
-                            <div className="flex-1 h-full">
+                            <div className="flex-1">
                                 <div className="bg-white shadow p-6 rounded-r-2xl h-full flex flex-col">
                                     <div className="flex justify-between items-center mb-4">
                                         <h2 className="font-bold text-lg">주문 상세 내역</h2>
