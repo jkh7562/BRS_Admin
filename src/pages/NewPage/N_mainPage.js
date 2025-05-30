@@ -191,18 +191,38 @@ const N_mainPage = () => {
                         }
                     }
 
-                    // 상태 계산
-                    let status = "normal"
+                    // 상태 계산 - 여러 상태를 동시에 가질 수 있도록 수정
+                    let statuses = []
                     const fireDetected = [fireStatus1, fireStatus2, fireStatus3].includes("FIRE")
                     const volumeThresholdExceeded = [volume1, volume2, volume3].some((v) => v >= 81)
 
                     if (fireDetected) {
-                        status = "fire"
-                    } else if (volumeThresholdExceeded) {
-                        status = "need-collect"
+                        statuses.push("fire")
+                    }
+                    if (volumeThresholdExceeded) {
+                        statuses.push("need-collect")
+                    }
+                    if (statuses.length === 0) {
+                        statuses.push("normal")
                     }
 
-                    return { id, name, lat, lng, status, installStatus, volume1, volume2, volume3 }
+                    // 기존 status 필드와의 호환성을 위해 첫 번째 상태를 기본 status로 설정
+                    const status = statuses[0]
+
+                    return {
+                        id,
+                        name,
+                        lat,
+                        lng,
+                        status,
+                        statuses,
+                        installStatus,
+                        volume1,
+                        volume2,
+                        volume3,
+                        fireDetected,
+                        volumeThresholdExceeded
+                    }
                 })
 
                 console.log(`✅ 수거함 정보 로딩 완료: ${mappedBoxes.length}개의 수거함 로드됨`)
@@ -217,10 +237,20 @@ const N_mainPage = () => {
         loadBoxes()
     }, [])
 
+    // 수정된 필터링 로직: 화재감지 수거함은 "수거 필요" 탭과 "화재감지" 탭 모두에 표시
     const filteredBoxes =
         selectedTab === "전체 수거함"
             ? boxes
-            : boxes.filter((box) => (selectedTab === "수거 필요" ? box.status === "need-collect" : box.status === "fire"))
+            : boxes.filter((box) => {
+                if (selectedTab === "수거 필요") {
+                    // 수거 필요 탭에는 need-collect 상태이거나 fire 상태인 수거함 모두 표시
+                    return box.volumeThresholdExceeded || box.fireDetected;
+                } else if (selectedTab === "화재감지") {
+                    // 화재감지 탭에는 fire 상태인 수거함만 표시
+                    return box.fireDetected;
+                }
+                return false;
+            });
 
     const goToApprovalPage = () => {
         navigate("/n_UserApprovalPage") // React Router를 사용하는 경우
