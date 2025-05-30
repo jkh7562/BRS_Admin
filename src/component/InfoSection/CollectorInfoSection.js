@@ -148,10 +148,10 @@ export default function CollectorInfoSection() {
     const getCollectorTotalAmount = (batteryType = "전체") => {
         if (!selectedCollector || !boxLogs) return "0개"
 
-        // 선택된 수거자의 수거 로그만 필터링
+        // 선택된 수거자의 수거 로그만 필터링 - userId 사용
         const collectorLogs = boxLogs.filter((entry) => {
             const { boxLog } = entry
-            return boxLog && boxLog.type === "수거" && boxLog.collectorId === selectedCollector.id
+            return boxLog && boxLog.type === "수거" && boxLog.userId === selectedCollector.id
         })
 
         let totalAmount = 0
@@ -493,7 +493,7 @@ function getCollectorAmount(collectorId, boxLogs) {
 
     const collectorLogs = boxLogs.filter((entry) => {
         const { boxLog } = entry
-        return boxLog && boxLog.type === "수거" && boxLog.collectorId === collectorId
+        return boxLog && boxLog.type === "수거" && boxLog.userId === collectorId
     })
 
     let totalAmount = 0
@@ -510,10 +510,10 @@ function getCollectorAmount(collectorId, boxLogs) {
 function getLastActiveDate(collectorId, boxLogs) {
     if (!collectorId || !boxLogs || boxLogs.length === 0) return "기록 없음"
 
-    // 해당 수거자의 수거 로그만 필터링
+    // 해당 수거자의 수거 로그만 필터링 - userId 사용
     const collectorLogs = boxLogs.filter((entry) => {
         const { boxLog } = entry
-        return boxLog && boxLog.type === "수거" && boxLog.collectorId === collectorId
+        return boxLog && boxLog.type === "수거" && boxLog.userId === collectorId
     })
 
     if (collectorLogs.length === 0) return "기록 없음"

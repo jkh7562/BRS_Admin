@@ -14,7 +14,7 @@ const CollectorCollectionChart = ({ boxLogs, collectorId, selectedPeriod, select
             // 해당 수거자의 수거 로그만 필터링
             const collectorLogs = boxLogs.filter((entry) => {
                 const { boxLog } = entry
-                return boxLog && boxLog.type === "수거" && boxLog.collectorId === collectorId
+                return boxLog && boxLog.type === "수거" && boxLog.userId === collectorId
             })
 
             // 시간대별 데이터 집계
@@ -79,7 +79,7 @@ const CollectorCollectionChart = ({ boxLogs, collectorId, selectedPeriod, select
                         formatter={(value) => [`${value.toLocaleString()}개`, "수거량"]}
                         labelFormatter={(label) => `기간: ${label}`}
                     />
-                    <Bar dataKey="value" name="수거량" fill="#FB7185" barSize={20} />
+                    <Bar dataKey="value" name="수거량" fill="#34D399" barSize={20} />
                 </BarChart>
             </ResponsiveContainer>
         </div>
