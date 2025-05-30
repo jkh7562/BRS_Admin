@@ -905,10 +905,12 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     }, [filteredBoxes, addressMap])
 
     useEffect(() => {
-        if (displayedBoxes.length > 0 && (!selectedBoxId || !displayedBoxes.find(box => box.id === selectedBoxId))) {
+        if (displayedBoxes.length > 0) {
             setSelectedBoxId(displayedBoxes[0].id);
+        } else {
+            setSelectedBoxId(null);
         }
-    }, [displayedBoxes, selectedBoxId]);
+    }, [displayedBoxes]);
 
     // 모든 데이터 로드 함수 - useCallback으로 최적화
     const loadAllData = useCallback(async () => {
