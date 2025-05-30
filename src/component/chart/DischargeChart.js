@@ -8,7 +8,7 @@ const tabs = ["전체 배출량", "건전지", "방전 배터리", "잔여 용�
 
 const DischargeChart = () => {
     const [selectedTab, setSelectedTab] = useState("전체 배출량")
-    const [selectedUnit, setSelectedUnit] = useState("월")
+    const [selectedUnit, setSelectedUnit] = useState("일")
     const [chartData, setChartData] = useState([])
 
     useEffect(() => {
