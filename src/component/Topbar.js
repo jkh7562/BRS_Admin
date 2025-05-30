@@ -1,16 +1,24 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import AlarmIcon from "../assets/알림.png"
 import DownIcon from "../assets/Down.png"
 import FireInfoIcon from "../assets/FireInfo.png"
 import BoxIcon from "../assets/수거함Black.png"
 import UserIcon from "../assets/user.png"
-import { getMyInfo, logout, fetchEmployeeRequests, findAllBox, checkPassword, updatePassword } from "../api/apiServices"
+import {
+    getMyInfo,
+    logout,
+    fetchEmployeeRequests,
+    findAllBox,
+    checkPassword,
+    updatePassword,
+    getUserUnresolvedAlarms,
+} from "../api/apiServices"
 import { useAlarms } from "../hooks/useAlarms"
 
 const Topbar = () => {
     const navigate = useNavigate()
-    const { unreadAlarms, unreadFireAlarms, boxesMap, addFireAlarm, markAlarmAsRead, markAllAlarmsAsRead } = useAlarms() // 읽지 않은 알람만 사용
+    const { alarms, fireAlarms, boxesMap, addFireAlarm } = useAlarms()
 
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
     const [isNotificationSidebarOpen, setIsNotificationSidebarOpen] = useState(false)
@@ -30,6 +38,8 @@ const Topbar = () => {
     const [userInfo, setUserInfo] = useState({ name: "", id: "" })
     const [employeeRequests, setEmployeeRequests] = useState([])
     const [hasNewRequests, setHasNewRequests] = useState(false)
+    const [lastApiCheck, setLastApiCheck] = useState(0)
+    const apiCheckIntervalRef = useRef(null)
 
     // 사용자 정보 가져오기
     useEffect(() => {
@@ -49,6 +59,50 @@ const Topbar = () => {
         fetchUserInfo()
     }, [])
 
+    // 미해결 알람 가져오기 - 주기적으로 실행 (30초마다)
+    useEffect(() => {
+        // 컴포넌트 마운트 시 즉시 실행
+        fetchUnresolvedAlarms()
+
+        // 30초마다 미해결 알람 갱신
+        apiCheckIntervalRef.current = setInterval(() => {
+            fetchUnresolvedAlarms()
+        }, 30000) // 30초마다 실행
+
+        return () => {
+            if (apiCheckIntervalRef.current) {
+                clearInterval(apiCheckIntervalRef.current)
+            }
+        }
+    }, [])
+
+    // 미해결 알람 가져오기 함수
+    const fetchUnresolvedAlarms = async () => {
+        try {
+            const now = Date.now()
+            // 마지막 API 호출 후 5초 이내면 스킵 (너무 빈번한 호출 방지)
+            if (now - lastApiCheck < 5000) {
+                console.log("⏱️ API 호출 간격이 너무 짧음, 스킵")
+                return
+            }
+
+            setLastApiCheck(now)
+            console.log("📋 미해결 알람 로드 시작...")
+            const unresolvedAlarms = await getUserUnresolvedAlarms()
+
+            if (unresolvedAlarms && Array.isArray(unresolvedAlarms)) {
+                console.log("📋 미해결 알람 데이터:", unresolvedAlarms.length, "건")
+                // 전역 상태에 API 알람 설정 (기존 API 알람은 제거하고 새로 설정)
+                window.alarmState.setAPIAlarms(unresolvedAlarms)
+            } else {
+                console.log("📋 미해결 알람 없음")
+                window.alarmState.setAPIAlarms([]) // 빈 배열로 설정하여 기존 API 알람 제거
+            }
+        } catch (error) {
+            console.error("❌ 미해결 알람 불러오기 실패:", error)
+        }
+    }
+
     // 화재 상태 확인 및 알람 생성
     useEffect(() => {
         const checkFireStatus = async () => {
@@ -59,7 +113,7 @@ const Topbar = () => {
                 )
 
                 if (fireBoxes.length > 0) {
-                    const existingFireAlarmIds = unreadFireAlarms.map((alarm) => alarm.boxId)
+                    const existingFireAlarmIds = fireAlarms.map((alarm) => alarm.boxId)
 
                     const newFireAlarms = fireBoxes
                         .filter((box) => !existingFireAlarmIds.includes(box.id))
@@ -85,7 +139,7 @@ const Topbar = () => {
         }
 
         checkFireStatus()
-    }, [unreadFireAlarms, addFireAlarm])
+    }, [fireAlarms, addFireAlarm])
 
     // 신규 가입자 요청 가져오기
     useEffect(() => {
@@ -318,9 +372,6 @@ const Topbar = () => {
             e.preventDefault()
             e.stopPropagation()
         }
-
-        // 해당 알람을 읽음 처리
-        markAlarmAsRead(alarm.id)
 
         setIsNotificationSidebarOpen(false)
 
@@ -558,7 +609,7 @@ const Topbar = () => {
         }))
     }
 
-    const filteredAlarms = unreadAlarms.filter((alarm) => alarm.type !== "NEW_USER_REQUEST")
+    const filteredAlarms = alarms.filter((alarm) => alarm.type !== "NEW_USER_REQUEST")
     const groupedAlarms = groupAlarmsByType(filteredAlarms)
     const sortedAlarms = groupedAlarms.sort((a, b) => {
         if (a.priority !== b.priority) {
@@ -713,11 +764,6 @@ const Topbar = () => {
                             <span className="ml-2 text-sm font-bold text-red-600 animate-pulse">(화재 {fireAlarmsCount}건)</span>
                         )}
                     </h2>
-                    {totalNotifications > 0 && (
-                        <button onClick={markAllAlarmsAsRead} className="text-sm text-gray-500 hover:text-gray-700 underline">
-                            모두 읽음
-                        </button>
-                    )}
                 </div>
 
                 <div className="p-5 overflow-y-auto h-[calc(100%-60px)]">

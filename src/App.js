@@ -9,15 +9,19 @@ window.alarmState = {
   fireAlarms: [],
   boxesMap: {},
   listeners: new Set(),
+  // 로컬 스토리지 키
+  storageKey: "sse_alarms",
 
   // 상태 업데이트 함수
   setAlarms: function (newAlarms) {
     this.alarms = newAlarms
+    this.saveSSEAlarmsToStorage()
     this.notifyListeners()
   },
 
   setFireAlarms: function (newFireAlarms) {
     this.fireAlarms = newFireAlarms
+    this.saveSSEAlarmsToStorage()
     this.notifyListeners()
   },
 
@@ -25,53 +29,126 @@ window.alarmState = {
     this.boxesMap = newBoxesMap
   },
 
-  // 알람 추가 함수
+  // SSE 알람만 로컬 스토리지에 저장
+  saveSSEAlarmsToStorage: function () {
+    try {
+      // API로 가져온 알람(api_alarm_ 접두사)은 저장하지 않음
+      const sseAlarms = this.alarms.filter((alarm) => !alarm.id.startsWith("api_alarm_"))
+      const sseFireAlarms = this.fireAlarms.filter((alarm) => !alarm.id.startsWith("api_alarm_"))
+
+      localStorage.setItem(
+          this.storageKey,
+          JSON.stringify({
+            alarms: sseAlarms,
+            fireAlarms: sseFireAlarms,
+            timestamp: new Date().toISOString(),
+          }),
+      )
+      console.log("💾 SSE 알람 저장 완료:", sseAlarms.length, "건")
+    } catch (error) {
+      console.error("❌ 알람 저장 실패:", error)
+    }
+  },
+
+  // 로컬 스토리지에서 SSE 알람 불러오기
+  loadSSEAlarmsFromStorage: function () {
+    try {
+      const saved = localStorage.getItem(this.storageKey)
+      if (saved) {
+        const data = JSON.parse(saved)
+        // API 알람은 제외하고 SSE 알람만 복원
+        this.alarms = data.alarms || []
+        this.fireAlarms = data.fireAlarms || []
+        console.log("📂 SSE 알람 복원 완료:", this.alarms.length, "건")
+        this.notifyListeners()
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error("❌ 알람 복원 실패:", error)
+      return false
+    }
+  },
+
+  // API에서 가져온 알람 추가 (로컬 스토리지에 저장하지 않음)
+  setAPIAlarms: function (apiAlarms) {
+    if (!apiAlarms || !Array.isArray(apiAlarms)) return
+
+    console.log("🔄 API 알람 설정 시작:", apiAlarms.length, "건")
+
+    // 기존 API 알람 제거
+    this.alarms = this.alarms.filter((alarm) => !alarm.id.startsWith("api_alarm_"))
+    this.fireAlarms = this.fireAlarms.filter((alarm) => !alarm.id.startsWith("api_alarm_"))
+
+    // 새 API 알람 추가
+    apiAlarms.forEach((alarmData) => {
+      const normalizedAlarm = {
+        id: `api_alarm_${alarmData.id || alarmData.type || Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type: alarmData.type || alarmData.alarmType || "GENERAL",
+        boxId: alarmData.boxId || alarmData.box_id,
+        location: alarmData.location || (alarmData.boxId && this.boxesMap[alarmData.boxId]) || "알 수 없는 위치",
+        timestamp: alarmData.timestamp || alarmData.createdAt || new Date().toISOString(),
+        message: alarmData.message,
+        priority: alarmData.type === "fire" || alarmData.type === "FIRE" ? 1 : alarmData.priority || 3,
+        source: "api", // API에서 가져온 알람 표시
+      }
+
+      // 화재 알람인 경우 화재 알람으로 추가
+      if (normalizedAlarm.type === "fire" || normalizedAlarm.type === "FIRE") {
+        this.fireAlarms.push(normalizedAlarm)
+        this.alarms.push(normalizedAlarm)
+      } else {
+        // 기타 알람은 일반 알람으로 추가
+        this.alarms.push(normalizedAlarm)
+      }
+    })
+
+    console.log("✅ API 알람 설정 완료:", apiAlarms.length, "건")
+    this.notifyListeners() // 리스너에게 알림
+  },
+
+  // 알람 추가 함수 - 중복 방지 로직 추가 (SSE 알람용)
   addAlarm: function (alarm) {
-    // 고유 ID와 읽음 상태 추가
+    // 중복 체크: 같은 ID의 알람이 이미 존재하는지 확인
+    const existingAlarm = this.alarms.find((existingAlarm) => existingAlarm.id === alarm.id)
+    if (existingAlarm) {
+      console.log("⚠️ 중복 알람 감지, 추가하지 않음:", alarm.id)
+      return
+    }
+
+    // 고유 ID 추가
     const newAlarm = {
       ...alarm,
-      id: alarm.id || `${alarm.type}-${Date.now()}-${Math.random()}`,
-      isRead: false,
+      id: alarm.id || `sse_${alarm.type}-${Date.now()}-${Math.random()}`,
       timestamp: alarm.timestamp || new Date().toISOString(),
+      source: "sse", // SSE에서 받은 알람 표시
     }
     this.alarms = [...this.alarms, newAlarm]
+    this.saveSSEAlarmsToStorage()
     this.notifyListeners()
   },
 
   addFireAlarm: function (alarm) {
-    // 고유 ID와 읽음 상태 추가
+    // 중복 체크: 같은 ID의 알람이 이미 존재하는지 확인
+    const existingFireAlarm = this.fireAlarms.find((existingAlarm) => existingAlarm.id === alarm.id)
+    const existingAlarm = this.alarms.find((existingAlarm) => existingAlarm.id === alarm.id)
+
+    if (existingFireAlarm || existingAlarm) {
+      console.log("⚠️ 중복 화재 알람 감지, 추가하지 않음:", alarm.id)
+      return
+    }
+
+    // 고유 ID 추가
     const newAlarm = {
       ...alarm,
-      id: alarm.id || `fire-${Date.now()}-${Math.random()}`,
-      isRead: false,
+      id: alarm.id || `sse_fire-${Date.now()}-${Math.random()}`,
       timestamp: alarm.timestamp || new Date().toISOString(),
+      source: "sse", // SSE에서 받은 알람 표시
     }
     this.fireAlarms = [...this.fireAlarms, newAlarm]
     this.alarms = [...this.alarms, newAlarm]
+    this.saveSSEAlarmsToStorage()
     this.notifyListeners()
-  },
-
-  // 개별 알람 읽음 처리
-  markAlarmAsRead: function (alarmId) {
-    this.alarms = this.alarms.map((alarm) => (alarm.id === alarmId ? { ...alarm, isRead: true } : alarm))
-    this.fireAlarms = this.fireAlarms.map((alarm) => (alarm.id === alarmId ? { ...alarm, isRead: true } : alarm))
-    this.notifyListeners()
-  },
-
-  // 모든 알람 읽음 처리
-  markAllAlarmsAsRead: function () {
-    this.alarms = this.alarms.map((alarm) => ({ ...alarm, isRead: true }))
-    this.fireAlarms = this.fireAlarms.map((alarm) => ({ ...alarm, isRead: true }))
-    this.notifyListeners()
-  },
-
-  // 읽지 않은 알람만 가져오기
-  getUnreadAlarms: function () {
-    return this.alarms.filter((alarm) => !alarm.isRead)
-  },
-
-  getUnreadFireAlarms: function () {
-    return this.fireAlarms.filter((alarm) => !alarm.isRead)
   },
 
   // 리스너 관리
@@ -87,6 +164,13 @@ window.alarmState = {
 
 function App() {
   const [isSSEConnected, setIsSSEConnected] = useState(false)
+  const [boxesLoaded, setBoxesLoaded] = useState(false)
+
+  // 앱 시작 시 로컬 스토리지에서 SSE 알람 복원
+  useEffect(() => {
+    console.log("🔄 저장된 SSE 알람 복원 시작...")
+    window.alarmState.loadSSEAlarmsFromStorage()
+  }, [])
 
   // 카카오맵 스크립트 로드
   useEffect(() => {
@@ -115,15 +199,18 @@ function App() {
   useEffect(() => {
     const fetchBoxes = async () => {
       try {
+        console.log("📦 박스 정보 로드 시작...")
         const boxes = await findAllBox()
         const newBoxesMap = {}
         boxes.forEach((box) => {
           newBoxesMap[box.id] = box.name
         })
         window.alarmState.setBoxesMap(newBoxesMap)
-        console.log("📦 박스 정보 로드 완료:", Object.keys(newBoxesMap).length, "개")
+        setBoxesLoaded(true)
+        console.log("✅ 박스 정보 로드 완료:", Object.keys(newBoxesMap).length, "개")
       } catch (error) {
         console.error("❌ 박스 정보 불러오기 실패:", error)
+        setBoxesLoaded(true) // 실패해도 다음 단계로 진행
       }
     }
 

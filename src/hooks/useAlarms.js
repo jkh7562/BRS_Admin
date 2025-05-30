@@ -24,12 +24,8 @@ export const useAlarms = () => {
     return {
         alarms,
         fireAlarms,
-        unreadAlarms: window.alarmState?.getUnreadAlarms() || [],
-        unreadFireAlarms: window.alarmState?.getUnreadFireAlarms() || [],
         boxesMap: window.alarmState?.boxesMap || {},
         addAlarm: window.alarmState?.addAlarm.bind(window.alarmState),
         addFireAlarm: window.alarmState?.addFireAlarm.bind(window.alarmState),
-        markAlarmAsRead: window.alarmState?.markAlarmAsRead.bind(window.alarmState),
-        markAllAlarmsAsRead: window.alarmState?.markAllAlarmsAsRead.bind(window.alarmState),
     }
 }
