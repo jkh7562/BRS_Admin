@@ -907,6 +907,9 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
     useEffect(() => {
         if (displayedBoxes.length > 0) {
             setSelectedBoxId(displayedBoxes[0].id);
+            if (map && displayedBoxes[0]) {
+                map.setCenter(new window.kakao.maps.LatLng(displayedBoxes[0].lat, displayedBoxes[0].lng));
+            }
         } else {
             setSelectedBoxId(null);
         }
