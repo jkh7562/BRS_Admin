@@ -26,7 +26,6 @@ import {
     getBoxImage, // 추가
 } from "../api/apiServices"
 
-
 // 메모이제이션된 마커 컴포넌트
 const BoxMarker = memo(({ box, icon, size, onClick }) => {
     return (
@@ -322,8 +321,25 @@ const RightSidebar = memo(({ selectedBox, addressMap, selectedBoxImage, imageLoa
     return (
         <div className="w-[300px] h-full flex flex-col border-l bg-white">
             <div className="p-6 border-b">
-                <h2 className="text-xl font-bold text-[#21262B] mb-2">{selectedBox.name}</h2>
-                <p className="text-sm text-[#60697E]">{addressMap[selectedBox.id] || "주소 변환중..."}</p>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <h2 className="text-xl font-bold text-[#21262B] mb-2">{selectedBox.name}</h2>
+                        <p className="text-sm text-[#60697E]">{addressMap[selectedBox.id] || "주소 변환중..."}</p>
+                    </div>
+                    <button
+                        className="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-3 rounded-lg transition-colors duration-200 flex items-center justify-center gap-1 text-sm"
+                        onClick={() => {
+                            // 신고 기능 구현
+                            const confirmed = window.confirm(`${selectedBox.name} 수거함을 화재 신고하시겠습니까?`)
+                            if (confirmed) {
+                                // 여기에 신고 API 호출 로직 추가
+                                alert("화재 신고가 접수되었습니다.")
+                            }
+                        }}
+                    >
+                        <span>🚨</span>
+                    </button>
+                </div>
             </div>
 
             <div className="p-6 border-b">
@@ -349,7 +365,7 @@ const RightSidebar = memo(({ selectedBox, addressMap, selectedBoxImage, imageLoa
             </div>
 
             {/* 이미지 섹션 */}
-            <div className="flex-1 p-6">
+            <div className="p-6 border-b">
                 <h3 className="text-lg font-semibold mb-4">수거함 이미지</h3>
                 <div className="w-full h-48 bg-gray-100 rounded-lg overflow-hidden relative">
                     {imageLoading ? (
@@ -379,6 +395,11 @@ const RightSidebar = memo(({ selectedBox, addressMap, selectedBoxImage, imageLoa
                         <div className="w-full h-full flex items-center justify-center text-gray-500">이미지가 없습니다</div>
                     )}
                 </div>
+            </div>
+
+            {/* 신고 버튼 섹션 - 항상 표시되도록 수정 */}
+            <div className="p-6 mt-auto">
+                <p className="text-xs text-gray-500 mt-2 text-center">수거함 고장, 화재 등의 문제를 신고할 수 있습니다.</p>
             </div>
         </div>
     )
@@ -906,14 +927,14 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
 
     useEffect(() => {
         if (displayedBoxes.length > 0) {
-            setSelectedBoxId(displayedBoxes[0].id);
+            setSelectedBoxId(displayedBoxes[0].id)
             if (map && displayedBoxes[0]) {
-                map.setCenter(new window.kakao.maps.LatLng(displayedBoxes[0].lat, displayedBoxes[0].lng));
+                map.setCenter(new window.kakao.maps.LatLng(displayedBoxes[0].lat, displayedBoxes[0].lng))
             }
         } else {
-            setSelectedBoxId(null);
+            setSelectedBoxId(null)
         }
-    }, [displayedBoxes]);
+    }, [displayedBoxes])
 
     // 모든 데이터 로드 함수 - useCallback으로 최적화
     const loadAllData = useCallback(async () => {
