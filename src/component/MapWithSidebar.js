@@ -26,6 +26,7 @@ import {
     getBoxImage, // 추가
 } from "../api/apiServices"
 
+
 // 메모이제이션된 마커 컴포넌트
 const BoxMarker = memo(({ box, icon, size, onClick }) => {
     return (
@@ -902,6 +903,12 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
 
         fetchAddresses()
     }, [filteredBoxes, addressMap])
+
+    useEffect(() => {
+        if (displayedBoxes.length > 0 && (!selectedBoxId || !displayedBoxes.find(box => box.id === selectedBoxId))) {
+            setSelectedBoxId(displayedBoxes[0].id);
+        }
+    }, [displayedBoxes, selectedBoxId]);
 
     // 모든 데이터 로드 함수 - useCallback으로 최적화
     const loadAllData = useCallback(async () => {
