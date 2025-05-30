@@ -15,7 +15,7 @@ import {
 } from "../../api/apiServices"
 
 export default function FireMonitoring() {
-    // 검색어 상�� 추가
+    // 검색어 상태 추가
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedOption, setSelectedOption] = useState("전체")
     const [isOpen, setIsOpen] = useState(false)
@@ -393,6 +393,7 @@ export default function FireMonitoring() {
         selectedUser && (selectedUser.type === "FIRE_COMPLETED" || selectedUser.type === "FIRE_CONFIRMED")
 
     const isCompleted = selectedUser && selectedUser.type === "FIRE_COMPLETED"
+    const isFire = selectedUser && selectedUser.type === "FIRE"
 
     const handleAccept = async () => {
         if (!selectedUser || !selectedUser.id) return
@@ -414,6 +415,23 @@ export default function FireMonitoring() {
         } catch (err) {
             console.error("화재처리 확정 실패:", err)
             alert("화재처리 확정 실패")
+        }
+    }
+
+    // 신고 버튼 핸들러 추가
+    const handleReport = () => {
+        if (!selectedUser) return
+
+        const box = boxes[selectedUser.boxId] || {}
+        const user = users[selectedUser.userId] || {}
+        const address = addressMap[selectedUser.boxId]?.fullAddress || "주소 정보 없음"
+
+        const reportMessage = `화재 신고\n\n수거함: ${box.name || `수거함 ID: ${selectedUser.boxId}`}\n신고자: ${user.name || selectedUser.userId}\n위치: ${address}\n발생시간: ${new Date(selectedUser.date).toLocaleString("ko-KR")}`
+
+        // 실제 신고 API 호출 또는 외부 신고 시스템 연동
+        if (window.confirm(`다음 내용으로 신고하시겠습니까?\n\n${reportMessage}`)) {
+            // 여기에 실제 신고 API 호출 로직 추가
+            alert("신고가 접수되었습니다.")
         }
     }
 
@@ -506,10 +524,21 @@ export default function FireMonitoring() {
                 {/* Map title overlay */}
                 {selectedUser && (
                     <div className="px-10 pt-10 bg-white">
-                        <h2 className="text-2xl text-[#21262B] font-bold mb-1">
-                            [{getStatusFromType(selectedUser.type)}]{" "}
-                            {selectedBox ? selectedBox.name : `수거함 ID: ${selectedUser.boxId}`}
-                        </h2>
+                        <div className="flex justify-between items-start mb-1">
+                            <h2 className="text-2xl text-[#21262B] font-bold">
+                                [{getStatusFromType(selectedUser.type)}]{" "}
+                                {selectedBox ? selectedBox.name : `수거함 ID: ${selectedUser.boxId}`}
+                            </h2>
+                            {/* FIRE 상태일 때 신고 버튼 표시 */}
+                            {isFire && (
+                                <button
+                                    className="bg-red-600 text-white rounded-2xl py-2 px-6 font-bold hover:bg-red-700 transition-colors flex items-center gap-2"
+                                    onClick={handleReport}
+                                >
+                                    <span>🚨</span> 긴급 신고
+                                </button>
+                            )}
+                        </div>
                         <p className="text-[#60697E]">
                             <span className="font-bold">화재처리 주소</span>{" "}
                             <span className="font-normal">
