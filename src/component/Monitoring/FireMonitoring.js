@@ -395,6 +395,11 @@ export default function FireMonitoring() {
     const isCompleted = selectedUser && selectedUser.type === "FIRE_COMPLETED"
     const isFire = selectedUser && selectedUser.type === "FIRE"
 
+    // 신고 버튼을 표시할 상태인지 확인 (FIRE_CONFIRMED 제외한 모든 화재 상태)
+    const shouldShowReportButton =
+        selectedUser &&
+        (selectedUser.type === "FIRE" || selectedUser.type === "FIRE_IN_PROGRESS" || selectedUser.type === "FIRE_COMPLETED")
+
     const handleAccept = async () => {
         if (!selectedUser || !selectedUser.id) return
 
@@ -418,21 +423,32 @@ export default function FireMonitoring() {
         }
     }
 
-    // 신고 버튼 핸들러 추가
+    // 신고 버튼 핸들러 수정 - 상태에 따라 다른 메시지 표시
     const handleReport = () => {
         if (!selectedUser) return
 
         const box = boxes[selectedUser.boxId] || {}
         const user = users[selectedUser.userId] || {}
         const address = addressMap[selectedUser.boxId]?.fullAddress || "주소 정보 없음"
+        const status = getStatusFromType(selectedUser.type)
 
-        const reportMessage = `화재 신고\n\n수거함: ${box.name || `수거함 ID: ${selectedUser.boxId}`}\n신고자: ${user.name || selectedUser.userId}\n위치: ${address}\n발생시간: ${new Date(selectedUser.date).toLocaleString("ko-KR")}`
+        const reportMessage = `긴급 신고\n\n수거함: ${box.name || `수거함 ID: ${selectedUser.boxId}`}\n신고자: ${user.name || selectedUser.userId}\n현재 상태: ${status}\n위치: ${address}\n발생시간: ${new Date(selectedUser.date).toLocaleString("ko-KR")}`
 
         // 실제 신고 API 호출 또는 외부 신고 시스템 연동
         if (window.confirm(`다음 내용으로 신고하시겠습니까?\n\n${reportMessage}`)) {
             // 여기에 실제 신고 API 호출 로직 추가
             alert("신고가 접수되었습니다.")
         }
+    }
+
+    // 신고 버튼 스타일을 상태에 따라 다르게 설정
+    const getReportButtonStyle = () => {
+        return "bg-red-600 hover:bg-red-700"
+    }
+
+    // 신고 버튼 텍스트를 상태에 따라 다르게 설정
+    const getReportButtonText = () => {
+        return "🚨 긴급 신고"
     }
 
     return (
@@ -529,13 +545,13 @@ export default function FireMonitoring() {
                                 [{getStatusFromType(selectedUser.type)}]{" "}
                                 {selectedBox ? selectedBox.name : `수거함 ID: ${selectedUser.boxId}`}
                             </h2>
-                            {/* FIRE 상태일 때 신고 버튼 표시 */}
-                            {isFire && (
+                            {/* 신고 버튼 표시 - FIRE_CONFIRMED 제외한 모든 화재 상태 */}
+                            {shouldShowReportButton && (
                                 <button
-                                    className="bg-red-600 text-white rounded-2xl py-2 px-6 font-bold hover:bg-red-700 transition-colors flex items-center gap-2"
+                                    className={`${getReportButtonStyle()} text-white rounded-2xl py-2 px-6 font-bold transition-colors flex items-center gap-2`}
                                     onClick={handleReport}
                                 >
-                                    <span>🚨</span> 긴급 신고
+                                    {getReportButtonText()}
                                 </button>
                             )}
                         </div>
