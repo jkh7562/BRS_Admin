@@ -113,25 +113,37 @@ export default function CollectorAssignment({ selectedRegion, selectedCity, empl
         fetchUsers()
     }, [])
 
-    // 모든 사용자의 수거량 정보를 가져오는 함수
+    // 모든 사용자의 수거량 정보를 가져오는 함수 - 수정된 부분
     const fetchAllUserCollectionAmounts = async (users) => {
         try {
             const amounts = {}
 
-            // 각 사용자별로 수거함 로그를 가져와서 총 수거량 계산
-            await Promise.all(
-                users.map(async (user) => {
-                    try {
-                        const logs = await getBoxLog(user.id)
-                        // 총 수거량 계산 (모든 로그의 value 합계)
-                        const totalAmount = logs.reduce((sum, log) => sum + (log.value || 0), 0)
-                        amounts[user.id] = totalAmount
-                    } catch (error) {
-                        console.error(`Error fetching box logs for user ${user.id}:`, error)
-                        amounts[user.id] = 0
-                    }
-                }),
-            )
+            // 전체 박스 로그를 한 번만 가져오기
+            const allBoxLogs = await getBoxLog()
+
+            users.forEach((user) => {
+                try {
+                    // 해당 사용자의 수거 로그만 필터링 - userId 필드 사용
+                    const userLogs = allBoxLogs.filter((entry) => {
+                        const { boxLog } = entry
+                        return boxLog && boxLog.type === "수거" && boxLog.userId === user.id
+                    })
+
+                    // 총 수거량 계산 (모든 아이템의 count 합계)
+                    let totalAmount = 0
+                    userLogs.forEach(({ items }) => {
+                        if (items && Array.isArray(items)) {
+                            const totalCount = items.reduce((sum, item) => sum + (item.count || 0), 0)
+                            totalAmount += totalCount
+                        }
+                    })
+
+                    amounts[user.id] = totalAmount
+                } catch (error) {
+                    console.error(`Error calculating collection amount for user ${user.id}:`, error)
+                    amounts[user.id] = 0
+                }
+            })
 
             setCollectionAmounts(amounts)
         } catch (error) {
@@ -360,14 +372,14 @@ export default function CollectorAssignment({ selectedRegion, selectedCity, empl
     // 변경사항 저장 핸들러
     const [isSaving, setIsSaving] = useState(false)
 
-    // 마지막 수거 로그 날짜를 가져오는 함수
+    // 마지막 수거 로그 날짜를 가져오는 함수 - 수정된 부분
     const getLastCollectionDate = (collectorId) => {
         if (!collectorId || !boxLogs || boxLogs.length === 0) return "기록 없음"
 
-        // 해당 수거자의 수거 로그만 필터링
+        // 해당 수거자의 수거 로그만 필터링 - userId 필드 사용
         const collectorLogs = boxLogs.filter((entry) => {
             const { boxLog } = entry
-            return boxLog && boxLog.type === "수거" && boxLog.collectorId === collectorId
+            return boxLog && boxLog.type === "수거" && boxLog.userId === collectorId
         })
 
         if (collectorLogs.length === 0) return "기록 없음"
@@ -732,7 +744,7 @@ function UserListItem({
         >
             <div>
                 <h3 className="text-base text-[#21262B] font-bold">{name}</h3>
-                <p className="text-sm font-normal text-[#60697E] mt-1">총 수거량 {collectionAmount}</p>
+                <p className="text-sm font-normal text-[#60697E] mt-1">총 수거량 {collectionAmount.toLocaleString()}개</p>
                 {location1 && (
                     <p className="text-xs font-normal text-blue-600 mt-1">
                         담당: {location1} {location2 && `> ${location2}`}
