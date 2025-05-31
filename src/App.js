@@ -149,9 +149,16 @@ window.alarmState = {
 
     console.log("🔄 API 알람 설정 시작:", apiAlarms.length, "건")
 
-    // 기존 API 알람 제거
-    this.alarms = this.alarms.filter((alarm) => !alarm.id.startsWith("api_alarm_"))
-    this.fireAlarms = this.fireAlarms.filter((alarm) => !alarm.id.startsWith("api_alarm_"))
+    // 기존 API 알람 제거 - 문자열 변환 추가
+    this.alarms = this.alarms.filter((alarm) => {
+      const id = String(alarm.id || "")
+      return !id.startsWith("api_alarm_")
+    })
+
+    this.fireAlarms = this.fireAlarms.filter((alarm) => {
+      const id = String(alarm.id || "")
+      return !id.startsWith("api_alarm_")
+    })
 
     // SSE 알람과 중복되는 API 알람 제거
     const filteredAPIAlarms = this.removeDuplicateAPIAlarms(apiAlarms)
@@ -167,7 +174,7 @@ window.alarmState = {
         message: alarmData.message,
         priority: alarmData.type === "fire" || alarmData.type === "FIRE" ? 1 : alarmData.priority || 3,
         source: "api", // API에서 가져온 알람 표시
-        originalId: alarmData.id || alarmData.alarmId, // 원본 ID 저장
+        originalId: String(alarmData.id || alarmData.alarmId || ""), // 원본 ID 저장 (문자열로 변환)
       }
 
       // 화재 알람인 경우 화재 알람으로 추가
@@ -199,7 +206,7 @@ window.alarmState = {
       id: alarm.id || `sse_${alarm.type}-${Date.now()}-${Math.random()}`,
       timestamp: alarm.timestamp || new Date().toISOString(),
       source: "sse", // SSE에서 받은 알람 표시
-      originalId: String(alarm.id || alarm.alarmId), // 원본 ID를 문자열로 저장
+      originalId: String(alarm.id || alarm.alarmId || ""), // 원본 ID를 문자열로 저장
     }
 
     // 기존 API 알람 중 같은 원본 ID를 가진 것 제거
@@ -228,7 +235,7 @@ window.alarmState = {
       id: alarm.id || `sse_fire-${Date.now()}-${Math.random()}`,
       timestamp: alarm.timestamp || new Date().toISOString(),
       source: "sse", // SSE에서 받은 알람 표시
-      originalId: String(alarm.id || alarm.alarmId), // 원본 ID를 문자열로 저장
+      originalId: String(alarm.id || alarm.alarmId || ""), // 원본 ID를 문자열로 저장
     }
 
     // 기존 API 알람 중 같은 원본 ID를 가진 것 제거
@@ -323,7 +330,7 @@ function App() {
 
     eventSource.addEventListener("alarm", (event) => {
       try {
-        console.log("📨 SSE 메시지 수신:", event.event)
+        console.log("📨 SSE 메시지 수신:", event.data)
         const alarmData = JSON.parse(event.data)
 
         // boxId가 있으면 boxesMap에서 해당 박스 이름 찾기
@@ -357,7 +364,7 @@ function App() {
           window.alarmState.addAlarm(alarmData)
         }
       } catch (error) {
-        console.error("❌ SSE 데이터 파싱 에러:", error)
+        console.error("❌ SSE 데이터 파싱 에러:", error, "원본 데이터:", event.data)
       }
     })
 
