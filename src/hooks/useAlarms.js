@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 
 // 간단한 커스텀 훅 - 전역 알람 상태 구독

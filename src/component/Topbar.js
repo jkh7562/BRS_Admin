@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import AlarmIcon from "../assets/알림.png"
@@ -93,6 +95,7 @@ const Topbar = () => {
             if (unresolvedAlarms && Array.isArray(unresolvedAlarms)) {
                 console.log("📋 미해결 알람 데이터:", unresolvedAlarms.length, "건")
                 // 전역 상태에 API 알람 설정 (기존 API 알람은 제거하고 새로 설정)
+                // 이제 setAPIAlarms에서 SSE 알람과 중복되는 것들을 자동으로 필터링함
                 window.alarmState.setAPIAlarms(unresolvedAlarms)
             } else {
                 console.log("📋 미해결 알람 없음")
@@ -366,7 +369,7 @@ const Topbar = () => {
     }
 
     const handleAlarmClick = (e, alarm) => {
-        console.log("🔔 알람 클릭됨:", alarm.type, "ID:", alarm.id)
+        console.log("🔔 알람 클릭됨:", alarm.type, "ID:", alarm.id, "Source:", alarm.source)
 
         if (e) {
             e.preventDefault()
@@ -591,6 +594,7 @@ const Topbar = () => {
                     type: type,
                     // 그룹의 첫 번째 알람 ID를 저장 (클릭 시 사용)
                     firstAlarmId: alarm.id,
+                    source: alarm.source, // 소스 정보도 저장
                 }
             }
             alarmCounts[type].count++
@@ -606,6 +610,7 @@ const Topbar = () => {
             count: alarm.count,
             timestamp: alarm.timestamp,
             priority: alarm.priority,
+            source: alarm.source, // 소스 정보 포함
         }))
     }
 
@@ -776,7 +781,7 @@ const Topbar = () => {
                                 return (
                                     <div
                                         key={alarm.id}
-                                        className={`${bgColor} py-6 px-6 rounded-2xl shadow cursor-pointer hover:opacity-90 transition-opacity ${
+                                        className={`${bgColor} py-6 px-6 rounded-2xl shadow cursor-pointer hover:opacity-90 transition-opacity relative ${
                                             alarm.type === "fire" ? "animate-pulse-slow border-2 border-red-700" : ""
                                         }`}
                                         onClick={(e) => {

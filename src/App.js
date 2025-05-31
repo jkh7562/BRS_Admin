@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useState } from "react"
 import { RouterProvider } from "react-router-dom"
 import root from "./router/root"
@@ -11,6 +13,77 @@ window.alarmState = {
   listeners: new Set(),
   // 로컬 스토리지 키
   storageKey: "sse_alarms",
+
+  // 원본 알람 ID 추출 함수 (접두사 제거)
+  extractOriginalId: (alarmId) => {
+    const idString = String(alarmId) // 숫자를 문자열로 변환
+
+    // api_alarm_ 접두사 제거
+    if (idString.startsWith("api_alarm_")) {
+      return idString.replace("api_alarm_", "").split("_")[0]
+    }
+
+    // sse_ 접두사 제거
+    if (idString.startsWith("sse_")) {
+      return idString.replace("sse_", "").split("-")[0]
+    }
+
+    return idString
+  },
+
+  // SSE 알람과 중복되는 API 알람 제거
+  removeDuplicateAPIAlarms: function (newAPIAlarms) {
+    const sseAlarmIds = this.alarms
+        .filter((alarm) => alarm.source === "sse")
+        .map((alarm) => this.extractOriginalId(alarm.id))
+
+    const sseFireAlarmIds = this.fireAlarms
+        .filter((alarm) => alarm.source === "sse")
+        .map((alarm) => this.extractOriginalId(alarm.id))
+
+    return newAPIAlarms.filter((apiAlarm) => {
+      const originalId = this.extractOriginalId(apiAlarm.id || apiAlarm.alarmId)
+      const isDuplicate = sseAlarmIds.includes(originalId) || sseFireAlarmIds.includes(originalId)
+
+      if (isDuplicate) {
+        console.log(`🔄 SSE 알람과 중복되는 API 알람 제거: ${originalId}`)
+      }
+
+      return !isDuplicate
+    })
+  },
+
+  // 기존 API 알람 중 SSE 알람과 중복되는 것 제거
+  removeConflictingAPIAlarms: function (sseAlarmId) {
+    const originalId = this.extractOriginalId(sseAlarmId)
+
+    // 일반 알람에서 중복 제거
+    const filteredAlarms = this.alarms.filter((alarm) => {
+      if (alarm.source === "api") {
+        const alarmOriginalId = this.extractOriginalId(alarm.id)
+        if (alarmOriginalId === originalId) {
+          console.log(`🔄 SSE 알람으로 인한 API 알람 제거: ${alarm.id}`)
+          return false
+        }
+      }
+      return true
+    })
+
+    // 화재 알람에서 중복 제거
+    const filteredFireAlarms = this.fireAlarms.filter((alarm) => {
+      if (alarm.source === "api") {
+        const alarmOriginalId = this.extractOriginalId(alarm.id)
+        if (alarmOriginalId === originalId) {
+          console.log(`🔄 SSE 화재 알람으로 인한 API 알람 제거: ${alarm.id}`)
+          return false
+        }
+      }
+      return true
+    })
+
+    this.alarms = filteredAlarms
+    this.fireAlarms = filteredFireAlarms
+  },
 
   // 상태 업데이트 함수
   setAlarms: function (newAlarms) {
@@ -33,8 +106,8 @@ window.alarmState = {
   saveSSEAlarmsToStorage: function () {
     try {
       // API로 가져온 알람(api_alarm_ 접두사)은 저장하지 않음
-      const sseAlarms = this.alarms.filter((alarm) => !alarm.id.startsWith("api_alarm_"))
-      const sseFireAlarms = this.fireAlarms.filter((alarm) => !alarm.id.startsWith("api_alarm_"))
+      const sseAlarms = this.alarms.filter((alarm) => !String(alarm.id).startsWith("api_alarm_"))
+      const sseFireAlarms = this.fireAlarms.filter((alarm) => !String(alarm.id).startsWith("api_alarm_"))
 
       localStorage.setItem(
           this.storageKey,
@@ -80,8 +153,11 @@ window.alarmState = {
     this.alarms = this.alarms.filter((alarm) => !alarm.id.startsWith("api_alarm_"))
     this.fireAlarms = this.fireAlarms.filter((alarm) => !alarm.id.startsWith("api_alarm_"))
 
+    // SSE 알람과 중복되는 API 알람 제거
+    const filteredAPIAlarms = this.removeDuplicateAPIAlarms(apiAlarms)
+
     // 새 API 알람 추가
-    apiAlarms.forEach((alarmData) => {
+    filteredAPIAlarms.forEach((alarmData) => {
       const normalizedAlarm = {
         id: `api_alarm_${alarmData.id || alarmData.type || Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         type: alarmData.type || alarmData.alarmType || "GENERAL",
@@ -91,6 +167,7 @@ window.alarmState = {
         message: alarmData.message,
         priority: alarmData.type === "fire" || alarmData.type === "FIRE" ? 1 : alarmData.priority || 3,
         source: "api", // API에서 가져온 알람 표시
+        originalId: alarmData.id || alarmData.alarmId, // 원본 ID 저장
       }
 
       // 화재 알람인 경우 화재 알람으로 추가
@@ -103,52 +180,66 @@ window.alarmState = {
       }
     })
 
-    console.log("✅ API 알람 설정 완료:", apiAlarms.length, "건")
+    console.log("✅ API 알람 설정 완료:", filteredAPIAlarms.length, "건 (중복 제거 후)")
     this.notifyListeners() // 리스너에게 알림
   },
 
   // 알람 추가 함수 - 중복 방지 로직 추가 (SSE 알람용)
   addAlarm: function (alarm) {
     // 중복 체크: 같은 ID의 알람이 이미 존재하는지 확인
-    const existingAlarm = this.alarms.find((existingAlarm) => existingAlarm.id === alarm.id)
+    const existingAlarm = this.alarms.find((existingAlarm) => String(existingAlarm.id) === String(alarm.id))
     if (existingAlarm) {
       console.log("⚠️ 중복 알람 감지, 추가하지 않음:", alarm.id)
       return
     }
 
-    // 고유 ID 추가
+    // 고유 ID 추가 - 원본 ID가 숫자면 문자열로 변환
     const newAlarm = {
       ...alarm,
       id: alarm.id || `sse_${alarm.type}-${Date.now()}-${Math.random()}`,
       timestamp: alarm.timestamp || new Date().toISOString(),
       source: "sse", // SSE에서 받은 알람 표시
+      originalId: String(alarm.id || alarm.alarmId), // 원본 ID를 문자열로 저장
     }
+
+    // 기존 API 알람 중 같은 원본 ID를 가진 것 제거
+    this.removeConflictingAPIAlarms(newAlarm.id)
+
     this.alarms = [...this.alarms, newAlarm]
     this.saveSSEAlarmsToStorage()
     this.notifyListeners()
+
+    console.log("✅ SSE 알람 추가 완료:", newAlarm.id)
   },
 
   addFireAlarm: function (alarm) {
     // 중복 체크: 같은 ID의 알람이 이미 존재하는지 확인
-    const existingFireAlarm = this.fireAlarms.find((existingAlarm) => existingAlarm.id === alarm.id)
-    const existingAlarm = this.alarms.find((existingAlarm) => existingAlarm.id === alarm.id)
+    const existingFireAlarm = this.fireAlarms.find((existingAlarm) => String(existingAlarm.id) === String(alarm.id))
+    const existingAlarm = this.alarms.find((existingAlarm) => String(existingAlarm.id) === String(alarm.id))
 
     if (existingFireAlarm || existingAlarm) {
       console.log("⚠️ 중복 화재 알람 감지, 추가하지 않음:", alarm.id)
       return
     }
 
-    // 고유 ID 추가
+    // 고유 ID 추가 - 원본 ID가 숫자면 문자열로 변환
     const newAlarm = {
       ...alarm,
       id: alarm.id || `sse_fire-${Date.now()}-${Math.random()}`,
       timestamp: alarm.timestamp || new Date().toISOString(),
       source: "sse", // SSE에서 받은 알람 표시
+      originalId: String(alarm.id || alarm.alarmId), // 원본 ID를 문자열로 저장
     }
+
+    // 기존 API 알람 중 같은 원본 ID를 가진 것 제거
+    this.removeConflictingAPIAlarms(newAlarm.id)
+
     this.fireAlarms = [...this.fireAlarms, newAlarm]
     this.alarms = [...this.alarms, newAlarm]
     this.saveSSEAlarmsToStorage()
     this.notifyListeners()
+
+    console.log("✅ SSE 화재 알람 추가 완료:", newAlarm.id)
   },
 
   // 리스너 관리
