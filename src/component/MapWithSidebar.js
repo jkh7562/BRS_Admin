@@ -1381,7 +1381,7 @@ const MapWithSidebar = ({ filteredBoxes, isAddRemovePage = false, onDataChange =
             try {
                 const response = await requestInstallBox({
                     name: newBoxName,
-                    ipAddress: newBoxIpAddress,
+                    ipaddress: newBoxIpAddress,
                     longitude: newPinPosition.lng,
                     latitude: newPinPosition.lat,
                 })

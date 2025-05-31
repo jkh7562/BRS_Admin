@@ -416,11 +416,11 @@ export const getFireImage = async (alarmId: number | string): Promise<string> =>
 };
 
 // ✅ 수거함 설치 요청 API (longitude / latitude 별도 전송)
-export const requestInstallBox = async ({ name, ipAddress, longitude, latitude }) => {
+export const requestInstallBox = async ({ name, ipaddress, longitude, latitude }) => {
     try {
         const response = await axiosInstance.post("/admin/installRequest", {
             name,
-            ipAddress,
+            ipaddress,
             longitude,
             latitude,
         });
