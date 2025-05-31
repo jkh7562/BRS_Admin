@@ -15,7 +15,6 @@ import pin from "../assets/pin.png"
 import child_safety from "../assets/child_safety.png"
 import fire_station from "../assets/fire-station.png"
 import Drop_downIcon from "../assets/Down.png"
-// import Sample from "../assets/Sample.png"
 
 // API 함수 import
 import {
@@ -23,7 +22,8 @@ import {
     requestRemoveBox,
     fetchFilteredRecommendedBoxes,
     fetchCoordinates,
-    getBoxImage, // 추가
+    getBoxImage,
+    boxFire,
 } from "../api/apiServices"
 
 // 메모이제이션된 마커 컴포넌트
@@ -299,8 +299,37 @@ const RegionFilter = memo(({ region, setRegion, regions, boxCount, showRecommend
 })
 RegionFilter.displayName = "RegionFilter"
 
-// 우측 사이드바 컴포넌트 추가
+// 우측 사이드바 컴포넌트 수정 - 화재 신고 API 연동
 const RightSidebar = memo(({ selectedBox, addressMap, selectedBoxImage, imageLoading, imageError, onImageClick }) => {
+    // 화재 신고 상태 관리
+    const [isReporting, setIsReporting] = useState(false)
+
+    // 화재 신고 핸들러
+    const handleFireReport = async () => {
+        if (!selectedBox) {
+            alert("수거함을 선택해주세요.")
+            return
+        }
+
+        const confirmed = window.confirm(`${selectedBox.name} 수거함을 화재 신고하시겠습니까?`)
+        if (!confirmed) return
+
+        setIsReporting(true)
+
+        try {
+            console.log(`🚨 화재 신고 API 호출: boxId=${selectedBox.id}`)
+            const response = await boxFire(selectedBox.id)
+            console.log("✅ 화재 신고 성공:", response)
+
+            alert("화재 신고가 성공적으로 접수되었습니다.")
+        } catch (error) {
+            console.error("❌ 화재 신고 실패:", error)
+            alert(`화재 신고 중 오류가 발생했습니다: ${error.message || "알 수 없는 오류"}`)
+        } finally {
+            setIsReporting(false)
+        }
+    }
+
     if (!selectedBox) {
         return (
             <div className="w-[300px] h-full flex flex-col border-l bg-white p-6">
@@ -327,15 +356,11 @@ const RightSidebar = memo(({ selectedBox, addressMap, selectedBoxImage, imageLoa
                         <p className="text-sm text-[#60697E]">{addressMap[selectedBox.id] || "주소 변환중..."}</p>
                     </div>
                     <button
-                        className="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-3 rounded-lg transition-colors duration-200 flex items-center justify-center gap-1 text-sm"
-                        onClick={() => {
-                            // 신고 기능 구현
-                            const confirmed = window.confirm(`${selectedBox.name} 수거함을 화재 신고하시겠습니까?`)
-                            if (confirmed) {
-                                // 여기에 신고 API 호출 로직 추가
-                                alert("화재 신고가 접수되었습니다.")
-                            }
-                        }}
+                        className={`font-medium py-2 px-3 rounded-lg transition-colors duration-200 flex items-center justify-center gap-1 text-sm ${
+                            isReporting ? "bg-gray-400 cursor-not-allowed" : "bg-red-500 hover:bg-red-600 text-white"
+                        }`}
+                        onClick={handleFireReport}
+                        disabled={isReporting}
                     >
                         <span>🚨</span>
                     </button>

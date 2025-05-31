@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import AlarmIcon from "../assets/알림.png"
@@ -94,12 +92,11 @@ const Topbar = () => {
 
             if (unresolvedAlarms && Array.isArray(unresolvedAlarms)) {
                 console.log("📋 미해결 알람 데이터:", unresolvedAlarms.length, "건")
-                // 전역 상태에 API 알람 설정 (기존 API 알람은 제거하고 새로 설정)
-                // 이제 setAPIAlarms에서 SSE 알람과 중복되는 것들을 자동으로 필터링함
+                // 전역 상태에 API 알람 설정
                 window.alarmState.setAPIAlarms(unresolvedAlarms)
             } else {
                 console.log("📋 미해결 알람 없음")
-                window.alarmState.setAPIAlarms([]) // 빈 배열로 설정하여 기존 API 알람 제거
+                window.alarmState.setAPIAlarms([]) // 빈 배열로 설정
             }
         } catch (error) {
             console.error("❌ 미해결 알람 불러오기 실패:", error)

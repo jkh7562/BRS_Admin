@@ -12,6 +12,7 @@ import {
     findUserAll,
     requestFireConfirmed,
     getFireImage,
+    boxFire, // boxFire API 추가
 } from "../../api/apiServices"
 
 export default function FireMonitoring() {
@@ -42,6 +43,8 @@ export default function FireMonitoring() {
     // 화재 이미지 관련 상태 추가
     const [fireImageUrl, setFireImageUrl] = useState(null)
     const [imageLoading, setImageLoading] = useState(false)
+    // 신고 처리 상태 추가
+    const [isReporting, setIsReporting] = useState(false)
 
     const options = ["전체", "화재 발생", "화재처리 진행", "화재처리 완료", "화재처리 확정"]
 
@@ -423,9 +426,12 @@ export default function FireMonitoring() {
         }
     }
 
-    // 신고 버튼 핸들러 수정 - 상태에 따라 다른 메시지 표시
-    const handleReport = () => {
-        if (!selectedUser) return
+    // 신고 버튼 핸들러 수정 - boxFire API 연동
+    const handleReport = async () => {
+        if (!selectedUser || !selectedUser.boxId) {
+            alert("수거함 정보를 찾을 수 없습니다.")
+            return
+        }
 
         const box = boxes[selectedUser.boxId] || {}
         const user = users[selectedUser.userId] || {}
@@ -434,20 +440,52 @@ export default function FireMonitoring() {
 
         const reportMessage = `긴급 신고\n\n수거함: ${box.name || `수거함 ID: ${selectedUser.boxId}`}\n신고자: ${user.name || selectedUser.userId}\n현재 상태: ${status}\n위치: ${address}\n발생시간: ${new Date(selectedUser.date).toLocaleString("ko-KR")}`
 
-        // 실제 신고 API 호출 또는 외부 신고 시스템 연동
-        if (window.confirm(`다음 내용으로 신고하시겠습니까?\n\n${reportMessage}`)) {
-            // 여기에 실제 신고 API 호출 로직 추가
-            alert("신고가 접수되었습니다.")
+        // 신고 확인 다이얼로그
+        const confirmed = window.confirm(`다음 내용으로 화재 신고하시겠습니까?\n\n${reportMessage}`)
+        if (!confirmed) return
+
+        setIsReporting(true)
+
+        try {
+            console.log(`🚨 화재 신고 API 호출: boxId=${selectedUser.boxId}`)
+            const response = await boxFire(selectedUser.boxId)
+            console.log("✅ 화재 신고 성공:", response)
+
+            alert("화재 신고가 성공적으로 접수되었습니다.")
+
+            // 알람 데이터 새로고침
+            const alarmData = await getUserUnresolvedAlarms()
+            const fireAlarms = alarmData.filter((a) => a.type.startsWith("FIRE"))
+            setAlarms(fireAlarms)
+
+            // 현재 선택된 알람 업데이트
+            const updatedAlarm = fireAlarms.find((a) => a.id === selectedUser.id)
+            if (updatedAlarm) {
+                setSelectedUser(updatedAlarm)
+            } else {
+                setSelectedUser(fireAlarms[0] || null)
+            }
+        } catch (error) {
+            console.error("❌ 화재 신고 실패:", error)
+            alert(`화재 신고 중 오류가 발생했습니다: ${error.message || "알 수 없는 오류"}`)
+        } finally {
+            setIsReporting(false)
         }
     }
 
     // 신고 버튼 스타일을 상태에 따라 다르게 설정
     const getReportButtonStyle = () => {
+        if (isReporting) {
+            return "bg-gray-400 cursor-not-allowed"
+        }
         return "bg-red-600 hover:bg-red-700"
     }
 
     // 신고 버튼 텍스트를 상태에 따라 다르게 설정
     const getReportButtonText = () => {
+        if (isReporting) {
+            return "🚨 신고 중..."
+        }
         return "🚨 긴급 신고"
     }
 
@@ -550,6 +588,7 @@ export default function FireMonitoring() {
                                 <button
                                     className={`${getReportButtonStyle()} text-white rounded-2xl py-2 px-6 font-bold transition-colors flex items-center gap-2`}
                                     onClick={handleReport}
+                                    disabled={isReporting}
                                 >
                                     {getReportButtonText()}
                                 </button>

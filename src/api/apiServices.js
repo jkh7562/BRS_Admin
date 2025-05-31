@@ -645,3 +645,15 @@ export const fetchServerStatus = async () => {
         throw error;
     }
 };
+
+// ✅ 수거함 화재 신고 API
+export const boxFire = async (boxId) => {
+    try {
+        const response = await axiosInstance.get(`/admin/boxFire/${boxId}`);
+        console.log("✅ 수거함 화재 신고 성공:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ 수거함 화재 신고 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};

@@ -606,7 +606,7 @@ const N_boxControlLogPage = () => {
         return box ? box.name : "알 수 없는 수거함"
     }
 
-    // 제어 상태 변경 핸들러 - 실제 API 호출 적용 (임시 처리 추가)
+    // 제어 상태 변경 핸들러 - 실제 API 호출 적용 및 박스 상태 최신화
     const handleControlStateChange = async (controlType, newState) => {
         if (!selectedBox || isBoxBlocked) return
 
@@ -629,21 +629,36 @@ const N_boxControlLogPage = () => {
             if (result && (result.status === "Success" || result.status === "Fail")) {
                 console.log(`✅ 제어 명령 전송 완료: ${controlType} -> ${newState ? "개방" : "폐쇄"}`)
 
-                // 하드웨어 연동이 안 되어 있어도 UI 상태는 업데이트
-                // 실제로는 데이터베이스의 store1, store2, store3 값이 업데이트되어야 함
+                // UI 상태만 즉시 업데이트 - selectedBox 상태 직접 수정
+                const updatedSelectedBox = { ...selectedBox }
 
-                // 박스 데이터 새로고침
-                const response = await findAllBox()
-                const filteredBoxes = response.filter((box) =>
-                    ["INSTALL_CONFIRMED", "REMOVE_REQUEST", "REMOVE_IN_PROGRESS"].includes(box.installStatus),
-                )
-                setBoxData(filteredBoxes)
-
-                // 현재 선택된 박스 정보 업데이트
-                const updatedSelectedBox = filteredBoxes.find((box) => box.id === selectedBox.id)
-                if (updatedSelectedBox) {
-                    setSelectedBox(updatedSelectedBox)
+                // controlType에 따라 해당하는 store 값 업데이트
+                switch (controlType) {
+                    case "battery":
+                        updatedSelectedBox.store1 = newState ? 1 : 0
+                        break
+                    case "dischargedBattery":
+                        updatedSelectedBox.store2 = newState ? 1 : 0
+                        break
+                    case "remainingCapacityBattery":
+                        updatedSelectedBox.store3 = newState ? 1 : 0
+                        break
+                    case "collectorEntrance":
+                        updatedSelectedBox.store4 = newState ? 1 : 0
+                        break
                 }
+
+                // 선택된 박스 상태 즉시 업데이트
+                setSelectedBox(updatedSelectedBox)
+
+                // boxData에서도 해당 박스 업데이트
+                setBoxData(prevBoxData =>
+                    prevBoxData.map(box =>
+                        box.id === selectedBox.id ? updatedSelectedBox : box
+                    )
+                )
+
+                console.log(`✅ UI 상태 즉시 업데이트 완료:`, updatedSelectedBox)
 
                 // 성공 메시지 (하드웨어 연동 상태 표시)
                 if (result.status === "Fail") {
@@ -654,19 +669,6 @@ const N_boxControlLogPage = () => {
                 throw new Error("예상하지 못한 응답 형식")
             }
         } catch (error) {
-            console.error("❌ 제어 상태 변경 실패:", error)
-
-            /*// DNS 오류나 연결 오류인 경우 특별 처리
-            if (error.message.includes("Failed to resolve") || error.message.includes("NXDOMAIN")) {
-                setControlError("하드웨어 연동이 아직 완료되지 않았습니다. 연동 후 다시 시도해주세요.")
-            } else {
-                setControlError(`제어 실패: ${error.message || "알 수 없는 오류"}`)
-            }*/
-
-            // 3초 후 에러 메시지 자동 제거
-            setTimeout(() => {
-                setControlError(null)
-            }, 3000)
         } finally {
             setIsControlLoading(false)
         }
