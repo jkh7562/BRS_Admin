@@ -530,11 +530,20 @@ const N_boxControlLogPage = () => {
         return true
     })
 
-    // Replace the statsData object with this:
+    // Replace the statsData object with this improved version:
     const statsData = {
-        totalBoxes: selectedBox?.volume1 || 0,
-        batteryCount: selectedBox?.volume2 || 0,
-        activeBatteries: selectedBox?.volume3 || 0,
+        totalBoxes: isLogLoading ? 0 : logData.reduce((total, logItem) => {
+            const batteryItem = logItem.items?.find(item => item.name === "battery");
+            return total + (batteryItem?.count || 0);
+        }, 0),
+        batteryCount: isLogLoading ? 0 : logData.reduce((total, logItem) => {
+            const dischargedItem = logItem.items?.find(item => item.name === "discharged");
+            return total + (dischargedItem?.count || 0);
+        }, 0),
+        activeBatteries: isLogLoading ? 0 : logData.reduce((total, logItem) => {
+            const undischargedItem = logItem.items?.find(item => item.name === "undischarged");
+            return total + (undischargedItem?.count || 0);
+        }, 0),
     }
 
     // 박스 제어 상태를 실제 데이터베이스 값으로 계산하는 함수들
