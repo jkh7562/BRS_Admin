@@ -1481,6 +1481,7 @@ const N_boxControlLogPage = () => {
                                     ) : filteredLogData.length > 0 ? (
                                         filteredLogData.map((logItem) => {
                                             const log = logItem.boxLog
+                                            const totalItems = logItem.items?.reduce((sum, item) => sum + item.count, 0) || 0
 
                                             return (
                                                 <tr key={log.logId} className="hover:bg-blue-50">
@@ -1488,7 +1489,7 @@ const N_boxControlLogPage = () => {
                                                     <td className="py-4 px-6 text-sm text-gray-500">{formatDate(log.date)}</td>
                                                     <td className="py-4 px-6 text-sm text-gray-500">{getBoxName(log.boxId)}</td>
                                                     <td className="py-4 px-6 text-sm text-gray-500 flex justify-between items-center">
-                                                        <span>{log.value ? `${log.value}개` : "-"}</span>
+                                                        <span>{totalItems > 0 ? `${totalItems}개` : "-"}</span>
                                                         <button
                                                             onClick={() => handleViewDetails(logItem)}
                                                             className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-md text-xs font-medium transition-colors"

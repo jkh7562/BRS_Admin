@@ -832,7 +832,7 @@ const N_boxAddRemovePage = () => {
                 <main className="pt-24 px-24 pb-6 space-y-4">
                     <p className="font-bold text-[#272F42] text-xl">수거함 설치 / 제거 요청</p>
                     <span className="text-sm text-gray-500">
-            지도의 빈공간을 클릭하면 설치요청, 설치된 상태(설치 확정)의 핀을 클릭하면 제거요청을 할 수 있습니다.
+            지도의 빈공간을 클릭하면 설치요청, 설치된 상태(설치 확정)의 수거함을 선택하면 제거요청을 할 수 있습니다.
           </span>
                     <div>
                         <div className="relative mb-6">

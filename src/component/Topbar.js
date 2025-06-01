@@ -587,7 +587,7 @@ const Topbar = () => {
                 alarmCounts[type] = {
                     count: 0,
                     priority: alarm.priority || 3,
-                    timestamp: alarm.timestamp || alarm.created_at || alarm.date || new Date().toISOString(),
+                    timestamp: alarm.date || alarm.timestamp || alarm.created_at || alarm.updated_at,
                     type: type,
                     // 그룹의 첫 번째 알람 ID를 저장 (클릭 시 사용)
                     firstAlarmId: alarm.id,
@@ -596,9 +596,11 @@ const Topbar = () => {
             }
             alarmCounts[type].count++
 
-            // 알람 테이블의 실제 날짜를 우선 사용
-            const alarmDate = alarm.timestamp || alarm.created_at || alarm.date || alarm.updated_at
-            if (alarmDate && new Date(alarmDate) > new Date(alarmCounts[type].timestamp)) {
+            // 알람 테이블의 실제 날짜를 우선 사용 (date 필드 우선)
+            const alarmDate = alarm.date || alarm.timestamp || alarm.created_at || alarm.updated_at
+            if (alarmDate && alarmCounts[type].timestamp && new Date(alarmDate) > new Date(alarmCounts[type].timestamp)) {
+                alarmCounts[type].timestamp = alarmDate
+            } else if (alarmDate && !alarmCounts[type].timestamp) {
                 alarmCounts[type].timestamp = alarmDate
             }
         })
