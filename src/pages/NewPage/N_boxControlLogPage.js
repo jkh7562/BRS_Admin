@@ -18,6 +18,7 @@ import {
     getUndischargedImage,
     controlBoxCompartment,
     blockBox,
+    findUserAll
 } from "../../api/apiServices"
 
 // 좌표 파싱 함수
@@ -189,6 +190,9 @@ const N_boxControlLogPage = () => {
     const [selectedBox, setSelectedBox] = useState(null)
     const [logType, setLogType] = useState("discharge")
 
+    // 사용자 데이터 상태 추가
+    const [userData, setUserData] = useState([])
+
     // 초기 박스 선택
     useEffect(() => {
         if (boxData.length > 0 && !selectedBox) {
@@ -319,6 +323,21 @@ const N_boxControlLogPage = () => {
         }
 
         fetchBoxData()
+    }, [])
+
+    // 사용자 데이터 가져오기
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const response = await findUserAll()
+                console.log('User data fetched:', response)
+                setUserData(response)
+            } catch (error) {
+                console.error('Error fetching user data:', error)
+            }
+        }
+
+        fetchUserData()
     }, [])
 
     // 로그 데이터 가져오기
@@ -480,7 +499,7 @@ const N_boxControlLogPage = () => {
             const searchTerm = logSearchTerm.toLowerCase()
             const boxName = boxData.find((box) => box.id === log.boxId)?.name || ""
 
-            return (log.userId && log.userId.toLowerCase().includes(searchTerm)) || boxName.toLowerCase().includes(searchTerm)
+            return (getUserName(log.userId).toLowerCase().includes(searchTerm)) || boxName.toLowerCase().includes(searchTerm)
         }
 
         return true
@@ -573,6 +592,12 @@ const N_boxControlLogPage = () => {
     const getBoxName = (boxId) => {
         const box = boxData.find((box) => box.id === boxId)
         return box ? box.name : "알 수 없는 수거함"
+    }
+
+    // 사용자 이름 가져오기
+    const getUserName = (userId) => {
+        const user = userData.find((user) => user.id === userId)
+        return user ? user.name : "익명의 사용자"
     }
 
     // 제어 상태 변경 핸들러
@@ -1327,7 +1352,7 @@ const N_boxControlLogPage = () => {
 
                                             return (
                                                 <tr key={log.logId} className="hover:bg-blue-50">
-                                                    <td className="py-4 px-6 text-sm text-gray-500">{log.userId || "-"}</td>
+                                                    <td className="py-4 px-6 text-sm text-gray-500">{getUserName(log.userId)}</td>
                                                     <td className="py-4 px-6 text-sm text-gray-500">{formatDate(log.date)}</td>
                                                     <td className="py-4 px-6 text-sm text-gray-500">{getBoxName(log.boxId)}</td>
                                                     <td className="py-4 px-6 text-sm text-gray-500 flex justify-between items-center">
@@ -1397,7 +1422,7 @@ const N_boxControlLogPage = () => {
 
                                             return (
                                                 <tr key={log.logId} className="hover:bg-blue-50">
-                                                    <td className="py-4 px-6 text-sm text-gray-500">{log.userId || "-"}</td>
+                                                    <td className="py-4 px-6 text-sm text-gray-500">{getUserName(log.userId)}</td>
                                                     <td className="py-4 px-6 text-sm text-gray-500">{formatDate(log.date)}</td>
                                                     <td className="py-4 px-6 text-sm text-gray-500">{getBoxName(log.boxId)}</td>
                                                     <td className="py-4 px-6 text-sm text-gray-500 flex justify-between items-center">
