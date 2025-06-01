@@ -369,7 +369,7 @@ export default function CollectMonitoring({ selectedRegion = "광역시/도", se
     const selectedBox = selectedUser ? boxes[selectedUser.boxId] : null
     const selectedUserInfo = selectedUser ? users[selectedUser.userId] : null
     const coordinates = selectedBox ? parseCoordinates(selectedBox.location) : null
-    const selectedCoords = coordinates || { lat: 36.8082, lng: 127.009 }
+    const selectedCoords = coordinates || { lat: 36.8, lng: 127.075 }
     const selectedAddress = selectedUser && addressMap[selectedUser.boxId]?.fullAddress
 
     const isCompletedOrConfirmed =

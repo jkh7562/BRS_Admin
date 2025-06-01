@@ -356,7 +356,7 @@ export default function FireMonitoring() {
 
     // 선택된 수거함의 좌표
     const coordinates = selectedBox ? parseCoordinates(selectedBox.location) : 0
-    const selectedBoxCoordinates = typeof coordinates === "object" ? coordinates : { lat: 36, lng: 127 }
+    const selectedBoxCoordinates = typeof coordinates === "object" ? coordinates : { lat: 36.8, lng: 127.075 }
 
     // 지도 센터 업데이트 - 좌표 변경 시
     useEffect(() => {

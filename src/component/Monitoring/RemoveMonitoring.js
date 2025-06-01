@@ -423,7 +423,7 @@ export default function RemoveMonitoring({ selectedRegion = "광역시/도", sel
 
     // 선택된 수거함의 좌표
     const coordinates = selectedBox ? parseCoordinates(selectedBox.location) : 0
-    const selectedBoxCoordinates = typeof coordinates === "object" ? coordinates : { lat: 36.8082, lng: 127.009 }
+    const selectedBoxCoordinates = typeof coordinates === "object" ? coordinates : { lat: 36.8, lng: 127.075 }
 
     // 선택된 수거함의 주소 정보
     const selectedBoxAddress =
