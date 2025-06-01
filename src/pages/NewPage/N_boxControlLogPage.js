@@ -425,7 +425,47 @@ const N_boxControlLogPage = () => {
                 try {
                     const imageUrl = await getCollectionImage(logId)
                     console.log("✅ 수거 이미지 로드 성공:", imageUrl)
-                    setModalImages({ collection: imageUrl })
+
+                    // 수거 로그에도 수량 정보 추가
+                    const quantities = {
+                        battery: 0,
+                        discharged: 0,
+                        undischarged: 0,
+                    }
+
+                    console.log("🔍 수거 로그 Items 배열 분석:")
+                    items.forEach((item, index) => {
+                        console.log(`Item ${index}:`, {
+                            name: item.name,
+                            count: item.count,
+                            fullItem: item,
+                        })
+
+                        const itemName = item.name?.toLowerCase()
+
+                        if (itemName === "battery" || itemName === "건전지") {
+                            quantities.battery = item.count
+                            console.log("✅ 배터리 수량 설정:", item.count)
+                        } else if (itemName === "discharged" || itemName === "방전" || itemName === "방전배터리") {
+                            quantities.discharged = item.count
+                            console.log("✅ 방전 배터리 수량 설정:", item.count)
+                        } else if (
+                            itemName === "undischarged" ||
+                            itemName === "미방전" ||
+                            itemName === "미방전배터리" ||
+                            itemName === "notdischarged"
+                        ) {
+                            quantities.undischarged = item.count
+                            console.log("✅ 미방전 배터리 수량 설정:", item.count)
+                        }
+                    })
+
+                    console.log("📊 수거 로그 최종 수량 정보:", quantities)
+
+                    setModalImages({
+                        collection: imageUrl,
+                        quantities: quantities,
+                    })
                 } catch (error) {
                     console.error("❌ 수거 이미지 로드 실패:", error)
                     setModalImages(null)
@@ -1590,12 +1630,71 @@ const N_boxControlLogPage = () => {
                                     <p className="text-sm text-gray-500 mt-1">네트워크 연결을 확인하고 다시 시도해주세요.</p>
                                 </div>
                             ) : modalTitle === "수거 이미지" ? (
-                                <div className="flex justify-center bg-white rounded-xl p-6 shadow-sm">
-                                    <img
-                                        src={modalImages.collection || "/placeholder.svg"}
-                                        alt="수거 이미지"
-                                        className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-lg"
-                                    />
+                                <div className="space-y-6">
+                                    {/* 수거 이미지 */}
+                                    <div className="flex justify-center bg-white rounded-xl p-6 shadow-sm">
+                                        <img
+                                            src={modalImages.collection || "/placeholder.svg"}
+                                            alt="수거 이미지"
+                                            className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-lg"
+                                        />
+                                    </div>
+
+                                    {/* 수거된 배터리 종류별 수량 정보 */}
+                                    {modalImages.quantities && (
+                                        <div className="bg-white rounded-xl p-6 shadow-sm">
+                                            <h4 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+                                                수거된 배터리 종류별 수량
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                {/* 건전지 수량 */}
+                                                {modalImages.quantities.battery > 0 && (
+                                                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200 text-center">
+                                                        <div className="flex items-center justify-center gap-2 mb-2">
+                                                            <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                                                            <p className="text-sm font-semibold text-blue-800">건전지</p>
+                                                        </div>
+                                                        <p className="text-2xl font-bold text-blue-600">{modalImages.quantities.battery}개</p>
+                                                    </div>
+                                                )}
+
+                                                {/* 방전 배터리 수량 */}
+                                                {modalImages.quantities.discharged > 0 && (
+                                                    <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200 text-center">
+                                                        <div className="flex items-center justify-center gap-2 mb-2">
+                                                            <div className="w-3 h-3 bg-red-600 rounded-full"></div>
+                                                            <p className="text-sm font-semibold text-red-800">방전 배터리</p>
+                                                        </div>
+                                                        <p className="text-2xl font-bold text-red-600">{modalImages.quantities.discharged}개</p>
+                                                    </div>
+                                                )}
+
+                                                {/* 미방전 배터리 수량 */}
+                                                {modalImages.quantities.undischarged > 0 && (
+                                                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200 text-center">
+                                                        <div className="flex items-center justify-center gap-2 mb-2">
+                                                            <div className="w-3 h-3 bg-green-600 rounded-full"></div>
+                                                            <p className="text-sm font-semibold text-green-800">미방전 배터리</p>
+                                                        </div>
+                                                        <p className="text-2xl font-bold text-green-600">{modalImages.quantities.undischarged}개</p>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* 총 수량 표시 */}
+                                            <div className="mt-4 pt-4 border-t border-gray-200 text-center">
+                                                <p className="text-lg font-semibold text-gray-700">
+                                                    총 수거량:{" "}
+                                                    <span className="text-blue-600">
+                            {(modalImages.quantities.battery || 0) +
+                                (modalImages.quantities.discharged || 0) +
+                                (modalImages.quantities.undischarged || 0)}
+                                                        개
+                          </span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1682,8 +1781,8 @@ const N_boxControlLogPage = () => {
                                                     <p className="text-sm text-gray-600">
                                                         수량:{" "}
                                                         <span className="font-bold text-green-600">
-            {modalImages.quantities?.undischarged || 0}개
-          </span>
+                              {modalImages.quantities?.undischarged || 0}개
+                            </span>
                                                     </p>
                                                 </div>
                                             </div>
