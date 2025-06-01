@@ -627,8 +627,7 @@ const N_boxControlLogPage = () => {
 
             // 최신 데이터로 차단 상태 확인
             if (latestSelectedBox.blocked) {
-                setControlError("수거함이 차단된 상태입니다.")
-                setTimeout(() => setControlError(null), 3000)
+                alert("수거함이 차단된 상태입니다.")
                 return
             }
 
@@ -644,11 +643,6 @@ const N_boxControlLogPage = () => {
                 if (openCompartments.length > 0) {
                     const openCompartmentNames = openCompartments.join(", ")
                     alert(`현재 ${openCompartmentNames}가 개방되어 있습니다. 먼저 열린 입구를 닫아주세요.`)
-
-                    setTimeout(() => {
-                        setControlError(null)
-                    }, 3000)
-
                     return
                 }
             }
@@ -688,11 +682,6 @@ const N_boxControlLogPage = () => {
                 setBoxData((prevBoxData) => prevBoxData.map((box) => (box.id === latestSelectedBox.id ? updatedSelectedBox : box)))
 
                 console.log(`✅ UI 상태 즉시 업데이트 완료:`, updatedSelectedBox)
-
-                if (result.status === "Fail") {
-                    setControlError("제어 명령이 전송되었지만 하드웨어 연동이 완료되지 않았습니다.")
-                    setTimeout(() => setControlError(null), 3000)
-                }
             } else {
                 throw new Error("예상하지 못한 응답 형식")
             }
