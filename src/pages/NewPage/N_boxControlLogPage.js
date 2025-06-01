@@ -18,7 +18,6 @@ import {
     getUndischargedImage,
     controlBoxCompartment,
     blockBox,
-    superBlockBox,
 } from "../../api/apiServices"
 
 // 좌표 파싱 함수
@@ -68,102 +67,87 @@ const N_boxControlLogPage = () => {
     // 지도 ref 추가
     const mapRef = useRef(null)
 
-    // 복사된 박스 ID 상태 추가 (N_boxControlLogPage 컴포넌트 내부 상단에 추가)
+    // 복사된 박스 ID 상태 추가
     const [copiedBoxId, setCopiedBoxId] = useState(null)
     // 주소 저장을 위한 상태 추가
     const [addressMap, setAddressMap] = useState({})
 
-    // 검색어 상태 추가 (N_boxControlLogPage 컴포넌트 내부 상단에 추가)
+    // 검색어 상태 추가
     const [boxSearchTerm, setBoxSearchTerm] = useState("")
     const [logSearchTerm, setLogSearchTerm] = useState("")
 
-    // Replace the year, month, day state definitions with these:
+    // 날짜 상태
     const [year, setYear] = useState("")
     const [month, setMonth] = useState("")
     const [day, setDay] = useState("")
 
-    // Add this after the existing state declarations
+    // 박스 데이터 상태
     const [boxData, setBoxData] = useState([])
     const [isLoading, setIsLoading] = useState(true)
     const [isLogLoading, setIsLogLoading] = useState(true)
 
-    // Modal state for image viewing
+    // 모달 상태
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalImages, setModalImages] = useState(null)
     const [modalTitle, setModalTitle] = useState("")
     const [modalLoading, setModalLoading] = useState(false)
 
-    // 로그 데이터 상태 추가 - 원본 데이터 구조 유지
+    // 로그 데이터 상태
     const [logData, setLogData] = useState([])
 
-    // 박스 이미지 관련 상태 추가
+    // 박스 이미지 관련 상태
     const [selectedBoxImage, setSelectedBoxImage] = useState(null)
     const [imageLoading, setImageLoading] = useState(false)
     const [imageError, setImageError] = useState(false)
 
-    // 박스 제어 관련 상태 추가
+    // 박스 제어 관련 상태
     const [isControlLoading, setIsControlLoading] = useState(false)
     const [controlError, setControlError] = useState(null)
 
-    // 박스 차단 관련 상태 추가
+    // 박스 차단 관련 상태
     const [isBlockLoading, setIsBlockLoading] = useState(false)
     const [blockError, setBlockError] = useState(null)
 
-    // Generate years (current year and 2 previous years)
+    // 연도 생성 (현재 연도와 이전 2년)
     const currentYear = new Date().getFullYear()
     const years = Array.from({ length: 3 }, (_, i) => (currentYear - 2 + i).toString())
 
-    // Generate months 1-12 (padded with 0)
+    // 월 생성 (1-12)
     const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, "0"))
 
-    // With this function to get days based on month and year:
+    // 월과 연도에 따른 일 계산 함수
     const getDaysInMonth = (year, month) => {
-        // If year or month is not selected, return empty array
         if (!year || !month) return []
 
-        // Convert string inputs to numbers
         const numYear = Number.parseInt(year)
         const numMonth = Number.parseInt(month)
-
-        // Get the number of days in the selected month
-        // Month is 1-based in our UI but 0-based in Date constructor
         const daysInMonth = new Date(numYear, numMonth, 0).getDate()
 
         return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString().padStart(2, "0"))
     }
 
-    // Then update the days state to be dynamic:
     const [days, setDays] = useState(() => getDaysInMonth(year, month))
 
-    // 복사 핸들러 함수 수정
+    // 복사 핸들러 함수
     const handleCopy = (e, boxId, text) => {
-        e.stopPropagation() // 이벤트 버블링 방지
+        e.stopPropagation()
 
         try {
-            // 임시 텍스트 영역 생성
             const textArea = document.createElement("textarea")
             textArea.value = text
-
-            // 화면 밖으로 위치시키기
             textArea.style.position = "fixed"
             textArea.style.left = "-999999px"
             textArea.style.top = "-999999px"
             document.body.appendChild(textArea)
 
-            // 텍스트 선택 및 복사
             textArea.focus()
             textArea.select()
 
             const successful = document.execCommand("copy")
-
-            // 임시 요소 제거
             document.body.removeChild(textArea)
 
             if (successful) {
-                // 복사 성공
                 setCopiedBoxId(boxId)
-
-                // 1.5초 후 상태 초기화
                 setTimeout(() => {
                     setCopiedBoxId(null)
                 }, 1500)
@@ -175,11 +159,10 @@ const N_boxControlLogPage = () => {
         }
     }
 
-    // Update the useEffect for days:
+    // 일 업데이트 useEffect
     useEffect(() => {
         setDays(getDaysInMonth(year, month))
 
-        // If month changes and day is no longer valid, reset day
         if (year && month) {
             const daysInSelectedMonth = getDaysInMonth(year, month)
             if (day && Number.parseInt(day) > daysInSelectedMonth.length) {
@@ -188,94 +171,77 @@ const N_boxControlLogPage = () => {
         }
     }, [year, month, day])
 
-    // Handle year changes
+    // 연도 변경 처리
     useEffect(() => {
-        // If year is cleared, clear month and day
         if (!year) {
             setMonth("")
             setDay("")
         }
     }, [year])
 
-    // Handle month changes
+    // 월 변경 처리
     useEffect(() => {
-        // If month is cleared, clear day
         if (!month) {
             setDay("")
         }
     }, [month])
 
-    // Replace the selectedBox state initialization with:
     const [selectedBox, setSelectedBox] = useState(null)
-
     const [logType, setLogType] = useState("discharge")
 
-    // Add this useEffect to set the initial selected box when data is loaded
+    // 초기 박스 선택
     useEffect(() => {
         if (boxData.length > 0 && !selectedBox) {
             setSelectedBox(boxData[0])
         }
     }, [boxData, selectedBox])
 
+    // 지도 중심 이동
     useEffect(() => {
         if (selectedBox && mapRef.current) {
             const coords = parseCoordinates(selectedBox.location)
             if (coords && coords !== 0) {
-                // 지도 중심 이동
                 mapRef.current.setCenter(new window.kakao.maps.LatLng(coords.lat, coords.lng))
             }
         }
     }, [selectedBox])
 
-    // 선택된 박스 이미지 로드 useEffect - 제공해주신 코드 방식으로 수정
+    // 선택된 박스 이미지 로드
     useEffect(() => {
         const loadBoxImage = async () => {
             console.log("=== 이미지 로딩 시작 ===")
             console.log("selectedBox:", selectedBox)
 
-            // 이전 이미지 URL 정리
             if (selectedBoxImage && selectedBoxImage.startsWith("blob:")) {
                 console.log("🗑️ 이전 이미지 URL 해제:", selectedBoxImage)
                 URL.revokeObjectURL(selectedBoxImage)
             }
 
-            // 이미지 URL 초기화
             setSelectedBoxImage(null)
 
-            // 선택된 박스가 있을 때만 이미지 로드
             if (selectedBox && selectedBox.id) {
                 try {
                     setImageLoading(true)
                     setImageError(false)
                     console.log(`📡 getBoxImage API 호출: ${selectedBox.id}`)
 
-                    // getBoxImage API 호출
                     const response = await getBoxImage(selectedBox.id)
                     console.log(`✅ getBoxImage API 응답:`, response)
-                    console.log(`📊 응답 타입:`, typeof response)
-                    console.log(`📊 응답이 Blob인가?:`, response instanceof Blob)
 
-                    // 응답이 Blob인 경우 URL 생성
                     if (response instanceof Blob) {
                         const imageUrl = URL.createObjectURL(response)
                         console.log(`🔗 Blob URL 생성:`, imageUrl)
                         setSelectedBoxImage(imageUrl)
                         setImageError(false)
-                    }
-                    // 응답이 이미 URL 문자열인 경우
-                    else if (typeof response === "string") {
+                    } else if (typeof response === "string") {
                         console.log(`🔗 문자열 URL 사용:`, response)
                         setSelectedBoxImage(response)
                         setImageError(false)
-                    }
-                    // 응답이 객체이고 url 속성이 있는 경우
-                    else if (response && response.url) {
+                    } else if (response && response.url) {
                         console.log(`🔗 객체 URL 사용:`, response.url)
                         setSelectedBoxImage(response.url)
                         setImageError(false)
-                    }
-                    // 기타 경우
-                    else {
+                    } else {
                         console.warn(`⚠️ 예상하지 못한 응답 형식:`, response)
                         setSelectedBoxImage(null)
                         setImageError(true)
@@ -295,7 +261,6 @@ const N_boxControlLogPage = () => {
 
         loadBoxImage()
 
-        // 컴포넌트 언마운트 시 이미지 URL 리소스 해제
         return () => {
             if (selectedBoxImage && selectedBoxImage.startsWith("blob:")) {
                 console.log("🗑️ useEffect cleanup - 이미지 URL 리소스 해제:", selectedBoxImage)
@@ -309,18 +274,15 @@ const N_boxControlLogPage = () => {
         const coords = parseCoordinates(location)
         if (!coords || coords === 0) return
 
-        // 이미 변환된 주소가 있으면 스킵
         if (addressMap[boxId]) return
 
         try {
-            // 카카오맵 API의 geocoder 서비스 사용
             const geocoder = new window.kakao.maps.services.Geocoder()
 
             geocoder.coord2Address(coords.lng, coords.lat, (result, status) => {
                 if (status === window.kakao.maps.services.Status.OK) {
                     const address = result[0].address.address_name || "주소 정보 없음"
 
-                    // 주소 상태 업데이트
                     setAddressMap((prev) => ({
                         ...prev,
                         [boxId]: address,
@@ -332,20 +294,18 @@ const N_boxControlLogPage = () => {
         }
     }
 
-    // Replace the existing useEffect for fetching box data with this:
+    // 박스 데이터 가져오기
     useEffect(() => {
         const fetchBoxData = async () => {
             try {
                 setIsLoading(true)
                 const response = await findAllBox()
-                // Filter boxes with the required install_status
                 const filteredBoxes = response.filter((box) =>
                     ["INSTALL_CONFIRMED", "REMOVE_REQUEST", "REMOVE_IN_PROGRESS"].includes(box.installStatus),
                 )
                 console.log(filteredBoxes)
                 setBoxData(filteredBoxes)
 
-                // 각 박스의 좌표를 주소로 변환
                 filteredBoxes.forEach((box) => {
                     if (box.location) {
                         convertCoordsToAddress(box.id, box.location)
@@ -361,7 +321,7 @@ const N_boxControlLogPage = () => {
         fetchBoxData()
     }, [])
 
-    // 로그 데이터 가져오기 - 원본 구조 유지
+    // 로그 데이터 가져오기
     useEffect(() => {
         const fetchLogData = async () => {
             if (!selectedBox) return
@@ -371,8 +331,14 @@ const N_boxControlLogPage = () => {
                 const response = await getBoxLog(selectedBox.id)
                 console.log("Raw box logs response:", response)
 
-                // 원본 데이터 구조 그대로 저장
-                setLogData(response || [])
+                // 여기에 정렬 로직 추가
+                const sortedResponse = response ? response.sort((a, b) => {
+                    const dateA = new Date(a.boxLog.date)
+                    const dateB = new Date(b.boxLog.date)
+                    return dateB - dateA // 최신 날짜가 위로 (내림차순)
+                }) : []
+
+                setLogData(sortedResponse)
             } catch (error) {
                 console.error("Error fetching box logs:", error)
                 setLogData([])
@@ -384,14 +350,14 @@ const N_boxControlLogPage = () => {
         fetchLogData()
     }, [selectedBox, year, month, day, logType])
 
-    // Replace the boxList and filteredBoxList variables with this:
+    // 필터링된 박스 목록
     const filteredBoxList = boxData.filter(
         (box) =>
             box.name.toLowerCase().includes(boxSearchTerm.toLowerCase()) ||
             (box.location && box.location.toLowerCase().includes(boxSearchTerm.toLowerCase())),
     )
 
-    // 로그 상세 보기 핸들러 - 수정된 버전
+    // 로그 상세 보기 핸들러
     const handleViewDetails = async (logItem) => {
         try {
             setModalLoading(true)
@@ -415,13 +381,10 @@ const N_boxControlLogPage = () => {
                 return
             }
 
-            // 로그 타입에 따라 다른 API 호출
             if (log.type === "수거") {
-                // 수거 이미지 가져오기
                 const imageUrl = await getCollectionImage(logId)
                 setModalImages({ collection: imageUrl })
             } else {
-                // 배출 아이템 이미지 가져오기 - 세 개의 개별 API 사용
                 console.log("Attempting to fetch battery images for log ID:", logId)
 
                 const imagePromises = [
@@ -443,7 +406,6 @@ const N_boxControlLogPage = () => {
 
                 const images = {}
 
-                // 각 이미지 결과 처리
                 if (batteryImage) {
                     console.log("Battery image loaded successfully")
                     images.battery = batteryImage
@@ -459,7 +421,6 @@ const N_boxControlLogPage = () => {
                     images.undischarged = undischargedImage
                 }
 
-                // items 배열에서 수량 정보 추출
                 const quantities = {
                     battery: 0,
                     discharged: 0,
@@ -489,20 +450,16 @@ const N_boxControlLogPage = () => {
         }
     }
 
-    // 필터링된 로그 데이터 - 수정된 버전
+    // 필터링된 로그 데이터
     const filteredLogData = logData.filter((logItem) => {
         const log = logItem.boxLog
 
-        // 로그 타입 필터링
         if (logType === "discharge") {
-            // 배출 로그: "분리"
             if (log.type !== "분리") return false
         } else if (logType === "collection") {
-            // 수거 로그: "수거"
             if (log.type !== "수거") return false
         }
 
-        // 날짜 필터링
         if (year || month || day) {
             const logDate = new Date(log.date)
 
@@ -519,7 +476,6 @@ const N_boxControlLogPage = () => {
             }
         }
 
-        // 검색어 필터링
         if (logSearchTerm) {
             const searchTerm = logSearchTerm.toLowerCase()
             const boxName = boxData.find((box) => box.id === log.boxId)?.name || ""
@@ -530,23 +486,29 @@ const N_boxControlLogPage = () => {
         return true
     })
 
-    // Replace the statsData object with this improved version:
+    // 통계 데이터
     const statsData = {
-        totalBoxes: isLogLoading ? 0 : logData.reduce((total, logItem) => {
-            const batteryItem = logItem.items?.find(item => item.name === "battery");
-            return total + (batteryItem?.count || 0);
-        }, 0),
-        batteryCount: isLogLoading ? 0 : logData.reduce((total, logItem) => {
-            const dischargedItem = logItem.items?.find(item => item.name === "discharged");
-            return total + (dischargedItem?.count || 0);
-        }, 0),
-        activeBatteries: isLogLoading ? 0 : logData.reduce((total, logItem) => {
-            const undischargedItem = logItem.items?.find(item => item.name === "undischarged");
-            return total + (undischargedItem?.count || 0);
-        }, 0),
+        totalBoxes: isLogLoading
+            ? 0
+            : logData.reduce((total, logItem) => {
+                const batteryItem = logItem.items?.find((item) => item.name === "battery")
+                return total + (batteryItem?.count || 0)
+            }, 0),
+        batteryCount: isLogLoading
+            ? 0
+            : logData.reduce((total, logItem) => {
+                const dischargedItem = logItem.items?.find((item) => item.name === "discharged")
+                return total + (dischargedItem?.count || 0)
+            }, 0),
+        activeBatteries: isLogLoading
+            ? 0
+            : logData.reduce((total, logItem) => {
+                const undischargedItem = logItem.items?.find((item) => item.name === "undischarged")
+                return total + (undischargedItem?.count || 0)
+            }, 0),
     }
 
-    // 박스 제어 상태를 실제 데이터베이스 값으로 계산하는 함수들
+    // 박스 제어 상태 계산
     const getControlStates = () => {
         if (!selectedBox) {
             return {
@@ -561,11 +523,11 @@ const N_boxControlLogPage = () => {
             battery: { isOpen: selectedBox.store1 === 1 },
             dischargedBattery: { isOpen: selectedBox.store2 === 1 },
             remainingCapacityBattery: { isOpen: selectedBox.store3 === 1 },
-            collectorEntrance: { isOpen: selectedBox.store4 === 1 }, // 수거자 입구 상태를 store4 값으로 설정
+            collectorEntrance: { isOpen: selectedBox.store4 === 1 },
         }
     }
 
-    // 박스 차단 상태를 실제 데이터베이스 값으로 계산
+    // 박스 차단 상태 계산
     const getBoxBlockedState = () => {
         if (!selectedBox) return false
         return selectedBox.usageStatus === "BLOCKED"
@@ -574,7 +536,7 @@ const N_boxControlLogPage = () => {
     const controlStates = getControlStates()
     const isBoxBlocked = getBoxBlockedState()
 
-    // Handle dropdown changes with reset capability
+    // 드롭다운 변경 핸들러
     const handleYearChange = (e) => {
         setYear(e.target.value)
     }
@@ -587,12 +549,12 @@ const N_boxControlLogPage = () => {
         setDay(e.target.value)
     }
 
-    // 박스 검색 입력 필드 핸들러 추가 (handleDayChange 함수 아래에 추가)
+    // 박스 검색 핸들러
     const handleBoxSearch = (e) => {
         setBoxSearchTerm(e.target.value)
     }
 
-    // 로그 검색 입력 필드 추가 (로그 테이블 위에 추가할 예정)
+    // 로그 검색 핸들러
     const handleLogSearch = (e) => {
         setLogSearchTerm(e.target.value)
     }
@@ -601,47 +563,86 @@ const N_boxControlLogPage = () => {
     const handleBoxSelect = (box) => {
         setSelectedBox(box)
 
-        // 좌표 파싱
         const coords = parseCoordinates(box.location)
         if (coords && coords !== 0 && mapRef.current) {
-            // 지도 중심 이동
             mapRef.current.setCenter(new window.kakao.maps.LatLng(coords.lat, coords.lng))
         }
     }
 
-    // 박스 이름 가져오기 - 수정된 버전
+    // 박스 이름 가져오기
     const getBoxName = (boxId) => {
         const box = boxData.find((box) => box.id === boxId)
         return box ? box.name : "알 수 없는 수거함"
     }
 
-    // 제어 상태 변경 핸들러 - 실제 API 호출 적용 및 박스 상태 최신화
+    // 제어 상태 변경 핸들러
     const handleControlStateChange = async (controlType, newState) => {
-        if (!selectedBox || isBoxBlocked) return
+        if (!selectedBox) return
 
         try {
             setIsControlLoading(true)
             setControlError(null)
 
+            // 먼저 최신 박스 데이터를 가져와서 상태 확인
+            const response = await findAllBox()
+            const filteredBoxes = response.filter((box) =>
+                ["INSTALL_CONFIRMED", "REMOVE_REQUEST", "REMOVE_IN_PROGRESS"].includes(box.installStatus),
+            )
+
+            // 현재 선택된 박스의 최신 정보 가져오기
+            const latestSelectedBox = filteredBoxes.find((box) => box.id === selectedBox.id)
+            if (!latestSelectedBox) {
+                alert("선택된 수거함 정보를 찾을 수 없습니다.")
+                return
+            }
+
+            // 최신 데이터로 상태 업데이트
+            setBoxData(filteredBoxes)
+            setSelectedBox(latestSelectedBox)
+
+            // 최신 데이터로 차단 상태 확인
+            if (latestSelectedBox.blocked) {
+                setControlError("수거함이 차단된 상태입니다.")
+                setTimeout(() => setControlError(null), 3000)
+                return
+            }
+
+            if (newState === true) {
+                const currentStates = getControlStates(latestSelectedBox)
+                const openCompartments = []
+
+                if (currentStates.battery.isOpen) openCompartments.push("건전지")
+                if (currentStates.dischargedBattery.isOpen) openCompartments.push("방전 배터리")
+                if (currentStates.remainingCapacityBattery.isOpen) openCompartments.push("잔여 용량 배터리")
+                if (currentStates.collectorEntrance.isOpen) openCompartments.push("수거자 입구")
+
+                if (openCompartments.length > 0) {
+                    const openCompartmentNames = openCompartments.join(", ")
+                    alert(`현재 ${openCompartmentNames}가 개방되어 있습니다. 먼저 열린 입구를 닫아주세요.`)
+
+                    setTimeout(() => {
+                        setControlError(null)
+                    }, 3000)
+
+                    return
+                }
+            }
+
             console.log(`🔍 제어 요청 정보:`, {
-                boxId: selectedBox.id,
+                boxId: latestSelectedBox.id,
                 controlType,
                 newState,
             })
 
-            // 실제 API 호출
-            const result = await controlBoxCompartment(selectedBox.id, controlType, newState)
+            const result = await controlBoxCompartment(latestSelectedBox.id, controlType, newState)
 
             console.log(`📡 API 응답:`, result)
 
-            // 응답 상태 확인 - Fail이어도 일단 진행 (하드웨어 연동 전이므로)
             if (result && (result.status === "Success" || result.status === "Fail")) {
                 console.log(`✅ 제어 명령 전송 완료: ${controlType} -> ${newState ? "개방" : "폐쇄"}`)
 
-                // UI 상태만 즉시 업데이트 - selectedBox 상태 직접 수정
-                const updatedSelectedBox = { ...selectedBox }
+                const updatedSelectedBox = { ...latestSelectedBox }
 
-                // controlType에 따라 해당하는 store 값 업데이트
                 switch (controlType) {
                     case "battery":
                         updatedSelectedBox.store1 = newState ? 1 : 0
@@ -657,19 +658,12 @@ const N_boxControlLogPage = () => {
                         break
                 }
 
-                // 선택된 박스 상태 즉시 업데이트
                 setSelectedBox(updatedSelectedBox)
 
-                // boxData에서도 해당 박스 업데이트
-                setBoxData(prevBoxData =>
-                    prevBoxData.map(box =>
-                        box.id === selectedBox.id ? updatedSelectedBox : box
-                    )
-                )
+                setBoxData((prevBoxData) => prevBoxData.map((box) => (box.id === latestSelectedBox.id ? updatedSelectedBox : box)))
 
                 console.log(`✅ UI 상태 즉시 업데이트 완료:`, updatedSelectedBox)
 
-                // 성공 메시지 (하드웨어 연동 상태 표시)
                 if (result.status === "Fail") {
                     setControlError("제어 명령이 전송되었지만 하드웨어 연동이 완료되지 않았습니다.")
                     setTimeout(() => setControlError(null), 3000)
@@ -683,7 +677,7 @@ const N_boxControlLogPage = () => {
         }
     }
 
-    // 박스 차단 상태 변경 핸들러 - 입구 상태에 따른 차단 방식 결정
+    // 박스 차단 상태 변경 핸들러
     const handleBoxBlockToggle = async () => {
         if (!selectedBox) return
 
@@ -691,58 +685,65 @@ const N_boxControlLogPage = () => {
             setIsBlockLoading(true)
             setBlockError(null)
 
-            // 현재 차단 상태 확인
-            const currentlyBlocked = isBoxBlocked
+            // 먼저 최신 박스 데이터를 가져와서 상태 확인
+            const response = await findAllBox()
+            const filteredBoxes = response.filter((box) =>
+                ["INSTALL_CONFIRMED", "REMOVE_REQUEST", "REMOVE_IN_PROGRESS"].includes(box.installStatus),
+            )
 
-            // 4개 입구 중 하나라도 열려있는지 확인
-            const controlStates = getControlStates()
+            // 현재 선택된 박스의 최신 정보 가져오기
+            const latestSelectedBox = filteredBoxes.find((box) => box.id === selectedBox.id)
+            if (!latestSelectedBox) {
+                alert("선택된 수거함 정보를 찾을 수 없습니다.")
+                return
+            }
+
+            // 최신 데이터로 상태 업데이트
+            setBoxData(filteredBoxes)
+            setSelectedBox(latestSelectedBox)
+
+            const currentlyBlocked = latestSelectedBox.blocked
+
+            // 4개 입구 중 하나라도 열려있는지 확인 (최신 데이터 기준)
+            const controlStates = getControlStates(latestSelectedBox)
             const hasOpenCompartment =
                 controlStates.battery.isOpen ||
                 controlStates.dischargedBattery.isOpen ||
                 controlStates.remainingCapacityBattery.isOpen ||
                 controlStates.collectorEntrance.isOpen
 
+            // 차단하려고 할 때 입구가 열려있으면 경고
+            if (!currentlyBlocked && hasOpenCompartment) {
+                alert("수거함 입구가 개방되어 있습니다. 먼저 모든 입구를 닫아주세요.")
+                return
+            }
+
             console.log(`🔍 차단 상태 토글 요청:`, {
-                boxId: selectedBox.id,
+                boxId: latestSelectedBox.id,
                 currentlyBlocked,
                 hasOpenCompartment,
                 controlStates,
             })
 
-            let result
-            let actionText = ""
-
-            // 입구가 열려있으면 강제 차단/해제, 아니면 일반 차단/해제
-            if (hasOpenCompartment) {
-                result = await superBlockBox(selectedBox.id)
-                actionText = currentlyBlocked ? "강제 해제" : "강제 차단"
-            } else {
-                result = await blockBox(selectedBox.id)
-                actionText = currentlyBlocked ? "해제" : "차단"
-            }
+            // 일반 차단/해제만 사용
+            const result = await blockBox(latestSelectedBox.id)
+            const actionText = currentlyBlocked ? "해제" : "차단"
 
             console.log(`✅ 수거함 ${actionText} 성공:`, result)
 
-            // 박스 데이터 새로고침
-            const response = await findAllBox()
-            const filteredBoxes = response.filter((box) =>
+            // 박스 데이터 다시 새로고침
+            const finalResponse = await findAllBox()
+            const finalFilteredBoxes = finalResponse.filter((box) =>
                 ["INSTALL_CONFIRMED", "REMOVE_REQUEST", "REMOVE_IN_PROGRESS"].includes(box.installStatus),
             )
-            setBoxData(filteredBoxes)
+            setBoxData(finalFilteredBoxes)
 
             // 현재 선택된 박스 정보 업데이트
-            const updatedSelectedBox = filteredBoxes.find((box) => box.id === selectedBox.id)
+            const updatedSelectedBox = finalFilteredBoxes.find((box) => box.id === latestSelectedBox.id)
             if (updatedSelectedBox) {
                 setSelectedBox(updatedSelectedBox)
             }
         } catch (error) {
-            console.error("❌ 박스 차단 상태 변경 실패:", error)
-            setBlockError(`차단 상태 변경 실패: ${error.message || "알 수 없는 오류"}`)
-
-            // 3초 후 에러 메시지 자동 제거
-            setTimeout(() => {
-                setBlockError(null)
-            }, 3000)
         } finally {
             setIsBlockLoading(false)
         }
@@ -891,7 +892,6 @@ const N_boxControlLogPage = () => {
                                                         onClick={() => {
                                                             setImageError(false)
                                                             setImageLoading(true)
-                                                            // 이미지 재로드 시도
                                                             getBoxImage(selectedBox.id)
                                                                 .then((response) => {
                                                                     if (response instanceof Blob) {
@@ -923,9 +923,9 @@ const N_boxControlLogPage = () => {
                                                     src={selectedBoxImage || "/placeholder.svg"}
                                                     alt={`${selectedBox?.name} 이미지`}
                                                     className="max-w-full max-h-full object-contain rounded-lg shadow-sm"
-                                                    onLoad={() => console.log("✅ 이미지 로드 성공:", selectedBoxImage)} // 디버깅용
+                                                    onLoad={() => console.log("✅ 이미지 로드 성공:", selectedBoxImage)}
                                                     onError={(e) => {
-                                                        console.error("❌ 이미지 로드 에러:", e) // 디버깅용
+                                                        console.error("❌ 이미지 로드 에러:", e)
                                                         console.error("❌ 실패한 이미지 URL:", e.target.src)
                                                         setImageError(true)
                                                         if (selectedBoxImage && selectedBoxImage.startsWith("blob:")) {
@@ -946,7 +946,7 @@ const N_boxControlLogPage = () => {
                             </div>
                         </div>
 
-                        {/* Right Sidebar - Box Info - Now as a separate element */}
+                        {/* Right Sidebar - Box Info */}
                         <div className="w-[320px] space-y-4 pl-6">
                             {/* 제어 상태 표시 */}
                             {isControlLoading && (
@@ -977,6 +977,7 @@ const N_boxControlLogPage = () => {
                                     </div>
                                 </div>
                             )}
+
                             {/* 건전지 (Battery Boxes) */}
                             <div className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
@@ -990,8 +991,20 @@ const N_boxControlLogPage = () => {
                                             <RadioButton
                                                 selected={controlStates.battery.isOpen}
                                                 color="green"
-                                                onClick={() => handleControlStateChange("battery", true)}
-                                                disabled={isBoxBlocked || isControlLoading}
+                                                onClick={() => {
+                                                    if (
+                                                        controlStates.battery.isOpen ||
+                                                        (!controlStates.battery.isOpen &&
+                                                            (controlStates.dischargedBattery.isOpen ||
+                                                                controlStates.remainingCapacityBattery.isOpen ||
+                                                                controlStates.collectorEntrance.isOpen)) ||
+                                                        isBoxBlocked ||
+                                                        isControlLoading
+                                                    ) {
+                                                        return
+                                                    }
+                                                    handleControlStateChange("battery", true)
+                                                }}
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -999,8 +1012,12 @@ const N_boxControlLogPage = () => {
                                             <RadioButton
                                                 selected={!controlStates.battery.isOpen}
                                                 color="red"
-                                                onClick={() => handleControlStateChange("battery", false)}
-                                                disabled={isBoxBlocked || isControlLoading}
+                                                onClick={() => {
+                                                    if (!controlStates.battery.isOpen || isBoxBlocked || isControlLoading) {
+                                                        return
+                                                    }
+                                                    handleControlStateChange("battery", false)
+                                                }}
                                             />
                                         </div>
                                     </div>
@@ -1020,8 +1037,20 @@ const N_boxControlLogPage = () => {
                                             <RadioButton
                                                 selected={controlStates.dischargedBattery.isOpen}
                                                 color="green"
-                                                onClick={() => handleControlStateChange("dischargedBattery", true)}
-                                                disabled={isBoxBlocked || isControlLoading}
+                                                onClick={() => {
+                                                    if (
+                                                        controlStates.dischargedBattery.isOpen ||
+                                                        (!controlStates.dischargedBattery.isOpen &&
+                                                            (controlStates.battery.isOpen ||
+                                                                controlStates.remainingCapacityBattery.isOpen ||
+                                                                controlStates.collectorEntrance.isOpen)) ||
+                                                        isBoxBlocked ||
+                                                        isControlLoading
+                                                    ) {
+                                                        return
+                                                    }
+                                                    handleControlStateChange("dischargedBattery", true)
+                                                }}
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -1029,8 +1058,12 @@ const N_boxControlLogPage = () => {
                                             <RadioButton
                                                 selected={!controlStates.dischargedBattery.isOpen}
                                                 color="red"
-                                                onClick={() => handleControlStateChange("dischargedBattery", false)}
-                                                disabled={isBoxBlocked || isControlLoading}
+                                                onClick={() => {
+                                                    if (!controlStates.dischargedBattery.isOpen || isBoxBlocked || isControlLoading) {
+                                                        return
+                                                    }
+                                                    handleControlStateChange("dischargedBattery", false)
+                                                }}
                                             />
                                         </div>
                                     </div>
@@ -1050,8 +1083,20 @@ const N_boxControlLogPage = () => {
                                             <RadioButton
                                                 selected={controlStates.remainingCapacityBattery.isOpen}
                                                 color="green"
-                                                onClick={() => handleControlStateChange("remainingCapacityBattery", true)}
-                                                disabled={isBoxBlocked || isControlLoading}
+                                                onClick={() => {
+                                                    if (
+                                                        controlStates.remainingCapacityBattery.isOpen ||
+                                                        (!controlStates.remainingCapacityBattery.isOpen &&
+                                                            (controlStates.battery.isOpen ||
+                                                                controlStates.dischargedBattery.isOpen ||
+                                                                controlStates.collectorEntrance.isOpen)) ||
+                                                        isBoxBlocked ||
+                                                        isControlLoading
+                                                    ) {
+                                                        return
+                                                    }
+                                                    handleControlStateChange("remainingCapacityBattery", true)
+                                                }}
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -1059,8 +1104,12 @@ const N_boxControlLogPage = () => {
                                             <RadioButton
                                                 selected={!controlStates.remainingCapacityBattery.isOpen}
                                                 color="red"
-                                                onClick={() => handleControlStateChange("remainingCapacityBattery", false)}
-                                                disabled={isBoxBlocked || isControlLoading}
+                                                onClick={() => {
+                                                    if (!controlStates.remainingCapacityBattery.isOpen || isBoxBlocked || isControlLoading) {
+                                                        return
+                                                    }
+                                                    handleControlStateChange("remainingCapacityBattery", false)
+                                                }}
                                             />
                                         </div>
                                     </div>
@@ -1080,8 +1129,20 @@ const N_boxControlLogPage = () => {
                                             <RadioButton
                                                 selected={controlStates.collectorEntrance.isOpen}
                                                 color="green"
-                                                onClick={() => handleControlStateChange("collectorEntrance", true)}
-                                                disabled={isBoxBlocked || isControlLoading}
+                                                onClick={() => {
+                                                    if (
+                                                        controlStates.collectorEntrance.isOpen ||
+                                                        (!controlStates.collectorEntrance.isOpen &&
+                                                            (controlStates.battery.isOpen ||
+                                                                controlStates.dischargedBattery.isOpen ||
+                                                                controlStates.remainingCapacityBattery.isOpen)) ||
+                                                        isBoxBlocked ||
+                                                        isControlLoading
+                                                    ) {
+                                                        return
+                                                    }
+                                                    handleControlStateChange("collectorEntrance", true)
+                                                }}
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -1089,15 +1150,19 @@ const N_boxControlLogPage = () => {
                                             <RadioButton
                                                 selected={!controlStates.collectorEntrance.isOpen}
                                                 color="red"
-                                                onClick={() => handleControlStateChange("collectorEntrance", false)}
-                                                disabled={isBoxBlocked || isControlLoading}
+                                                onClick={() => {
+                                                    if (!controlStates.collectorEntrance.isOpen || isBoxBlocked || isControlLoading) {
+                                                        return
+                                                    }
+                                                    handleControlStateChange("collectorEntrance", false)
+                                                }}
                                             />
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* 수거함 차단 Button (Collection Box Block) */}
+                            {/* 수거함 차단 Button */}
                             <button
                                 onClick={handleBoxBlockToggle}
                                 disabled={isBlockLoading || isControlLoading}
@@ -1111,6 +1176,7 @@ const N_boxControlLogPage = () => {
                             </button>
                         </div>
                     </div>
+
                     <div>
                         <p className="font-bold text-[#272F42] text-xl pt-10 pb-1">수거함 로그</p>
                         {/* Log Type Dropdown */}
@@ -1132,7 +1198,7 @@ const N_boxControlLogPage = () => {
                                     <img src={DownIcon || "/placeholder.svg"} alt="아래화살표" className="w-3 h-2" />
                                 </div>
                             </div>
-                            {/* Date Selectors - Year, Month, Day */}
+                            {/* Date Selectors */}
                             <div className="flex items-center ml-4">
                                 {/* Year Dropdown */}
                                 <div className="relative">
@@ -1195,7 +1261,7 @@ const N_boxControlLogPage = () => {
                             </div>
                         </div>
 
-                        {/* 밑줄 추가 - 간격 좁힘 */}
+                        {/* 밑줄 */}
                         <div className="relative -mt-2 mb-8">
                             <div className="absolute bottom-0 left-0 w-full border-b border-gray-200 z-0" />
                         </div>
@@ -1215,7 +1281,7 @@ const N_boxControlLogPage = () => {
                         </div>
                     </div>
 
-                    {/* Log Tables - Conditionally render based on logType */}
+                    {/* Log Tables */}
                     {logType === "discharge" ? (
                         <div className="mt-4 px-6 py-4 bg-white rounded-2xl shadow-sm overflow-hidden">
                             <div className="w-full">
@@ -1361,28 +1427,29 @@ const N_boxControlLogPage = () => {
 
                     {/* 스크롤바 스타일 */}
                     <style jsx>{`
-                        .custom-scrollbar::-webkit-scrollbar {
-                            width: 6px;
-                        }
+            .custom-scrollbar::-webkit-scrollbar {
+              width: 6px;
+            }
 
-                        .custom-scrollbar::-webkit-scrollbar-track {
-                            background: #f1f1f1;
-                            border-radius: 10px;
-                        }
+            .custom-scrollbar::-webkit-scrollbar-track {
+              background: #f1f1f1;
+              border-radius: 10px;
+            }
 
-                        .custom-scrollbar::-webkit-scrollbar-thumb {
-                            background: #c1c1c1;
-                            border-radius: 10px;
-                            height: 50px;
-                        }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+              background: #c1c1c1;
+              border-radius: 10px;
+              height: 50px;
+            }
 
-                        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                            background: #a1a1a1;
-                        }
-                    `}</style>
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+              background: #a1a1a1;
+            }
+          `}</style>
                     <div className="pb-32" />
                 </div>
             </div>
+
             {/* 이미지 모달 */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
@@ -1440,7 +1507,7 @@ const N_boxControlLogPage = () => {
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {/* 배터리 이미지 - 이미지와 수량이 모두 존재할 때만 표시 */}
+                                    {/* 배터리 이미지 */}
                                     {modalImages.battery && modalImages.quantities?.battery > 0 && (
                                         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200 shadow-sm hover:shadow-md transition-shadow">
                                             <div className="relative">
@@ -1467,7 +1534,7 @@ const N_boxControlLogPage = () => {
                                         </div>
                                     )}
 
-                                    {/* 방전 배터리 이미지 - 이미지와 수량이 모두 존재할 때만 표시 */}
+                                    {/* 방전 배터리 이미지 */}
                                     {modalImages.discharged && modalImages.quantities?.discharged > 0 && (
                                         <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-4 border border-red-200 shadow-sm hover:shadow-md transition-shadow">
                                             <div className="relative">
@@ -1494,7 +1561,7 @@ const N_boxControlLogPage = () => {
                                         </div>
                                     )}
 
-                                    {/* 미방전 배터리 이미지 - 이미지와 수량이 모두 존재할 때만 표시 */}
+                                    {/* 미방전 배터리 이미지 */}
                                     {modalImages.undischarged && modalImages.quantities?.undischarged > 0 && (
                                         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200 shadow-sm hover:shadow-md transition-shadow">
                                             <div className="relative">
@@ -1561,10 +1628,7 @@ const N_boxControlLogPage = () => {
 }
 
 function BoxListItem({ id, name, location, box, isActive, onClick, handleCopy, copiedBoxId, addressMap }) {
-    // 주소 정보 가져오기
     const address = addressMap[id] || "주소 변환 중..."
-
-    // 최대 수거량 계산
     const maxVolume = getMaxVolume(box)
 
     return (
@@ -1593,9 +1657,7 @@ function BoxListItem({ id, name, location, box, isActive, onClick, handleCopy, c
     )
 }
 
-// Radio button component
-function RadioButton({ selected, color = "green", onClick, disabled = false }) {
-    // Map color prop to actual Tailwind classes
+function RadioButton({ selected, color = "green", onClick }) {
     const getColorClass = () => {
         switch (color) {
             case "green":
@@ -1608,10 +1670,7 @@ function RadioButton({ selected, color = "green", onClick, disabled = false }) {
     }
 
     return (
-        <div
-            className={`relative w-5 h-5 rounded-full ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-            onClick={disabled ? undefined : onClick}
-        >
+        <div className={`relative w-5 h-5 rounded-full cursor-pointer`} onClick={onClick}>
             {selected ? (
                 <div className="w-full h-full rounded-full border-2 border-gray-300 flex items-center justify-center">
                     <div className={`w-[14px] h-[14px] rounded-full ${getColorClass()}`}></div>
