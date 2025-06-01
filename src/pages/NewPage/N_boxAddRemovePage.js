@@ -132,23 +132,22 @@ const N_boxAddRemovePage = () => {
         setUploadProgress(0)
         setUploadStatus({})
 
-        // 필수 파일 목록
-        const requiredFiles = [
-            "population",
-            "boundarycpg",
-            "boundarydbf",
-            "boundaryprj",
-            "boundaryshp",
-            "boundaryshx",
-            "fireStation",
-            "childSafety"
-        ]
+        // 필수 파일 목록과 허용되는 확장자
+        const requiredFiles = {
+            "population": [".csv", ".txt"],
+            "boundarycpg": [".cpg"],
+            "boundarydbf": [".dbf"],
+            "boundaryprj": [".prj"],
+            "boundaryshp": [".shp"],
+            "boundaryshx": [".shx"],
+            "fireStation": [".csv"],
+            "childSafety": [".csv"]
+        }
 
         // 누락된 파일 확인
-        const missingFiles = requiredFiles.filter(fileKey => !files[fileKey])
+        const missingFiles = Object.keys(requiredFiles).filter(fileKey => !files[fileKey])
 
         if (missingFiles.length > 0) {
-            // 누락된 파일 이름을 사용자 친화적으로 변환
             const missingFileNames = missingFiles.map(fileKey => {
                 if (fileKey === "population") return "인구밀도 데이터"
                 if (fileKey === "boundarycpg") return "경계 데이터 (.cpg)"
@@ -162,6 +161,39 @@ const N_boxAddRemovePage = () => {
             })
 
             alert(`다음 파일이 누락되었습니다:\n${missingFileNames.join('\n')}\n\n모든 필수 파일을 업로드해주세요.`)
+            setIsUploading(false)
+            return
+        }
+
+        // 파일 형식 검증
+        const invalidFiles = []
+        Object.keys(requiredFiles).forEach(fileKey => {
+            const file = files[fileKey]
+            const allowedExtensions = requiredFiles[fileKey]
+
+            if (file) {
+                const fileName = file.name.toLowerCase()
+                const isValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext))
+
+                if (!isValidExtension) {
+                    const fileDisplayName = {
+                        "population": "인구밀도 데이터",
+                        "boundarycpg": "경계 데이터 (.cpg)",
+                        "boundarydbf": "경계 데이터 (.dbf)",
+                        "boundaryprj": "경계 데이터 (.prj)",
+                        "boundaryshp": "경계 데이터 (.shp)",
+                        "boundaryshx": "경계 데이터 (.shx)",
+                        "fireStation": "119안전센터 현황",
+                        "childSafety": "어린이보호구역 표준데이터"
+                    }[fileKey]
+
+                    invalidFiles.push(`${fileDisplayName}: ${allowedExtensions.join(', ')} 형식만 허용`)
+                }
+            }
+        })
+
+        if (invalidFiles.length > 0) {
+            alert(`다음 파일의 형식이 올바르지 않습니다:\n${invalidFiles.join('\n')}\n\n올바른 형식의 파일을 선택해주세요.`)
             setIsUploading(false)
             return
         }
