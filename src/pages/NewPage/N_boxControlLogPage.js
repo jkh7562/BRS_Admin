@@ -638,7 +638,7 @@ const N_boxControlLogPage = () => {
 
             console.log(`📡 API 응답:`, result)
 
-            if (result && (result.status === "Success" || result.status === "Fail")) {
+            if (result && (result.status === "200" || result.status === "Fail")) {
                 console.log(`✅ 제어 명령 전송 완료: ${controlType} -> ${newState ? "개방" : "폐쇄"}`)
 
                 const updatedSelectedBox = { ...latestSelectedBox }
