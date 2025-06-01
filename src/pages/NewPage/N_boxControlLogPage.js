@@ -18,7 +18,7 @@ import {
     getUndischargedImage,
     controlBoxCompartment,
     blockBox,
-    findUserAll
+    findUserAll,
 } from "../../api/apiServices"
 
 // 좌표 파싱 함수
@@ -129,6 +129,30 @@ const N_boxControlLogPage = () => {
 
     const [days, setDays] = useState(() => getDaysInMonth(year, month))
 
+    const [selectedBox, setSelectedBox] = useState(null)
+    const [logType, setLogType] = useState("discharge")
+
+    // 사용자 데이터 상태 추가
+    const [userData, setUserData] = useState([])
+
+    // 사용자 이름 가져오기 함수 - function 키워드로 호이스팅 가능하게 변경
+    function getUserName(userId) {
+        if (!userData || userData.length === 0) {
+            return "로딩 중..."
+        }
+        const user = userData.find((user) => user.id === userId)
+        return user ? user.name : "익명의 사용자"
+    }
+
+    // 박스 이름 가져오기 함수 - function 키워드로 호이스팅 가능하게 변경
+    function getBoxName(boxId) {
+        if (!boxData || boxData.length === 0) {
+            return "로딩 중..."
+        }
+        const box = boxData.find((box) => box.id === boxId)
+        return box ? box.name : "알 수 없는 수거함"
+    }
+
     // 복사 핸들러 함수
     const handleCopy = (e, boxId, text) => {
         e.stopPropagation()
@@ -186,12 +210,6 @@ const N_boxControlLogPage = () => {
             setDay("")
         }
     }, [month])
-
-    const [selectedBox, setSelectedBox] = useState(null)
-    const [logType, setLogType] = useState("discharge")
-
-    // 사용자 데이터 상태 추가
-    const [userData, setUserData] = useState([])
 
     // 초기 박스 선택
     useEffect(() => {
@@ -330,10 +348,10 @@ const N_boxControlLogPage = () => {
         const fetchUserData = async () => {
             try {
                 const response = await findUserAll()
-                console.log('User data fetched:', response)
+                console.log("User data fetched:", response)
                 setUserData(response)
             } catch (error) {
-                console.error('Error fetching user data:', error)
+                console.error("Error fetching user data:", error)
             }
         }
 
@@ -351,11 +369,13 @@ const N_boxControlLogPage = () => {
                 console.log("Raw box logs response:", response)
 
                 // 여기에 정렬 로직 추가
-                const sortedResponse = response ? response.sort((a, b) => {
-                    const dateA = new Date(a.boxLog.date)
-                    const dateB = new Date(b.boxLog.date)
-                    return dateB - dateA // 최신 날짜가 위로 (내림차순)
-                }) : []
+                const sortedResponse = response
+                    ? response.sort((a, b) => {
+                        const dateA = new Date(a.boxLog.date)
+                        const dateB = new Date(b.boxLog.date)
+                        return dateB - dateA // 최신 날짜가 위로 (내림차순)
+                    })
+                    : []
 
                 setLogData(sortedResponse)
             } catch (error) {
@@ -376,7 +396,7 @@ const N_boxControlLogPage = () => {
             (box.location && box.location.toLowerCase().includes(boxSearchTerm.toLowerCase())),
     )
 
-    // 로그 상세 보기 핸들러
+    // 로그 상세 보기 핸들러 - 개선된 버전
     const handleViewDetails = async (logItem) => {
         try {
             setModalLoading(true)
@@ -387,6 +407,7 @@ const N_boxControlLogPage = () => {
 
             setModalTitle(log.type === "수거" ? "수거 이미지" : "배출 아이템 이미지")
 
+            console.log("=== 로그 상세 보기 시작 ===")
             console.log("Log object:", log)
             console.log("Items array:", items)
 
@@ -395,81 +416,141 @@ const N_boxControlLogPage = () => {
             console.log("Using log ID:", logId)
 
             if (!logId) {
-                console.error("No valid log ID found in log object")
+                console.error("❌ 유효한 로그 ID를 찾을 수 없습니다")
                 setModalImages(null)
                 return
             }
 
             if (log.type === "수거") {
-                const imageUrl = await getCollectionImage(logId)
-                setModalImages({ collection: imageUrl })
+                try {
+                    const imageUrl = await getCollectionImage(logId)
+                    console.log("✅ 수거 이미지 로드 성공:", imageUrl)
+                    setModalImages({ collection: imageUrl })
+                } catch (error) {
+                    console.error("❌ 수거 이미지 로드 실패:", error)
+                    setModalImages(null)
+                }
             } else {
-                console.log("Attempting to fetch battery images for log ID:", logId)
+                console.log("🔋 배터리 이미지 로딩 시작...")
 
-                const imagePromises = [
-                    getBatteryImage(logId).catch((error) => {
-                        console.log("Battery image fetch failed:", error)
-                        return null
-                    }),
-                    getDischargedImage(logId).catch((error) => {
-                        console.log("Discharged image fetch failed:", error)
-                        return null
-                    }),
-                    getUndischargedImage(logId).catch((error) => {
-                        console.log("Undischarged image fetch failed:", error)
-                        return null
-                    }),
-                ]
-
-                const [batteryImage, dischargedImage, undischargedImage] = await Promise.all(imagePromises)
-
-                const images = {}
-
-                if (batteryImage) {
-                    console.log("Battery image loaded successfully")
-                    images.battery = batteryImage
+                // 각 배터리 타입별 이미지 로딩을 개별적으로 처리
+                const imageResults = {
+                    battery: null,
+                    discharged: null,
+                    undischarged: null,
                 }
 
-                if (dischargedImage) {
-                    console.log("Discharged image loaded successfully")
-                    images.discharged = dischargedImage
+                // 배터리 이미지 로딩
+                try {
+                    console.log("📡 배터리 이미지 API 호출...")
+                    const batteryImage = await getBatteryImage(logId)
+                    if (batteryImage) {
+                        imageResults.battery = batteryImage
+                        console.log("✅ 배터리 이미지 로드 성공")
+                    }
+                } catch (error) {
+                    console.log("⚠️ 배터리 이미지 로드 실패:", error.message)
                 }
 
-                if (undischargedImage) {
-                    console.log("Undischarged image loaded successfully")
-                    images.undischarged = undischargedImage
+                // 방전 배터리 이미지 로딩
+                try {
+                    console.log("📡 방전 배터리 이미지 API 호출...")
+                    const dischargedImage = await getDischargedImage(logId)
+                    if (dischargedImage) {
+                        imageResults.discharged = dischargedImage
+                        console.log("✅ 방전 배터리 이미지 로드 성공")
+                    }
+                } catch (error) {
+                    console.log("⚠️ 방전 배터리 이미지 로드 실패:", error.message)
                 }
 
+                // 미방전 배터리 이미지 로딩 - 개선된 로직
+                try {
+                    console.log("📡 미방전 배터리 이미지 API 호출...")
+                    const undischargedImage = await getUndischargedImage(logId)
+                    console.log("🔍 미방전 배터리 이미지 응답:", undischargedImage)
+                    console.log("🔍 응답 타입:", typeof undischargedImage)
+
+                    if (undischargedImage) {
+                        imageResults.undischarged = undischargedImage
+                        console.log("✅ 미방전 배터리 이미지 로드 성공")
+                    } else {
+                        console.log("⚠️ 미방전 배터리 이미지가 null 또는 undefined")
+                    }
+                } catch (error) {
+                    console.log("⚠️ 미방전 배터리 이미지 로드 실패:", error.message)
+                    console.log("Error details:", {
+                        name: error.name,
+                        message: error.message,
+                        stack: error.stack,
+                    })
+                }
+
+                // 수량 정보 매핑 - 개선된 로직
                 const quantities = {
                     battery: 0,
                     discharged: 0,
                     undischarged: 0,
                 }
 
-                items.forEach((item) => {
-                    if (item.name === "battery") {
+                console.log("🔍 Items 배열 상세 분석:")
+                items.forEach((item, index) => {
+                    console.log(`Item ${index}:`, {
+                        name: item.name,
+                        count: item.count,
+                        fullItem: item,
+                    })
+
+                    // 다양한 가능한 이름 패턴 확인
+                    const itemName = item.name?.toLowerCase()
+
+                    if (itemName === "battery" || itemName === "건전지") {
                         quantities.battery = item.count
-                    } else if (item.name === "discharged") {
+                        console.log("✅ 배터리 수량 설정:", item.count)
+                    } else if (itemName === "discharged" || itemName === "방전" || itemName === "방전배터리") {
                         quantities.discharged = item.count
-                    } else if (item.name === "undischarged") {
+                        console.log("✅ 방전 배터리 수량 설정:", item.count)
+                    } else if (
+                        itemName === "undischarged" ||
+                        itemName === "미방전" ||
+                        itemName === "미방전배터리" ||
+                        itemName === "notdischarged"
+                    ) {
                         quantities.undischarged = item.count
+                        console.log("✅ 미방전 배터리 수량 설정:", item.count)
+                    } else {
+                        console.log("⚠️ 알 수 없는 아이템 타입:", item.name)
                     }
                 })
 
-                images.quantities = quantities
+                console.log("📊 최종 수량 정보:", quantities)
 
-                console.log("Final images object:", images)
-                setModalImages(images)
+                console.log("📊 수량 정보:", quantities)
+                console.log("🖼️ 이미지 결과:", imageResults)
+
+                // 최종 이미지 객체 생성
+                const finalImages = {
+                    ...imageResults,
+                    quantities: quantities,
+                }
+
+                console.log("✅ 최종 이미지 객체:", finalImages)
+                console.log("🖼️ 최종 이미지 결과 상세:")
+                console.log("- battery:", !!imageResults.battery)
+                console.log("- discharged:", !!imageResults.discharged)
+                console.log("- undischarged:", !!imageResults.undischarged)
+                console.log("- undischarged URL:", imageResults.undischarged)
+                setModalImages(finalImages)
             }
         } catch (error) {
-            console.error("이미지 로드 실패:", error)
+            console.error("❌ 이미지 로드 전체 실패:", error)
             setModalImages(null)
         } finally {
             setModalLoading(false)
         }
     }
 
-    // 필터링된 로그 데이터
+    // 필터링된 로그 데이터 - userData와 boxData가 로드된 후에만 필터링 수행
     const filteredLogData = logData.filter((logItem) => {
         const log = logItem.boxLog
 
@@ -495,11 +576,13 @@ const N_boxControlLogPage = () => {
             }
         }
 
-        if (logSearchTerm) {
+        // 검색어가 있고 userData와 boxData가 로드된 경우에만 검색 수행
+        if (logSearchTerm && userData.length > 0 && boxData.length > 0) {
             const searchTerm = logSearchTerm.toLowerCase()
-            const boxName = boxData.find((box) => box.id === log.boxId)?.name || ""
+            const boxName = getBoxName(log.boxId)
+            const userName = getUserName(log.userId)
 
-            return (getUserName(log.userId).toLowerCase().includes(searchTerm)) || boxName.toLowerCase().includes(searchTerm)
+            return userName.toLowerCase().includes(searchTerm) || boxName.toLowerCase().includes(searchTerm)
         }
 
         return true
@@ -588,18 +671,6 @@ const N_boxControlLogPage = () => {
         }
     }
 
-    // 박스 이름 가져오기
-    const getBoxName = (boxId) => {
-        const box = boxData.find((box) => box.id === boxId)
-        return box ? box.name : "알 수 없는 수거함"
-    }
-
-    // 사용자 이름 가져오기
-    const getUserName = (userId) => {
-        const user = userData.find((user) => user.id === userId)
-        return user ? user.name : "익명의 사용자"
-    }
-
     // 제어 상태 변경 핸들러
     const handleControlStateChange = async (controlType, newState) => {
         if (!selectedBox) return
@@ -679,7 +750,9 @@ const N_boxControlLogPage = () => {
 
                 setSelectedBox(updatedSelectedBox)
 
-                setBoxData((prevBoxData) => prevBoxData.map((box) => (box.id === latestSelectedBox.id ? updatedSelectedBox : box)))
+                setBoxData((prevBoxData) =>
+                    prevBoxData.map((box) => (box.id === latestSelectedBox.id ? updatedSelectedBox : box)),
+                )
 
                 console.log(`✅ UI 상태 즉시 업데이트 완료:`, updatedSelectedBox)
             } else {
@@ -1464,7 +1537,7 @@ const N_boxControlLogPage = () => {
                 </div>
             </div>
 
-            {/* 이미지 모달 */}
+            {/* 이미지 모달 - 개선된 버전 */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
@@ -1472,7 +1545,11 @@ const N_boxControlLogPage = () => {
                             <div className="flex justify-between items-center">
                                 <div>
                                     <h3 className="text-2xl font-bold text-gray-800">{modalTitle}</h3>
-                                    <p className="text-sm text-gray-600 mt-1">배출된 배터리 종류별 이미지와 수량을 확인하세요</p>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        {modalTitle === "수거 이미지"
+                                            ? "수거된 배터리 이미지를 확인하세요"
+                                            : "배출된 배터리 종류별 이미지와 수량을 확인하세요"}
+                                    </p>
                                 </div>
                                 <button
                                     onClick={() => {
@@ -1537,7 +1614,7 @@ const N_boxControlLogPage = () => {
                                             <div className="mt-4 text-center">
                                                 <div className="flex items-center justify-center gap-2 mb-2">
                                                     <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                                                    <p className="text-lg font-semibold text-blue-800">배터리</p>
+                                                    <p className="text-lg font-semibold text-blue-800">건전지</p>
                                                 </div>
                                                 <div className="bg-white rounded-lg px-3 py-2 inline-block shadow-sm">
                                                     <p className="text-sm text-gray-600">
@@ -1575,7 +1652,7 @@ const N_boxControlLogPage = () => {
                                         </div>
                                     )}
 
-                                    {/* 미방전 배터리 이미지 */}
+                                    {/* 미방전 배터리 이미지 - 수정된 표시 로직 */}
                                     {modalImages.undischarged && modalImages.quantities?.undischarged > 0 && (
                                         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200 shadow-sm hover:shadow-md transition-shadow">
                                             <div className="relative">
@@ -1583,9 +1660,16 @@ const N_boxControlLogPage = () => {
                                                     src={modalImages.undischarged || "/placeholder.svg"}
                                                     alt="미방전 배터리"
                                                     className="w-full h-48 object-cover rounded-lg border-2 border-white shadow-sm"
+                                                    onError={(e) => {
+                                                        console.error("❌ 미방전 배터리 이미지 표시 실패:", e.target.src)
+                                                        e.target.src = "/placeholder.svg"
+                                                    }}
+                                                    onLoad={() => {
+                                                        console.log("✅ 미방전 배터리 이미지 표시 성공")
+                                                    }}
                                                 />
                                                 <div className="absolute -top-2 -right-2 bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
-                                                    {modalImages.quantities.undischarged}
+                                                    {modalImages.quantities?.undischarged || 0}
                                                 </div>
                                             </div>
                                             <div className="mt-4 text-center">
@@ -1596,7 +1680,9 @@ const N_boxControlLogPage = () => {
                                                 <div className="bg-white rounded-lg px-3 py-2 inline-block shadow-sm">
                                                     <p className="text-sm text-gray-600">
                                                         수량:{" "}
-                                                        <span className="font-bold text-green-600">{modalImages.quantities.undischarged}개</span>
+                                                        <span className="font-bold text-green-600">
+            {modalImages.quantities?.undischarged || 0}개
+          </span>
                                                     </p>
                                                 </div>
                                             </div>
