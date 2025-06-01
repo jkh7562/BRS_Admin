@@ -122,7 +122,7 @@ const Topbar = () => {
                             type: "fire",
                             boxId: box.id,
                             location: box.name,
-                            timestamp: new Date().toISOString(),
+                            timestamp: box.fire_detected_at || box.updated_at || new Date().toISOString(), // 실제 화재 감지 시간 사용
                             priority: 1,
                         }))
 
@@ -587,7 +587,7 @@ const Topbar = () => {
                 alarmCounts[type] = {
                     count: 0,
                     priority: alarm.priority || 3,
-                    timestamp: alarm.timestamp || new Date().toISOString(),
+                    timestamp: alarm.timestamp || alarm.created_at || alarm.date || new Date().toISOString(),
                     type: type,
                     // 그룹의 첫 번째 알람 ID를 저장 (클릭 시 사용)
                     firstAlarmId: alarm.id,
@@ -596,8 +596,10 @@ const Topbar = () => {
             }
             alarmCounts[type].count++
 
-            if (alarm.timestamp && new Date(alarm.timestamp) > new Date(alarmCounts[type].timestamp)) {
-                alarmCounts[type].timestamp = alarm.timestamp
+            // 알람 테이블의 실제 날짜를 우선 사용
+            const alarmDate = alarm.timestamp || alarm.created_at || alarm.date || alarm.updated_at
+            if (alarmDate && new Date(alarmDate) > new Date(alarmCounts[type].timestamp)) {
+                alarmCounts[type].timestamp = alarmDate
             }
         })
 
