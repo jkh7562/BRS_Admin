@@ -132,10 +132,36 @@ const N_boxAddRemovePage = () => {
         setUploadProgress(0)
         setUploadStatus({})
 
-        const totalFiles = Object.keys(files).length
+        // 필수 파일 목록
+        const requiredFiles = [
+            "population",
+            "boundarycpg",
+            "boundarydbf",
+            "boundaryprj",
+            "boundaryshp",
+            "boundaryshx",
+            "fireStation",
+            "childSafety"
+        ]
 
-        if (totalFiles === 0) {
-            alert("업로드할 파일을 선택해주세요.")
+        // 누락된 파일 확인
+        const missingFiles = requiredFiles.filter(fileKey => !files[fileKey])
+
+        if (missingFiles.length > 0) {
+            // 누락된 파일 이름을 사용자 친화적으로 변환
+            const missingFileNames = missingFiles.map(fileKey => {
+                if (fileKey === "population") return "인구밀도 데이터"
+                if (fileKey === "boundarycpg") return "경계 데이터 (.cpg)"
+                if (fileKey === "boundarydbf") return "경계 데이터 (.dbf)"
+                if (fileKey === "boundaryprj") return "경계 데이터 (.prj)"
+                if (fileKey === "boundaryshp") return "경계 데이터 (.shp)"
+                if (fileKey === "boundaryshx") return "경계 데이터 (.shx)"
+                if (fileKey === "fireStation") return "119안전센터 현황"
+                if (fileKey === "childSafety") return "어린이보호구역 표준데이터"
+                return fileKey
+            })
+
+            alert(`다음 파일이 누락되었습니다:\n${missingFileNames.join('\n')}\n\n모든 필수 파일을 업로드해주세요.`)
             setIsUploading(false)
             return
         }
