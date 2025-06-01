@@ -16,7 +16,7 @@ import { fetchEmployeeRequests, getBoxLog, findAllBox } from "../../api/apiServi
 
 const N_mainPage = () => {
     const navigate = useNavigate()
-    const tabs = ["전체 수거함", "건전지", "방전 배터리", "잔여 용량 배터리"]
+    const tabs = ["전체 수거함", "건전지", "방전 배터리", "미방전 배터리"]
     const [selectedEmissionTab, setSelectedEmissionTab] = useState("전체 수거함")
     const [selectedCollectionTab, setSelectedCollectionTab] = useState("전체 수거함")
     const [selectedTab, setSelectedTab] = useState("전체 수거함")

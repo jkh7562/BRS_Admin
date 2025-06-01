@@ -1201,7 +1201,7 @@ const N_boxControlLogPage = () => {
                             <div className={`bg-white rounded-2xl px-6 py-5 shadow-sm ${isBoxBlocked ? "opacity-70" : ""}`}>
                                 <div className="flex justify-between items-center">
                                     <div>
-                                        <div className="text-[#60697E]">잔여 용량 배터리</div>
+                                        <div className="text-[#60697E]">미방전 배터리</div>
                                         <div className="text-xl text-[#21262B] font-bold">{statsData.activeBatteries}개</div>
                                     </div>
                                     <div className="flex flex-col items-end gap-2">

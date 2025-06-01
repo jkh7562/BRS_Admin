@@ -4,7 +4,7 @@ import TimeUnitControl from "./TimeUnitControl"
 import BarChartContainer from "./BarChartContainer"
 import { getBoxLog } from "../../api/apiServices"
 
-const tabs = ["전체 배출량", "건전지", "방전 배터리", "잔여 용량 배터리"]
+const tabs = ["전체 배출량", "건전지", "방전 배터리", "미방전 배터리"]
 
 const DischargeChart = () => {
     const [selectedTab, setSelectedTab] = useState("전체 배출량")
@@ -59,7 +59,7 @@ const DischargeChart = () => {
                         if (dischargedItem) {
                             grouped[key] += dischargedItem.count || 0
                         }
-                    } else if (selectedTab === "잔여 용량 배터리") {
+                    } else if (selectedTab === "미방전 배터리") {
                         // undischarged 타입만
                         const undischargedItem = items.find((item) => item.name === "notDischarged")
                         if (undischargedItem) {
