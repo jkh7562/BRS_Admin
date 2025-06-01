@@ -46,7 +46,7 @@ const UserDischargeChart = ({ boxLogs, userId, selectedPeriod, selectedBatteryTy
                         const batteryTypeMap = {
                             건전지: "battery",
                             "방전 배터리": "discharged",
-                            "잔여 용량 배터리": "undischarged",
+                            "잔여 용량 배터리": "notDischarged",
                         }
 
                         const targetType = batteryTypeMap[selectedBatteryType]

@@ -61,7 +61,7 @@ const DischargeChart = () => {
                         }
                     } else if (selectedTab === "잔여 용량 배터리") {
                         // undischarged 타입만
-                        const undischargedItem = items.find((item) => item.name === "undischarged")
+                        const undischargedItem = items.find((item) => item.name === "notDischarged")
                         if (undischargedItem) {
                             grouped[key] += undischargedItem.count || 0
                         }
