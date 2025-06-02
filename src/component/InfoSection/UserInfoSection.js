@@ -155,7 +155,7 @@ export default function UserInfoSection() {
                     const batteryTypeMap = {
                         건전지: "battery",
                         "방전 배터리": "discharged",
-                        "잔여 용량 배터리": "notDischarged",
+                        "미방전 배터리": "notDischarged",
                     }
 
                     const targetType = batteryTypeMap[batteryType]
@@ -359,7 +359,7 @@ export default function UserInfoSection() {
                                     <div className="relative">
                                         <div className="absolute bottom-0 left-0 w-full border-b border-gray-200" />
                                         <div className="flex gap-6">
-                                            {["전체", "건전지", "방전 배터리", "잔여 용량 배터리"].map((type) => (
+                                            {["전체", "건전지", "방전 배터리", "미방전 배터리"].map((type) => (
                                                 <button
                                                     key={type}
                                                     onClick={() => setSelectedBatteryType(type)}
