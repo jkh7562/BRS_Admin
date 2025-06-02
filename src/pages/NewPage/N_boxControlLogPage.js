@@ -25,7 +25,7 @@ import {
 const parseCoordinates = (location) => {
     if (!location) return 0
 
-    const coordsMatch = location.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/)
+    const coordsMatch = location.match(/POINT\s*\(\s*([-\d\.]+)\s+([-\d\.]+)\s*\)/ )
     if (coordsMatch) {
         return {
             lng: Number.parseFloat(coordsMatch[1]),
@@ -430,7 +430,7 @@ const N_boxControlLogPage = () => {
                     const quantities = {
                         battery: 0,
                         discharged: 0,
-                        undischarged: 0,
+                        notDischarged: 0,
                     }
 
                     console.log("🔍 수거 로그 Items 배열 분석:")
@@ -450,12 +450,12 @@ const N_boxControlLogPage = () => {
                             quantities.discharged = item.count
                             console.log("✅ 방전 배터리 수량 설정:", item.count)
                         } else if (
-                            itemName === "undischarged" ||
+                            itemName === "notDischarged" ||
                             itemName === "미방전" ||
                             itemName === "미방전배터리" ||
                             itemName === "notdischarged"
                         ) {
-                            quantities.undischarged = item.count
+                            quantities.notDischarged = item.count
                             console.log("✅ 미방전 배터리 수량 설정:", item.count)
                         }
                     })
@@ -477,7 +477,7 @@ const N_boxControlLogPage = () => {
                 const imageResults = {
                     battery: null,
                     discharged: null,
-                    undischarged: null,
+                    notDischarged: null,
                 }
 
                 // 배터리 이미지 로딩
@@ -507,12 +507,12 @@ const N_boxControlLogPage = () => {
                 // 미방전 배터리 이미지 로딩 - 개선된 로직
                 try {
                     console.log("📡 미방전 배터리 이미지 API 호출...")
-                    const undischargedImage = await getUndischargedImage(logId)
-                    console.log("🔍 미방전 배터리 이미지 응답:", undischargedImage)
-                    console.log("🔍 응답 타입:", typeof undischargedImage)
+                    const notDischargedImage = await getUndischargedImage(logId)
+                    console.log("🔍 미방전 배터리 이미지 응답:", notDischargedImage)
+                    console.log("🔍 응답 타입:", typeof notDischargedImage)
 
-                    if (undischargedImage) {
-                        imageResults.undischarged = undischargedImage
+                    if (notDischargedImage) {
+                        imageResults.notDischarged = notDischargedImage
                         console.log("✅ 미방전 배터리 이미지 로드 성공")
                     } else {
                         console.log("⚠️ 미방전 배터리 이미지가 null 또는 undefined")
@@ -530,7 +530,7 @@ const N_boxControlLogPage = () => {
                 const quantities = {
                     battery: 0,
                     discharged: 0,
-                    undischarged: 0,
+                    notDischarged: 0,
                 }
 
                 console.log("🔍 Items 배열 상세 분석:")
@@ -551,12 +551,12 @@ const N_boxControlLogPage = () => {
                         quantities.discharged = item.count
                         console.log("✅ 방전 배터리 수량 설정:", item.count)
                     } else if (
-                        itemName === "undischarged" ||
+                        itemName === "notDischarged" ||
                         itemName === "미방전" ||
                         itemName === "미방전배터리" ||
                         itemName === "notdischarged"
                     ) {
-                        quantities.undischarged = item.count
+                        quantities.notDischarged = item.count
                         console.log("✅ 미방전 배터리 수량 설정:", item.count)
                     } else {
                         console.log("⚠️ 알 수 없는 아이템 타입:", item.name)
@@ -578,8 +578,8 @@ const N_boxControlLogPage = () => {
                 console.log("🖼️ 최종 이미지 결과 상세:")
                 console.log("- battery:", !!imageResults.battery)
                 console.log("- discharged:", !!imageResults.discharged)
-                console.log("- undischarged:", !!imageResults.undischarged)
-                console.log("- undischarged URL:", imageResults.undischarged)
+                console.log("- notDischarged:", !!imageResults.notDischarged)
+                console.log("- notDischarged URL:", imageResults.notDischarged)
                 setModalImages(finalImages)
             }
         } catch (error) {
@@ -628,25 +628,37 @@ const N_boxControlLogPage = () => {
         return true
     })
 
-    // 통계 데이터
+    // 통계 데이터 - status가 '분리 중', '수거 전' 상태일 때만 카운트
     const statsData = {
         totalBoxes: isLogLoading
             ? 0
             : logData.reduce((total, logItem) => {
-                const batteryItem = logItem.items?.find((item) => item.name === "battery")
-                return total + (batteryItem?.count || 0)
+                // status가 '분리 중' 또는 '수거 전'인 경우만 카운트
+                if (logItem.boxLog.status === "분리 중" || logItem.boxLog.status === "수거 전") {
+                    const batteryItem = logItem.items?.find((item) => item.name === "battery")
+                    return total + (batteryItem?.count || 0)
+                }
+                return total
             }, 0),
         batteryCount: isLogLoading
             ? 0
             : logData.reduce((total, logItem) => {
-                const dischargedItem = logItem.items?.find((item) => item.name === "discharged")
-                return total + (dischargedItem?.count || 0)
+                // status가 '분리 중' 또는 '수거 전'인 경우만 카운트
+                if (logItem.boxLog.status === "분리 중" || logItem.boxLog.status === "수거 전") {
+                    const dischargedItem = logItem.items?.find((item) => item.name === "discharged")
+                    return total + (dischargedItem?.count || 0)
+                }
+                return total
             }, 0),
         activeBatteries: isLogLoading
             ? 0
             : logData.reduce((total, logItem) => {
-                const undischargedItem = logItem.items?.find((item) => item.name === "undischarged")
-                return total + (undischargedItem?.count || 0)
+                // status가 '분리 중' 또는 '수거 전'인 경우만 카운트
+                if (logItem.boxLog.status === "분리 중" || logItem.boxLog.status === "수거 전") {
+                    const notDischargedItem = logItem.items?.find((item) => item.name === "notDischarged")
+                    return total + (notDischargedItem?.count || 0)
+                }
+                return total
             }, 0),
     }
 
@@ -711,7 +723,7 @@ const N_boxControlLogPage = () => {
         }
     }
 
-    // 제어 상태 변경 핸들러
+    // 제어 상태 변경 핸들러 - 즉시 UI 업데이트
     const handleControlStateChange = async (controlType, newState) => {
         if (!selectedBox) return
 
@@ -719,31 +731,15 @@ const N_boxControlLogPage = () => {
             setIsControlLoading(true)
             setControlError(null)
 
-            // 먼저 최신 박스 데이터를 가져와서 상태 확인
-            const response = await findAllBox()
-            const filteredBoxes = response.filter((box) =>
-                ["INSTALL_CONFIRMED", "REMOVE_REQUEST", "REMOVE_IN_PROGRESS"].includes(box.installStatus),
-            )
-
-            // 현재 선택된 박스의 최신 정보 가져오기
-            const latestSelectedBox = filteredBoxes.find((box) => box.id === selectedBox.id)
-            if (!latestSelectedBox) {
-                alert("선택된 수거함 정보를 찾을 수 없습니다.")
-                return
-            }
-
-            // 최신 데이터로 상태 업데이트
-            setBoxData(filteredBoxes)
-            setSelectedBox(latestSelectedBox)
-
-            // 최신 데이터로 차단 상태 확인
-            if (latestSelectedBox.blocked) {
+            // 차단 상태 확인
+            if (selectedBox.blocked) {
                 alert("수거함이 차단된 상태입니다.")
                 return
             }
 
+            // 다른 입구가 열려있는지 확인 (개방하려는 경우)
             if (newState === true) {
-                const currentStates = getControlStates(latestSelectedBox)
+                const currentStates = getControlStates()
                 const openCompartments = []
 
                 if (currentStates.battery.isOpen) openCompartments.push("건전지")
@@ -758,45 +754,43 @@ const N_boxControlLogPage = () => {
                 }
             }
 
-            console.log(`🔍 제어 요청 정보:`, {
-                boxId: latestSelectedBox.id,
-                controlType,
-                newState,
-            })
+            // 1. 즉시 UI 상태 업데이트 (낙관적 업데이트)
+            const updatedSelectedBox = { ...selectedBox }
+            switch (controlType) {
+                case "battery":
+                    updatedSelectedBox.store1 = newState ? 1 : 0
+                    break
+                case "dischargedBattery":
+                    updatedSelectedBox.store2 = newState ? 1 : 0
+                    break
+                case "remainingCapacityBattery":
+                    updatedSelectedBox.store3 = newState ? 1 : 0
+                    break
+                case "collectorEntrance":
+                    updatedSelectedBox.store4 = newState ? 1 : 0
+                    break
+            }
 
-            const result = await controlBoxCompartment(latestSelectedBox.id, controlType, newState)
+            // 즉시 상태 업데이트
+            setSelectedBox(updatedSelectedBox)
+            setBoxData((prevBoxData) => prevBoxData.map((box) => (box.id === selectedBox.id ? updatedSelectedBox : box)))
 
-            console.log(`📡 API 응답:`, result)
+            console.log(`✅ UI 상태 즉시 업데이트 완료: ${controlType} -> ${newState ? "개방" : "폐쇄"}`)
 
-            if (result && (result.status === "200" || result.status === "Fail")) {
-                console.log(`✅ 제어 명령 전송 완료: ${controlType} -> ${newState ? "개방" : "폐쇄"}`)
+            // 2. 백그라운드에서 API 호출 (UI 블로킹 없이)
+            try {
+                const result = await controlBoxCompartment(selectedBox.id, controlType, newState)
+                console.log(`📡 API 응답:`, result)
 
-                const updatedSelectedBox = { ...latestSelectedBox }
-
-                switch (controlType) {
-                    case "battery":
-                        updatedSelectedBox.store1 = newState ? 1 : 0
-                        break
-                    case "dischargedBattery":
-                        updatedSelectedBox.store2 = newState ? 1 : 0
-                        break
-                    case "remainingCapacityBattery":
-                        updatedSelectedBox.store3 = newState ? 1 : 0
-                        break
-                    case "collectorEntrance":
-                        updatedSelectedBox.store4 = newState ? 1 : 0
-                        break
+                if (result && (result.status === "200" || result.status === "Fail")) {
+                    console.log(`✅ 제어 명령 전송 완료`)
+                } else {
+                    console.warn("예상하지 못한 API 응답:", result)
                 }
-
-                setSelectedBox(updatedSelectedBox)
-
-                setBoxData((prevBoxData) =>
-                    prevBoxData.map((box) => (box.id === latestSelectedBox.id ? updatedSelectedBox : box)),
-                )
-
-                console.log(`✅ UI 상태 즉시 업데이트 완료:`, updatedSelectedBox)
-            } else {
-                throw new Error("예상하지 못한 응답 형식")
+            } catch (apiError) {
+                console.error("❌ API 호출 실패:", apiError)
+                // API 실패 시에도 UI는 이미 업데이트되어 있으므로 사용자에게는 즉시 반영된 것처럼 보임
+                // 필요하다면 여기서 에러 알림을 표시할 수 있음
             }
         } catch (error) {
         } finally {
@@ -804,7 +798,7 @@ const N_boxControlLogPage = () => {
         }
     }
 
-    // 박스 차단 상태 변경 핸들러
+    // 박스 차단 상태 변경 핸들러 - 즉시 UI 업데이트
     const handleBoxBlockToggle = async () => {
         if (!selectedBox) return
 
@@ -812,27 +806,10 @@ const N_boxControlLogPage = () => {
             setIsBlockLoading(true)
             setBlockError(null)
 
-            // 먼저 최신 박스 데이터를 가져와서 상태 확인
-            const response = await findAllBox()
-            const filteredBoxes = response.filter((box) =>
-                ["INSTALL_CONFIRMED", "REMOVE_REQUEST", "REMOVE_IN_PROGRESS"].includes(box.installStatus),
-            )
+            const currentlyBlocked = getBoxBlockedState()
 
-            // 현재 선택된 박스의 최신 정보 가져오기
-            const latestSelectedBox = filteredBoxes.find((box) => box.id === selectedBox.id)
-            if (!latestSelectedBox) {
-                alert("선택된 수거함 정보를 찾을 수 없습니다.")
-                return
-            }
-
-            // 최신 데이터로 상태 업데이트
-            setBoxData(filteredBoxes)
-            setSelectedBox(latestSelectedBox)
-
-            const currentlyBlocked = latestSelectedBox.blocked
-
-            // 4개 입구 중 하나라도 열려있는지 확인 (최신 데이터 기준)
-            const controlStates = getControlStates(latestSelectedBox)
+            // 4개 입구 중 하나라도 열려있는지 확인
+            const controlStates = getControlStates()
             const hasOpenCompartment =
                 controlStates.battery.isOpen ||
                 controlStates.dischargedBattery.isOpen ||
@@ -845,32 +822,32 @@ const N_boxControlLogPage = () => {
                 return
             }
 
-            console.log(`🔍 차단 상태 토글 요청:`, {
-                boxId: latestSelectedBox.id,
-                currentlyBlocked,
-                hasOpenCompartment,
-                controlStates,
-            })
-
-            // 일반 차단/해제만 사용
-            const result = await blockBox(latestSelectedBox.id)
-            const actionText = currentlyBlocked ? "해제" : "차단"
-
-            console.log(`✅ 수거함 ${actionText} 성공:`, result)
-
-            // 박스 데이터 다시 새로고침
-            const finalResponse = await findAllBox()
-            const finalFilteredBoxes = finalResponse.filter((box) =>
-                ["INSTALL_CONFIRMED", "REMOVE_REQUEST", "REMOVE_IN_PROGRESS"].includes(box.installStatus),
+            // 1. 즉시 UI 상태 업데이트
+            const updatedSelectedBox = {
+                ...selectedBox,
+                usageStatus: currentlyBlocked ? "ACTIVE" : "BLOCKED"
+            }
+            setSelectedBox(updatedSelectedBox)
+            setBoxData((prevBoxData) =>
+                prevBoxData.map((box) =>
+                    box.id === selectedBox.id ? updatedSelectedBox : box
+                )
             )
-            setBoxData(finalFilteredBoxes)
 
-            // 현재 선택된 박스 정보 업데이트
-            const updatedSelectedBox = finalFilteredBoxes.find((box) => box.id === latestSelectedBox.id)
-            if (updatedSelectedBox) {
-                setSelectedBox(updatedSelectedBox)
+            const actionText = currentlyBlocked ? "해제" : "차단"
+            console.log(`✅ 수거함 ${actionText} UI 즉시 업데이트 완료`)
+
+            // 2. 백그라운드에서 API 호출
+            try {
+                const result = await blockBox(selectedBox.id)
+                console.log(`✅ 수거함 ${actionText} API 호출 성공:`, result)
+            } catch (apiError) {
+                console.error("❌ 차단 API 호출 실패:", apiError)
+                // API 실패 시에도 UI는 이미 업데이트되어 있음
             }
         } catch (error) {
+            console.error("❌ 차단 처리 실패:", error)
+            setBlockError("차단 상태 변경 중 오류가 발생했습니다.")
         } finally {
             setIsBlockLoading(false)
         }
@@ -1670,13 +1647,15 @@ const N_boxControlLogPage = () => {
                                                 )}
 
                                                 {/* 미방전 배터리 수량 */}
-                                                {modalImages.quantities.undischarged > 0 && (
+                                                {modalImages.quantities.notDischarged > 0 && (
                                                     <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200 text-center">
                                                         <div className="flex items-center justify-center gap-2 mb-2">
                                                             <div className="w-3 h-3 bg-green-600 rounded-full"></div>
                                                             <p className="text-sm font-semibold text-green-800">미방전 배터리</p>
                                                         </div>
-                                                        <p className="text-2xl font-bold text-green-600">{modalImages.quantities.undischarged}개</p>
+                                                        <p className="text-2xl font-bold text-green-600">
+                                                            {modalImages.quantities.notDischarged}개
+                                                        </p>
                                                     </div>
                                                 )}
                                             </div>
@@ -1688,7 +1667,7 @@ const N_boxControlLogPage = () => {
                                                     <span className="text-blue-600">
                             {(modalImages.quantities.battery || 0) +
                                 (modalImages.quantities.discharged || 0) +
-                                (modalImages.quantities.undischarged || 0)}
+                                (modalImages.quantities.notDischarged || 0)}
                                                         개
                           </span>
                                                 </p>
@@ -1753,11 +1732,11 @@ const N_boxControlLogPage = () => {
                                     )}
 
                                     {/* 미방전 배터리 이미지 - 수정된 표시 로직 */}
-                                    {modalImages.undischarged && modalImages.quantities?.undischarged > 0 && (
+                                    {modalImages.notDischarged && modalImages.quantities?.notDischarged > 0 && (
                                         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200 shadow-sm hover:shadow-md transition-shadow">
                                             <div className="relative">
                                                 <img
-                                                    src={modalImages.undischarged || "/placeholder.svg"}
+                                                    src={modalImages.notDischarged || "/placeholder.svg"}
                                                     alt="미방전 배터리"
                                                     className="w-full h-48 object-cover rounded-lg border-2 border-white shadow-sm"
                                                     onError={(e) => {
@@ -1769,7 +1748,7 @@ const N_boxControlLogPage = () => {
                                                     }}
                                                 />
                                                 <div className="absolute -top-2 -right-2 bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
-                                                    {modalImages.quantities?.undischarged || 0}
+                                                    {modalImages.quantities?.notDischarged || 0}
                                                 </div>
                                             </div>
                                             <div className="mt-4 text-center">
@@ -1781,7 +1760,7 @@ const N_boxControlLogPage = () => {
                                                     <p className="text-sm text-gray-600">
                                                         수량:{" "}
                                                         <span className="font-bold text-green-600">
-                              {modalImages.quantities?.undischarged || 0}개
+                              {modalImages.quantities?.notDischarged || 0}개
                             </span>
                                                     </p>
                                                 </div>
@@ -1792,7 +1771,7 @@ const N_boxControlLogPage = () => {
                                     {/* 표시할 배터리 타입이 없는 경우 */}
                                     {(!modalImages.battery || modalImages.quantities?.battery <= 0) &&
                                         (!modalImages.discharged || modalImages.quantities?.discharged <= 0) &&
-                                        (!modalImages.undischarged || modalImages.quantities?.undischarged <= 0) && (
+                                        (!modalImages.notDischarged || modalImages.quantities?.notDischarged <= 0) && (
                                             <div className="col-span-full">
                                                 <div className="text-center py-16 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
                                                     <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">

@@ -99,24 +99,26 @@ const N_OrderHistoryPage = () => {
                 const itemName = ITEM_MAPPING[item.itemId] || "알 수 없는 상품"
                 const koreanName = getKoreanItemName(itemName)
 
-                // item.price는 이미 (개별가격 × 수량)의 총 가격이므로
-                // 개별 가격을 계산하려면 총 가격을 수량으로 나누어야 함
-                const unitPrice = Math.round(item.price / item.count)
+                const unitPrice = item.price
 
                 return {
                     name: koreanName,
                     unitPrice: unitPrice, // 개별 가격
                     quantity: item.count,
-                    totalPrice: item.price, // 이미 총 가격
+                    totalPrice: unitPrice * item.count, // 단가 × 수량 = 소계
                 }
             })
+
+            // 주문 총액 검증 및 수정
+            const calculatedTotal = formattedItems.reduce((sum, item) => sum + item.totalPrice, 0)
+            const totalAmount = calculatedTotal // 계산된 총액 사용
 
             return {
                 id: order.id,
                 userId: order.userId,
                 date: formattedDate,
                 time: formattedTime,
-                totalAmount: order.totalPrice,
+                totalAmount: formattedItems.reduce((sum, item) => sum + item.totalPrice, 0), // 계산된 총액
                 items: formattedItems,
                 expanded: false,
                 originalDate: order.date,
